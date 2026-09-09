@@ -1,0 +1,70 @@
+{
+  "$comment": "EXAMPLE ONLY — not loaded. Copy to 'scenario.json' (same folder) to activate, or let the Scenario Architect Copilot agent generate one. The loader reads config/scenario.json; with no such file the app runs on neutral defaults (generic branding + empty council). Each persona may set an optional 'avatar' (image shown in the chamber in place of initials): a path served from wwwroot/ (e.g. 'branding/avatars/my-chair.svg') or an absolute URL. Omit it to use the built-in role default (chair / moderator / nexus / member).",
+
+  "branding": {
+    "organisation": "Contoso Engineering",
+    "appName": "Architecture Review Board",
+    "tagline": "Design decisions, deliberated by a council of expert agents.",
+    "emblem": "🏛️"
+  },
+
+  "groundingDomains": ["learn.microsoft.com", "azure.github.io"],
+
+  "council": {
+    "chair": {
+      "id": "chair",
+      "name": "Review Board Chair",
+      "role": "Decision Synthesiser",
+      "description": "Synthesises the board's opinions into a single architecture decision record.",
+      "tier": "Synthesis",
+      "promptFile": "chair.md",
+      "avatar": "branding/avatars/my-chair.svg"
+    },
+    "moderator": {
+      "id": "moderator",
+      "name": "Board Moderator",
+      "role": "Speaker Selection",
+      "description": "Decides which board member speaks next. Routing only.",
+      "tier": "Fast",
+      "promptFile": "moderator.md"
+    },
+    "nexusAnalyst": {
+      "id": "nexus-analyst",
+      "name": "Nexus Analyst",
+      "role": "Cross-Decision Interconnection Discovery",
+      "description": "Discovers interconnections between this decision and prior ones.",
+      "tier": "Synthesis",
+      "promptFile": "nexus-analyst.md"
+    },
+    "members": [
+      {
+        "id": "security",
+        "name": "Security Architect",
+        "role": "Threat Modelling & Zero Trust",
+        "description": "Assesses the design against Zero Trust, identity, and data-protection principles.",
+        "tier": "Reasoning",
+        "knowledgeDomains": ["learn.microsoft.com"],
+        "promptFile": "security.md",
+        "avatar": "branding/avatars/security.png"
+      },
+      {
+        "id": "reliability",
+        "name": "Reliability Engineer",
+        "role": "Resilience & Operations",
+        "description": "Evaluates availability, failure modes, and operational readiness.",
+        "tier": "Reasoning",
+        "knowledgeDomains": ["learn.microsoft.com"],
+        "promptFile": "reliability.md"
+      },
+      {
+        "id": "cost",
+        "name": "Cost & FinOps Lead",
+        "role": "Cost Efficiency",
+        "description": "Challenges the design on cost, sizing, and commercial efficiency.",
+        "tier": "Reasoning",
+        "knowledgeDomains": ["azure.microsoft.com"],
+        "promptFile": "cost.md"
+      }
+    ]
+  }
+}

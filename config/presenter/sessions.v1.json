@@ -1,0 +1,136 @@
+{
+  "version": 1,
+  "sessions": [
+    {
+      "id": "foundation",
+      "title": "Foundation",
+      "proof": "Test whether a no-tools model can distinguish three different controls for a low-value letter of comfort. Do not assume it will be wrong.",
+      "launchUrl": "http://localhost:5090/",
+      "launchLabel": "Open comparison",
+      "links": [
+        {
+          "label": "Open Foundation in Foundry",
+          "url": "https://ai.azure.com",
+          "kind": "playground"
+        }
+      ],
+      "input": "A department proposes a non-statutory letter of comfort supporting a private provider. Maximum exposure is GBP 240,000, within its GBP 500,000 delegation. The letter is not a type routinely used in commercial business. The team says its non-binding wording and the amount being below GBP 300,000 remove the need for Treasury approval and Parliamentary notification. They also treat the Contingent Liability approval framework checklist as having the same threshold. Under Managing Public Money, is that analysis valid? Distinguish Treasury approval, Parliamentary notification, and the mandatory checklist submission threshold. Apply each rule to these facts.",
+      "tabNote": "Use one shared prompt in the comparison UI. Select Compare both agents once to start both agents concurrently. Read the results independently as each completes. Compare the route, notification decision, and checklist threshold. Use the Foundation Foundry link only as an alternative.",
+      "savedResultFallback": "Open docs\\runbooks\\ground-comparison.md. Show the saved MPM-005 Foundation excerpt and state that it is a saved result.",
+      "warmUp": {
+        "kind": "foundry",
+        "endpoint": "https://ais-demo1-hgbbpoufmdchm.services.ai.azure.com/openai/v1/responses",
+        "modelDeployment": "gpt-5-mini"
+      }
+    },
+    {
+      "id": "ground",
+      "title": "Ground",
+      "proof": "Compare the same prompt and model using verbatim source blockquotes and explicit fact-to-rule explanations. Grounding does not guarantee correctness.",
+      "launchUrl": "http://localhost:5090/",
+      "launchLabel": "Open comparison",
+      "links": [
+        {
+          "label": "Open Ground in Foundry",
+          "url": "https://ai.azure.com",
+          "kind": "playground"
+        }
+      ],
+      "input": "A department proposes a non-statutory letter of comfort supporting a private provider. Maximum exposure is GBP 240,000, within its GBP 500,000 delegation. The letter is not a type routinely used in commercial business. The team says its non-binding wording and the amount being below GBP 300,000 remove the need for Treasury approval and Parliamentary notification. They also treat the Contingent Liability approval framework checklist as having the same threshold. Under Managing Public Money, is that analysis valid? Distinguish Treasury approval, Parliamentary notification, and the mandatory checklist submission threshold. Apply each rule to these facts.",
+      "tabNote": "Use the Ground result from the same shared prompt and Compare both agents run. Read the results independently as each completes. Inspect the retrieved text, blockquotes, and Application. Compare approval, notification, and the GBP 3 million checklist threshold separately. Reject unsupported quotations. Use the Ground Foundry link only as an alternative.",
+      "savedResultFallback": "Open docs\\runbooks\\ground-comparison.md. Show the saved MPM-005 comparison and pinned source extracts. State that it is saved, not a live success.",
+      "warmUp": {
+        "kind": "foundry",
+        "endpoint": "https://ais-demo1-hgbbpoufmdchm.services.ai.azure.com/openai/v1/responses",
+        "modelDeployment": "gpt-5-mini"
+      }
+    },
+    {
+      "id": "act",
+      "title": "Act",
+      "proof": "The agent reconciles conflicting flood reports and proposes a bounded support package. Human approval controls the reservation.",
+      "launchUrl": "https://act-not-deployed.invalid/",
+      "input": "Riverton Council reports that flooding has displaced 180 households. Emergency accommodation will reach capacity by 18:00. Twelve households need accessible rooms. Transport is required for 120 people, including four accessible transport places. A neighbouring government training centre reported 90 available rooms yesterday, but its latest report lists 60. Assess AREA-1001, reconcile the reports, check accommodation and transport, and prepare a 24-hour support package for incident commander approval. State the requested resources, estimated cost, evidence, unresolved risks, and unmet needs. Use aggregate requirements only. Do not decide eligibility or evacuation.",
+      "tabNote": "Use AREA-1001 on the Act home page. Run the assessment. At the approval modal, explain the rooms, coaches, duration, estimated cost, justification, evidence, and unmet needs. Approve or reject the exact reserveSupportPackage request. Show the reservation receipt and the /admin record.",
+      "savedResultFallback": "Use a saved flood-support result only when one exists, and identify it as saved. Otherwise omit the live action. Do not present an old welfare result as this scenario.",
+      "warmUp": {
+        "kind": "local-app",
+        "endpoint": "https://act-not-deployed.invalid/health"
+      }
+    },
+    {
+      "id": "cross-government-coordinate",
+      "title": "Cross-Government Coordinate",
+      "proof": "Six assurance roles preserve conditions, risks, citations, and material dissent.",
+      "launchUrl": "http://localhost:5080/dossiers",
+      "input": "Upload demo-dossiers\\cross-government\\dossier-shared-ai-service.md. The other Cross-Government scenarios are in the same folder.",
+      "tabNote": "Use the Cross-Government Dossiers tab. Keep Content safety at Standard. Upload the Dossier. Start a Deliberation. Open the produced Assessment. Six assurance roles state conditions, risks, and preserved dissent.",
+      "savedResultFallback": "Open Assessments, select the rehearsed Shared AI Service assessment, and state that it is a saved result.",
+      "warmUp": {
+        "kind": "local-app",
+        "endpoint": "http://localhost:5080/"
+      }
+    },
+    {
+      "id": "patriots-coordinate",
+      "title": "Patriots Coordinate",
+      "optional": true,
+      "configured": false,
+      "proof": "A comparable dossier supports a controlled comparison with the separate Patriots council.",
+      "launchUrl": "",
+      "input": "Upload demo-dossiers\\patriots\\01-puppet-president.md.",
+      "tabNote": "Use the local application from the external azure-ai-mgs-patriots repository. Upload its own dossier. Record its model, grounding, and runtime settings.",
+      "savedResultFallback": "Open the rehearsed Patriots result for its dossier and state that it is a saved result.",
+      "warmUp": {
+        "kind": "disabled",
+        "endpoint": ""
+      }
+    },
+    {
+      "id": "hosted",
+      "title": "Hosted",
+      "optional": true,
+      "proof": "A hosted agent reads and writes validated Memory across four cases: it matches a recurrence, rules out a near-match, and skips an unrelated control.",
+      "launchUrl": "https://app-demo4-3ppdppzg6qni6.azurewebsites.net/",
+      "launchLabel": "Open application",
+      "input": "Run these four assessments in order. Open the Memory notebook between each run.\n1. Assess case CG-8101. A grants administration body released supplier payments and the assurance evidence is missing.\n2. Assess case CG-8202. Check whether another public body has already recorded a related control failure.\n3. Assess case CG-8303. Check whether a related control failure elsewhere explains the current evidence.\n4. Assess case CG-8404. A public audit body reports an overdue records retention schedule.",
+      "tabNote": "Use this reserve only when the hosted-agent preview is ready. Run CG-8101, CG-8202, CG-8303, then CG-8404 in order. Open the Memory notebook after each run and point out the matched result (CG-8202), the ruled-out result (CG-8303), and the skipped result (CG-8101 and CG-8404). Keep the verified ledger visible.",
+      "savedResultFallback": "Show the saved CG-8101, CG-8202, CG-8303, and CG-8404 results and the visible Memory notebook. State that they are saved results.",
+      "warmUp": {
+        "kind": "demo4",
+        "endpoint": "https://app-demo4-3ppdppzg6qni6.azurewebsites.net/health"
+      },
+      "links": [
+        {
+          "label": "Open agent playground",
+          "url": "https://ai.azure.com/build/agents/replace-hosted-agent",
+          "kind": "playground"
+        },
+        {
+          "label": "Open hosted-agent code in VS Code",
+          "url": "vscode://file/C:/repository-root/src/PublicSectorAgentDemos.Demo4.HostedAgents",
+          "kind": "vscode"
+        }
+      ]
+    }
+  ],
+  "extras": [
+    {
+      "id": "tokens-and-credits",
+      "title": "Tokens and Credits",
+      "optional": true,
+      "configured": false,
+      "startupStatus": "not-configured",
+      "proof": "Inspect local tokenization without a model call. Cloud features remain optional.",
+      "launchUrl": "",
+      "launchLabel": "Open Tokens and Credits",
+      "input": "Use the local tokenization view. Enter a short example and inspect the token boundaries.",
+      "tabNote": "This extra is separate from the six demonstration sessions. Local tokenization needs no cloud model. Model, image, and live embedding requests can incur charges.",
+      "savedResultFallback": "If the optional application is unavailable, omit this extra. Continue with the main sessions.",
+      "warmUp": {
+        "kind": "disabled",
+        "endpoint": ""
+      }
+    }
+  ]
+}

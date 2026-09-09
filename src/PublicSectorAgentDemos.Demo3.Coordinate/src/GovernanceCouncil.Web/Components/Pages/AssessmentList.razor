@@ -1,0 +1,87 @@
+@page "/assessments"
+@using GovernanceCouncil.Core.Interfaces
+@using GovernanceCouncil.Core.Models
+@inject IAssessmentStore AssessmentStore
+@inject INexusStore NexusStore
+@rendermode InteractiveServer
+
+<PageTitle>All Assessments</PageTitle>
+
+<header class="gc-page-head">
+    <span class="gc-eyebrow">Deliberation</span>
+    <h1>Assessments</h1>
+    <p class="lead">All council assessment results.</p>
+</header>
+
+@if (!string.IsNullOrEmpty(_message))
+{
+    <div class="gc-card gc-note mb-3">@_message</div>
+}
+
+@if (_assessments is null)
+{
+    <p class="text-muted">Loading…</p>
+}
+else if (!_assessments.Any())
+{
+    <div class="gc-card gc-empty">No assessments yet. <a href="/dossiers">Upload a dossier</a> and submit it for deliberation.</div>
+}
+else
+{
+    <div class="gc-card gc-grid-card">
+        <FluentDataGrid Items="@_assessments.AsQueryable()" TGridItem="Assessment" GridTemplateColumns="1fr 2.4fr 1.6fr 1.4fr 1.4fr" Class="gc-grid">
+            <TemplateColumn Title="ID">
+                <a href="/assessment/@context.AssessmentId">@context.AssessmentId</a>
+            </TemplateColumn>
+            <TemplateColumn Title="Dossier">
+                <a href="/dossier/@context.DossierId">@context.DossierTitle</a>
+            </TemplateColumn>
+            <TemplateColumn Title="Recommendation">
+                <span class="gc-pill @UiStyles.StanceClass(context.OverallRecommendation)">@context.OverallRecommendation</span>
+            </TemplateColumn>
+            <TemplateColumn Title="Date">
+                <span class="text-muted">@context.ReviewDate.ToString("dd MMM yyyy HH:mm")</span>
+            </TemplateColumn>
+            <TemplateColumn Title="Actions" Align="Align.End">
+                <FluentAnchor Href="@($"/assessment/{context.AssessmentId}")" Appearance="Appearance.Accent">View</FluentAnchor>
+                <FluentButton Appearance="Appearance.Stealth" OnClick="@(() => DeleteAssessment(context.AssessmentId))">Delete</FluentButton>
+            </TemplateColumn>
+        </FluentDataGrid>
+    </div>
+}
+
+@code {
+    private IReadOnlyList<Assessment>? _assessments;
+    private string _message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var all = await AssessmentStore.ListAsync();
+        _assessments = all.OrderByDescending(a => a.ReviewDate).ToList();
+    }
+
+    private async Task DeleteAssessment(string assessmentId)
+    {
+        _message = "";
+        try
+        {
+            // Delete all nexuses where this assessment is source or target
+            var nexuses = await NexusStore.ListForAssessmentAsync(assessmentId);
+            foreach (var n in nexuses)
+                await NexusStore.DeleteAsync(n.Id, n.SourceAssessmentId);
+
+            // Delete the assessment
+            await AssessmentStore.DeleteAsync(assessmentId);
+
+            _message = $"Deleted assessment {assessmentId} and {nexuses.Count} associated nexuses.";
+            var all = await AssessmentStore.ListAsync();
+            _assessments = all.OrderByDescending(a => a.ReviewDate).ToList();
+        }
+        catch (Exception ex)
+        {
+            _message = $"❌ Delete failed: {ex.Message}";
+        }
+    }
+
+    private static string RecommendationBadge(string rec) => UiStyles.StanceClass(rec);
+}

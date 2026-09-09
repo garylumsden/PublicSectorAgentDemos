@@ -1,0 +1,14 @@
+name: agent-council
+metadata:
+  template: agent-council@0.0.1
+infra:
+  provider: bicep
+  path: infra
+hooks:
+  postprovision:
+    windows:
+      shell: pwsh
+      run: ./infra/hooks/postprovision.ps1
+    posix:
+      shell: sh
+      run: ./infra/hooks/postprovision.sh

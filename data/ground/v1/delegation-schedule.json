@@ -1,0 +1,39 @@
+{
+  "dataVersion": "v1",
+  "scheduleId": "delegation-schedule-2026",
+  "currency": "GBP",
+  "effectiveFrom": "2026-01-01",
+  "effectiveTo": "2026-12-31",
+  "delegations": [
+    {
+      "role": "Budget Holder",
+      "transactionType": "routine-operating",
+      "maximumAmount": 250000,
+      "conditions": [
+        "approved-budget",
+        "existing-policy",
+        "not-novel-contentious-or-repercussive"
+      ]
+    },
+    {
+      "role": "Finance Director",
+      "transactionType": "routine-operating",
+      "maximumAmount": 2000000,
+      "conditions": [
+        "approved-business-case",
+        "commercial-review",
+        "not-novel-contentious-or-repercussive"
+      ]
+    },
+    {
+      "role": "Accounting Officer",
+      "transactionType": "major-or-exceptional",
+      "maximumAmount": 10000000,
+      "conditions": [
+        "documented-four-standards-assessment",
+        "treasury-approval-where-required"
+      ]
+    }
+  ],
+  "notice": "All roles, dates, limits, and conditions are demonstration data."
+}

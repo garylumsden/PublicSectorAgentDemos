@@ -1,0 +1,57 @@
+<div class="gc-brand">
+    <div class="gc-brand-emblem" aria-hidden="true">
+        @if (Brand.EmblemIsImage)
+        {
+            <img src="@Brand.Emblem" alt="" class="gc-brand-emblem-img" />
+        }
+        else
+        {
+            @Brand.Emblem
+        }
+    </div>
+    <div class="gc-brand-text">
+        @if (Brand.HasOrganisation)
+        {
+            <span class="gc-brand-eyebrow">@Brand.Organisation</span>
+        }
+        <a class="gc-brand-name" href="">@Brand.AppName</a>
+    </div>
+</div>
+
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+    <nav class="nav flex-column" aria-label="Primary">
+        <div class="gc-nav-section">Overview</div>
+        <div class="nav-item">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Dashboard
+            </NavLink>
+        </div>
+
+        <div class="gc-nav-section">Deliberation</div>
+        <div class="nav-item">
+            <NavLink class="nav-link" href="dossiers">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Dossiers
+            </NavLink>
+        </div>
+        <div class="nav-item">
+            <NavLink class="nav-link" href="assessments">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Assessments
+            </NavLink>
+        </div>
+
+        <div class="gc-nav-section">Intelligence</div>
+        <div class="nav-item">
+            <NavLink class="nav-link" href="nexus">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Nexus Explorer
+            </NavLink>
+        </div>
+        <div class="nav-item">
+            <NavLink class="nav-link" href="nexus/alerts">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Nexus Alerts
+            </NavLink>
+        </div>
+    </nav>
+</div>
+

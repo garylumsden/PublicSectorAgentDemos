@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "correlationId",
+    "isSuccess",
+    "evidence",
+    "decisionBoundary"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "correlationId": {
+      "$ref": "../../v1/mcp-common.schema.json#/$defs/correlationId"
+    },
+    "isSuccess": {
+      "type": "boolean"
+    },
+    "data": {
+      "$ref": "support-package.schema.json#/$defs/receipt"
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "$ref": "../../v1/mcp-common.schema.json#/$defs/evidenceReference"
+      }
+    },
+    "error": {
+      "$ref": "../../v1/mcp-common.schema.json#/$defs/structuredToolError"
+    },
+    "decisionBoundary": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "isSuccess": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "data"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "isSuccess": {
+            "const": false
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "error"
+        ]
+      }
+    }
+  ]
+}

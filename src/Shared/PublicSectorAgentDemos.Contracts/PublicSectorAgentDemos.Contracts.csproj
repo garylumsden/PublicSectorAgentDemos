@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <Compile Include="..\Contracts\**\*.cs" Link="Contracts\%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+</Project>

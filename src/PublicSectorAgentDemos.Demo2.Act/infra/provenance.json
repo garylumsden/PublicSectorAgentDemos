@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "1.0.0",
+  "sourceRepository": "DEFRA-AI-Demos",
+  "sourceCommit": "b9c808f90f2ec04b2b6f6ef53da039ef334d130f",
+  "destination": "src/PublicSectorAgentDemos.Demo2.Act",
+  "classification": "adapted-demo2-only-infrastructure",
+  "hashScope": "Original tracked Git blob bytes, before adaptation and checkout line-ending conversion",
+  "sourceFiles": [
+    {
+      "path": "azure.yaml",
+      "gitBlob": "95992af6d3c1b3f03093be8aff9717dfa3770d55",
+      "sha256": "c62ac5f8e69cebd58d11ba965d387882754a3e0c94e78a299b37e0bac816e19a"
+    },
+    {
+      "path": "bicepconfig.json",
+      "gitBlob": "cd15f3f32a49f19206394b8412cc5082f4a6e035",
+      "sha256": "3fc75154c60c837b61f685a26d88ca54b4e457497f12cac7fa9fa8cafcd8edd0"
+    },
+    {
+      "path": "infra/main.bicep",
+      "gitBlob": "130dd3c2c076fa0d327e31821c1d6c072d833229",
+      "sha256": "a1c7fe313ef6eb4c6557dc9d5c06c2b54f72fed4d85269441d88aa3ad671ad90"
+    },
+    {
+      "path": "infra/main.bicepparam",
+      "gitBlob": "01a5ff042e32376f6957c02581a31d91b85342fb",
+      "sha256": "5f4dc3775d7df46211235bc6cc83a61031ca6c1eed70030c0926eea47e6f8fb5"
+    },
+    {
+      "path": "infra/modules/foundry.bicep",
+      "gitBlob": "b62e35cbd5e743db71f222ff0f95a6b5bca71e78",
+      "sha256": "a47b194778458f4ca2dc67ab09cbe8307f18890827ab85fdaa71c946b8ced828"
+    },
+    {
+      "path": "infra/modules/platform.bicep",
+      "gitBlob": "49908dcc16ccd44f7444c4329df0f4e657de558c",
+      "sha256": "7f47ff59c6b0a5e5742f8e25c384914143012ea1cbe69df647fc8184ddb1d74a"
+    },
+    {
+      "path": "infra/hooks/configure-easyauth-secrets.ps1",
+      "gitBlob": "0d22615bd3d7234e1d1877c3b258ec4ba0e56c0a",
+      "sha256": "9269778db44d266dcbb555b785a9139cb07807e5db00b86f587827d4105b12a6"
+    },
+    {
+      "path": "src/Defra.Bootstrap/AgentProvisioning.cs",
+      "gitBlob": "fe531f54775c41d648426f32db3b227f2387431b",
+      "sha256": "cffc75bc1f5da21421e901077468b980ba1df5ca70bd9f5b215cf12e344d233b"
+    },
+    {
+      "path": "src/Defra.Bootstrap/BootstrapConfiguration.cs",
+      "gitBlob": "c0ce230ef45321836fa7749350d629fc91838ddb",
+      "sha256": "024d6e1398fe7ad2a336415af69aa772e4353ecaa076f3ce7a3912eedcbd8ff4"
+    }
+  ],
+  "adaptations": [
+    "Remove dependency-proven non-welfare resources and hooks.",
+    "Preserve AVM, Graph extension, runtime, SDK, and chat model pins.",
+    "Move the welfare bootstrap into infra with the original definition hash and approval serialization.",
+    "Treat a missing agent version list as first-time creation.",
+    "Validate the welfare-only catalog selection and preserve the dispatch approval contract.",
+    "Generate new Entra credentials in the selected environment; preserve credentials across Graph template reconciliation.",
+    "Add AZURE_PRINCIPAL_ID and optional AI/application location overrides.",
+    "Retain the original SecurityControl=Ignore resource group tag, explicitly approved for this demo deployment.",
+    "Authorize welfare dispatch for the Foundry project identity and the Demo2 web managed identity; the unchanged web administration workflow enforces approval before its direct MCP call.",
+    "Replace the active welfare scenario with cross-government flood support while retaining resource names, build boundaries, identity, telemetry, and model pins.",
+    "Use the /mcp/flood-support endpoint, flood-support-connection, and cross-government-flood-support agent; require approval for reserveSupportPackage.",
+    "Create a separate demo2-flood-support-cases container and container-scoped role assignment without migrating or deleting old welfare state."
+  ],
+  "excluded": [
+    "Original local environment and credentials",
+    "Compiled ARM template and build outputs",
+    "Whole-DEFRA active hooks",
+    "Application source owned by the application import task"
+  ],
+  "attribution": "Adapted from the approved DEFRA-AI-Demos commit. Application source attribution and license provenance remain under the application import owner."
+}

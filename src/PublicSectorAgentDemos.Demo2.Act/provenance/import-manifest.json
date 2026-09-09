@@ -1,0 +1,818 @@
+{
+  "schemaVersion": 1,
+  "sourceRepository": "DEFRA-AI-Demos",
+  "sourceCommit": "b9c808f90f2ec04b2b6f6ef53da039ef334d130f",
+  "destination": "src/PublicSectorAgentDemos.Demo2.Act",
+  "postImportAdaptation": "The active scenario now implements cross-government flood support. The hashes below describe the original import, not current source byte parity. See docs/runbooks/act-flood-support.md in the host repository.",
+  "hashAlgorithm": "SHA256",
+  "hashBasis": "Tracked source checkout bytes (including CRLF), before application pruning or test project isolation",
+  "scope": "Application dependency closure, configuration, contracts, fixtures, and selected upstream tests; excludes infrastructure",
+  "importedFileCount": 161,
+  "files": [
+    {
+      "path": "config\\agents\\catalog.v1.json",
+      "sha256": "75569a34a38cdd53f89b7d7d4a1195f4a018b21f1ef718b31d4f7a170d6856cf",
+      "bytes": 5450
+    },
+    {
+      "path": "config\\agents\\demo2\\animal-welfare.md",
+      "sha256": "c402c5a0c7c7824c442945b094f3b73e9bc3b0c402ca8229b9b78ff3ee86cd2d",
+      "bytes": 1028
+    },
+    {
+      "path": "config\\domain\\outbreak-rules.v1.json",
+      "sha256": "32f9f2b42322a205e6f0e447207bb0f6f04809fc630ba0655c3d41984bb5b981",
+      "bytes": 567
+    },
+    {
+      "path": "config\\domain\\water-rules.v1.json",
+      "sha256": "136e792b5076f5ed8ab9dfe3676a6b5d067ffa716d9a7fe87f6acb26c9f9f930",
+      "bytes": 1111
+    },
+    {
+      "path": "config\\domain\\welfare-rules.v1.json",
+      "sha256": "213e675b9dfc3a58fbc8e82852b8ec5a9f90c68f533c6ffa0c60a4fdf561b7d6",
+      "bytes": 600
+    },
+    {
+      "path": "config\\policies\\demo2-tools.v1.json",
+      "sha256": "91da9609a65728e7ac432307ad303f43f22530b7a3ace8129513b4bf69ed5c8e",
+      "bytes": 1244
+    },
+    {
+      "path": "contracts\\v1\\assess-water-quality.input.schema.json",
+      "sha256": "b22f7da12d9177f9ecef9264bc2d5029a9831bb8f77cc3eac64e24686e4855bf",
+      "bytes": 871
+    },
+    {
+      "path": "contracts\\v1\\assess-water-quality.output.schema.json",
+      "sha256": "8b4588c112977445c72614be931e3a7fd1b4666122525361141e203c6c5cdc38",
+      "bytes": 5236
+    },
+    {
+      "path": "contracts\\v1\\calculate-statistics.input.schema.json",
+      "sha256": "be8344b392d8477576017bce49eee0bf62c75bfce0186abed4f950b04d988f25",
+      "bytes": 714
+    },
+    {
+      "path": "contracts\\v1\\calculate-statistics.output.schema.json",
+      "sha256": "28d544422c41f3a700a018610a55aec5cbb47e426ab3982bb0e82ca5debfb041",
+      "bytes": 1542
+    },
+    {
+      "path": "contracts\\v1\\calculate-zones.input.schema.json",
+      "sha256": "2641dfa526a956c9255a837ec9f53c6aa32268a3cfbc85818bda759d2b91065a",
+      "bytes": 887
+    },
+    {
+      "path": "contracts\\v1\\calculate-zones.output.schema.json",
+      "sha256": "8671cecdfa4ef164fbcce75fd7f7a3af0506a88bed01bac1420e73e4789980df",
+      "bytes": 1859
+    },
+    {
+      "path": "contracts\\v1\\check-compliance.input.schema.json",
+      "sha256": "a70975adf7878620cc3baf6da59b7e9d83dc18cd510b6c205f9b452ab1b5b859",
+      "bytes": 1611
+    },
+    {
+      "path": "contracts\\v1\\check-compliance.output.schema.json",
+      "sha256": "ab6d30774c2ed068f7970dcb866e81f05e1825a2cc2dc4cd4d2ba6b14f0fb176",
+      "bytes": 2359
+    },
+    {
+      "path": "contracts\\v1\\demo4-notebook-record.schema.json",
+      "sha256": "840f889df34ae3dfc53fc7d881068ed8a9ca7c47da67214a0281758ddcfaf3cb",
+      "bytes": 3660
+    },
+    {
+      "path": "contracts\\v1\\dispatch-vet.input.schema.json",
+      "sha256": "52afeb088a491b0988f19b748433ac97ea4b882afe3bdb6a0770533e7b9f8fb3",
+      "bytes": 890
+    },
+    {
+      "path": "contracts\\v1\\dispatch-vet.output.schema.json",
+      "sha256": "17bd61b390a0c60617eb9adfe9ecba80eac08680efb88d421b2cc03a32354125",
+      "bytes": 1842
+    },
+    {
+      "path": "contracts\\v1\\get-complaint-history.input.schema.json",
+      "sha256": "9fd5eaaacb66a446c465fe40f7a861a53eab43ae45231da11f2c42b525b714f3",
+      "bytes": 669
+    },
+    {
+      "path": "contracts\\v1\\get-complaint-history.output.schema.json",
+      "sha256": "6af7b9db081434f13d769d9d628a6e2bb54c219dfb67f986c3a2d6e8279fb855",
+      "bytes": 1853
+    },
+    {
+      "path": "contracts\\v1\\get-lab-result.input.schema.json",
+      "sha256": "93c679200e9d8167da45478855b967c14ca9ffa2661faafc087bd9ed6e9d741b",
+      "bytes": 573
+    },
+    {
+      "path": "contracts\\v1\\get-lab-result.output.schema.json",
+      "sha256": "fa6053a9b7687c0bf6d8196ebf9281dc65a129be95eb686820caf274864d6c39",
+      "bytes": 1618
+    },
+    {
+      "path": "contracts\\v1\\get-mpc-collection.input.schema.json",
+      "sha256": "6ff09494ad36c21582839c8848e7a1c8d84eff054dee206fad7b5c35770e67cb",
+      "bytes": 536
+    },
+    {
+      "path": "contracts\\v1\\get-mpc-collection.output.schema.json",
+      "sha256": "d34dd79e11b1bb76212bf8636320b36b34e41123a3a99254ca891ed064528f60",
+      "bytes": 1646
+    },
+    {
+      "path": "contracts\\v1\\get-resource-availability.input.schema.json",
+      "sha256": "be61f083db40611c8dbdeab5ff78d219762a43503ce4e5616f170f305b1e82f0",
+      "bytes": 704
+    },
+    {
+      "path": "contracts\\v1\\get-resource-availability.output.schema.json",
+      "sha256": "d22bc8534158cebb7791fe4d9a8188d5b52af23c941e2ea0eafe50b2f0692409",
+      "bytes": 1586
+    },
+    {
+      "path": "contracts\\v1\\get-weather-data.input.schema.json",
+      "sha256": "bf8588eb40b65af4dcb6dec0778fb0f49e83de3e71d84517580f430a1f4f3b19",
+      "bytes": 664
+    },
+    {
+      "path": "contracts\\v1\\get-weather-data.output.schema.json",
+      "sha256": "1be614894096568667bb282315ea589fce79fab3a55cf8e7a36116eebf831a4b",
+      "bytes": 1671
+    },
+    {
+      "path": "contracts\\v1\\lookup-farm-register.input.schema.json",
+      "sha256": "4844fc45fe03a97d65619ce688c47ff5ae915d6cfbdd0d7570df61d21f56c71a",
+      "bytes": 581
+    },
+    {
+      "path": "contracts\\v1\\lookup-farm-register.output.schema.json",
+      "sha256": "c0203b1fd7714457aea021fe0f474e6cce41a4e306065f79ba8786d6b4e95ff5",
+      "bytes": 1566
+    },
+    {
+      "path": "contracts\\v1\\lookup-outbreak-farm.input.schema.json",
+      "sha256": "2255ee5e772580a531ac0fd8e40a18da6381b8967ff33cd4ad54a36771f38556",
+      "bytes": 581
+    },
+    {
+      "path": "contracts\\v1\\lookup-outbreak-farm.output.schema.json",
+      "sha256": "8deebcafa03c92ab6bf9ed8e4f8e2dc91733d093edf9076fbe8b1cf0858fcb89",
+      "bytes": 1793
+    },
+    {
+      "path": "contracts\\v1\\mcp-common.schema.json",
+      "sha256": "99dcbdf47a73cdc3793b5087bf503a2129c208059bd0d07b91510b974ed2e208",
+      "bytes": 3666
+    },
+    {
+      "path": "contracts\\v1\\query-wqa-api.input.schema.json",
+      "sha256": "aed68dcf8ac108c497c6986f04dca87466e6400e1fcc78df875e2e1bd268c005",
+      "bytes": 871
+    },
+    {
+      "path": "contracts\\v1\\query-wqa-api.output.schema.json",
+      "sha256": "361c74e234fd8d63f89aac69441675b840d995fd2009613681de568381f46a0b",
+      "bytes": 1563
+    },
+    {
+      "path": "contracts\\v1\\resolve-catchment-location.input.schema.json",
+      "sha256": "4313646e5b2409eae41371ac423864cc8776aee3211d80563bec84ff5f138dca",
+      "bytes": 556
+    },
+    {
+      "path": "contracts\\v1\\resolve-catchment-location.output.schema.json",
+      "sha256": "694de099c76cdeec95765e01d7436fe1818b236f0bd0f2f601391b4fe6b68125",
+      "bytes": 1774
+    },
+    {
+      "path": "contracts\\v1\\search-mpc-items.input.schema.json",
+      "sha256": "93f3834b4cf78d8f8b926a7c97d4e559949e0966cad78efe81e668680525ae2a",
+      "bytes": 1386
+    },
+    {
+      "path": "contracts\\v1\\search-mpc-items.output.schema.json",
+      "sha256": "fe33bc4fbccecfd34c09433a9c98dca6980e07bfc13e396d60a0f4b4d1038958",
+      "bytes": 2456
+    },
+    {
+      "path": "contracts\\v1\\six-block-answer-envelope.schema.json",
+      "sha256": "14ce96e1556430c98557d5412784ca8a4e054a89d29419868c9769ffc7e1440c",
+      "bytes": 4730
+    },
+    {
+      "path": "data\\demo2\\v1\\breed-profiles.json",
+      "sha256": "125238e56f124c55a3dcb654d5c9fd3a118d535e3d8ba892354997ba8117e208",
+      "bytes": 1198
+    },
+    {
+      "path": "data\\demo2\\v1\\complaint-history.json",
+      "sha256": "5b82c4def9dcdfe93899fbed4286fe268c530fe81e162ef5f1647099337007ff",
+      "bytes": 2164
+    },
+    {
+      "path": "data\\demo2\\v1\\complaint-scenarios.json",
+      "sha256": "9d21c86f3a19b2712df67f9cdadb55df01a5dc09f3bacda0a88ed6ac01f28dcf",
+      "bytes": 1662
+    },
+    {
+      "path": "data\\demo2\\v1\\farms.json",
+      "sha256": "2fc87d1c109e9e71c64443812c8355eaa80926f0b84dd7cb2eb81700ad5a277a",
+      "bytes": 1181
+    },
+    {
+      "path": "data\\demo2\\v1\\weather.json",
+      "sha256": "5915d23f2267474fcd7c29a0e97a63d85a850266aa21b57ade23161c22cb31a4",
+      "bytes": 1369
+    },
+    {
+      "path": "data\\demo3\\v1\\farms.json",
+      "sha256": "f2987edd158bd450174b94163082843a4d08729513ce941bac83d6db3e4b4fa2",
+      "bytes": 1460
+    },
+    {
+      "path": "data\\demo3\\v1\\resources.json",
+      "sha256": "80014c60145918060787e367637dd067b417ed438f5824795a824432b1d1486a",
+      "bytes": 897
+    },
+    {
+      "path": "data\\demo4\\v1\\scenarios.json",
+      "sha256": "560945f0ea1ab4a2f0222105ffb25c90c8675efcf30cfb01757e2d797499aa17",
+      "bytes": 6306
+    },
+    {
+      "path": "data\\demo4\\v1\\threshold-catalogue.json",
+      "sha256": "8c966adf9905eb81daa6945e4e291d673379b38acd4baae2331e391ee50e3095",
+      "bytes": 1976
+    },
+    {
+      "path": "data\\demo4\\v1\\waterbody-context.json",
+      "sha256": "28b4adcde9b58531532538179f1eed085220cdbf2c5e1bf025a41350d675902a",
+      "bytes": 770
+    },
+    {
+      "path": "data\\demo4\\v1\\wqa-measurements.json",
+      "sha256": "016f8d538031072cbaeb66b2dfd59000a5a35b784aa2981a0f51e0974bc29b2e",
+      "bytes": 104598
+    },
+    {
+      "path": "Directory.Build.props",
+      "sha256": "c3832344ac379ae5db1cae92ec554708d51623ffd4787fe45b8315fc9b654b5c",
+      "bytes": 390
+    },
+    {
+      "path": "Directory.Packages.props",
+      "sha256": "b48d26e9aa4b9fb4ad859fcfbde03baf231d2437c85408fde5408d72a3f4c665",
+      "bytes": 2452
+    },
+    {
+      "path": "evals\\demo2\\v1\\seed.jsonl",
+      "sha256": "1c32202b74019a5445ae61f52f604f80adea5d1556bc5afc0270a5fb0b505e32",
+      "bytes": 1887
+    },
+    {
+      "path": "global.json",
+      "sha256": "bf3766dc7544323a745bce31cc743ea0bdf53173a47189e6146389879680489e",
+      "bytes": 118
+    },
+    {
+      "path": "src\\Defra.AgentCore\\AgentReasoningOptions.cs",
+      "sha256": "6e549fa4b483d34d4f9f90516d10bb329922952a64803381d0aa24f64940d2e6",
+      "bytes": 2422
+    },
+    {
+      "path": "src\\Defra.AgentCore\\DefaultAzureCredentialFactory.cs",
+      "sha256": "2b877a369f45fd2d3cb8a2d09cfa2e93b205e3c45267226671f3ef9bc39a35dc",
+      "bytes": 1264
+    },
+    {
+      "path": "src\\Defra.AgentCore\\Defra.AgentCore.csproj",
+      "sha256": "680feac6e636603d09eb1a1b39be347e062c8f184537a1e00b6a1b5974c63953",
+      "bytes": 423
+    },
+    {
+      "path": "src\\Defra.AgentCore\\PolicyEnforcement.cs",
+      "sha256": "80ef89c9b2df4bd3bb0b23573a1ee6884ee8524b16e3b9c39b0a2f8076e4a759",
+      "bytes": 1337
+    },
+    {
+      "path": "src\\Defra.AgentCore\\ToolCallBudget.cs",
+      "sha256": "293022666f41bfde845a2dba0a12011ae56f89c9c58af38628131ecfe5eec8a1",
+      "bytes": 948
+    },
+    {
+      "path": "src\\Defra.Audit\\Defra.Audit.csproj",
+      "sha256": "b896085d07ede68a1a5a1778a46932630b6a9668c95782ed4ead9b540d38b326",
+      "bytes": 201
+    },
+    {
+      "path": "src\\Defra.Audit\\JsonLinesAuditWriter.cs",
+      "sha256": "7a7733f70bd6731d04f38720b2176a64058f94564f9c995c248866330c258413",
+      "bytes": 2946
+    },
+    {
+      "path": "src\\Defra.Contracts\\AnswerEnvelope.cs",
+      "sha256": "f789ac6177e4738963ea5315f2301f90fdcad67eb9a20a0fb53b189151fd84a1",
+      "bytes": 1939
+    },
+    {
+      "path": "src\\Defra.Contracts\\ApprovalContracts.cs",
+      "sha256": "9cd3c43ce91cbec96038810c34c6e14cfd5200ec92a6abdfc66daeea60ddcec8",
+      "bytes": 1442
+    },
+    {
+      "path": "src\\Defra.Contracts\\AuditContracts.cs",
+      "sha256": "c761758b0f94f9dd47a655f9c7e19041079b7cccfd04fec5c84388fc90b7151b",
+      "bytes": 3826
+    },
+    {
+      "path": "src\\Defra.Contracts\\CorrelationId.cs",
+      "sha256": "5cb1b073adccb1494e3834594becec7b3ea032b0b320dccfd25170b748c149c2",
+      "bytes": 811
+    },
+    {
+      "path": "src\\Defra.Contracts\\Defra.Contracts.csproj",
+      "sha256": "4853e2c948f25bfd1e053866f01d768ac405d783259d4a2c2c45d56d03c8633e",
+      "bytes": 90
+    },
+    {
+      "path": "src\\Defra.Contracts\\Demo4MemoryContracts.cs",
+      "sha256": "642877631b860578993640134e68c34bcd614cc7bedfbe2660983b84604b41b5",
+      "bytes": 11772
+    },
+    {
+      "path": "src\\Defra.Contracts\\EvidenceContracts.cs",
+      "sha256": "890862bfca3b7c99ac02ff8bfcdb3564601d6ba1dcef508964695d1dd3243b98",
+      "bytes": 684
+    },
+    {
+      "path": "src\\Defra.Contracts\\ToolContracts.cs",
+      "sha256": "621012c17a5c127d6f464941cdbf6df612c5d1ebf6ac107da9a7eafb2e557f41",
+      "bytes": 528
+    },
+    {
+      "path": "src\\Defra.Observability\\Defra.Observability.csproj",
+      "sha256": "b896085d07ede68a1a5a1778a46932630b6a9668c95782ed4ead9b540d38b326",
+      "bytes": 201
+    },
+    {
+      "path": "src\\Defra.Observability\\DefraTelemetry.cs",
+      "sha256": "55f27b615dc074c062277399846d9cf502670a55125d39167686bd3571a7ca72",
+      "bytes": 2459
+    },
+    {
+      "path": "src\\Defra.Policy\\Defra.Policy.csproj",
+      "sha256": "b896085d07ede68a1a5a1778a46932630b6a9668c95782ed4ead9b540d38b326",
+      "bytes": 201
+    },
+    {
+      "path": "src\\Defra.Policy\\PolicyConfiguration.cs",
+      "sha256": "7bb98549f9c019e7aac57190b5ce9a79d189c6697c391b4d730a8a1830b71013",
+      "bytes": 6432
+    },
+    {
+      "path": "src\\Defra.Policy\\PolicyScreening.cs",
+      "sha256": "687ad0dcb5064cd83cf8a51e37ccdbfc61c0d797aef572119350904d9753c339",
+      "bytes": 4989
+    },
+    {
+      "path": "src\\Defra.Tools.Mcp\\appsettings.Development.json",
+      "sha256": "73f95f9e0ceb205fc1c4dc50c07697fcfa29d7087868c2aef1d504cb38c771ec",
+      "bytes": 127
+    },
+    {
+      "path": "src\\Defra.Tools.Mcp\\appsettings.json",
+      "sha256": "6aa9a263132f67d85b66123b6f086e529d7ab0afd68b507a8011807f52a164c4",
+      "bytes": 193
+    },
+    {
+      "path": "src\\Defra.Tools.Mcp\\Contracts\\CommonContracts.cs",
+      "sha256": "e6a826eed1867c25ad374ba304a57224dc037a3038bc3fcf28a75c1b3511dd5d",
+      "bytes": 1306
+    },
+    {
+      "path": "src\\Defra.Tools.Mcp\\Contracts\\OutbreakContracts.cs",
+      "sha256": "6914767056d63835d1ce3b38acbb0b660c57e65dbc634bc54849b36e6ca184db",
+      "bytes": 4823
+    },
+    {
+      "path": "src\\Defra.Tools.Mcp\\Contracts\\PlanetaryComputerContracts.cs",
+      "sha256": "a9cd19cf904b1813cf5f9ac805147061ba03b7500b763dd9bc45519285fb8ab7",
+      "bytes": 2989
+    },
+    {
+      "path": "src\\Defra.Tools.Mcp\\Contracts\\WaterContracts.cs",
+      "sha256": "8daf455a684ebdda70adaf6bfc4311490589896eaeac8542d5a2da40b92ad950",
+      "bytes": 5922
+    },
+    {
+      "path": "src\\Defra.Tools.Mcp\\Contracts\\WelfareContracts.cs",
+      "sha256": "2b0d30517e3adcc05131d504d577fb0f2820419b3c51d674a82cd676b11d6b46",
+      "bytes": 3044
+    },
+    {
+      "path": "src\\Defra.Tools.Mcp\\Defra.Tools.Mcp.csproj",
+      "sha256": "ebfffe044602820c04a8dfe4028e74875994e781b409d4b301dddec62957a73a",
+      "bytes": 1483
+    },
+    {
+      "path": "src\\Defra.Tools.Mcp\\HighImpactActionAuthorizer.cs",
+      "sha256": "cd1577ada451b70dba14fd19d9ee854113dfdd031b8f9264ceb4881d2e6ff4e9",
+      "bytes": 3313
+    },
+    {
+      "path": "src\\Defra.Tools.Mcp\\McpApplication.cs",
+      "sha256": "d862222f55c9ea448d9c139c3302ab84f0cf372757af5c41d2075e0d22a8d78c",
+      "bytes": 8662
+    },
+    {
+      "path": "src\\Defra.Tools.Mcp\\McpObservability.cs",
+      "sha256": "a9afd6d3f8cd8bce3ff502378faa29dae5277e5ca81f22bec8ae23150127416e",
+      "bytes": 1386
+    },
+    {
+      "path": "src\\Defra.Tools.Mcp\\McpToolCatalog.cs",
+      "sha256": "4c04ceb5b029ecda5f73d96ef7027af19b813b9e197d9810f423a16020583550",
+      "bytes": 6298
+    },
+    {
+      "path": "src\\Defra.Tools.Mcp\\McpToolExecutor.cs",
+      "sha256": "46e6058a54815ecbdd295347006569aac10a11fbfa782c104151e3080f296db6",
+      "bytes": 15447
+    },
+    {
+      "path": "src\\Defra.Tools.Mcp\\McpValidation.cs",
+      "sha256": "ca04e20924517466b14aa80f1ff83fd0715345fc46c04cd452e4301d1739a16f",
+      "bytes": 18894
+    },
+    {
+      "path": "src\\Defra.Tools.Mcp\\Program.cs",
+      "sha256": "209f9d5aba6f7c53b95d6bc897203e5dd6c030dbf507c0ef2bc04320924c109d",
+      "bytes": 132
+    },
+    {
+      "path": "src\\Defra.Tools.Mcp\\Properties\\launchSettings.json",
+      "sha256": "04b9981760341640fc5290fa2ba1c09a648ef921abda43e4037893733e29bb21",
+      "bytes": 639
+    },
+    {
+      "path": "src\\Defra.Tools.Mcp\\Providers\\CanonicalOutbreakData.cs",
+      "sha256": "ae3b538a1d5033d3b4d96da6976df95c1dabf313441cc99e7a04717537372ae9",
+      "bytes": 7022
+    },
+    {
+      "path": "src\\Defra.Tools.Mcp\\Providers\\CanonicalWaterData.cs",
+      "sha256": "2e3f6111782694d6eae4d56f51f2d4abc4f9ed9a900222cda83518ac790e4e0e",
+      "bytes": 9359
+    },
+    {
+      "path": "src\\Defra.Tools.Mcp\\Providers\\OutbreakProvider.cs",
+      "sha256": "4e9f9327a300b05c8a9e48a65335418ba7228e107324f09c6dc4b6ca14c7b388",
+      "bytes": 14269
+    },
+    {
+      "path": "src\\Defra.Tools.Mcp\\Providers\\PlanetaryComputerProvider.cs",
+      "sha256": "3d3d2f0f1550dfb60ca27a518af72ca7bc07ed6df4b67b7724397376535b4238",
+      "bytes": 14106
+    },
+    {
+      "path": "src\\Defra.Tools.Mcp\\Providers\\SyntheticProviderSupport.cs",
+      "sha256": "eafd0d2c800236b3e326a7712e0ab175399f2792dac1a80c0bca6911b671996b",
+      "bytes": 1192
+    },
+    {
+      "path": "src\\Defra.Tools.Mcp\\Providers\\WaterComplianceCatalogue.cs",
+      "sha256": "e91bc1798d2a298d5a4b13dcfb2f85bf0bc5ce4bb64110cdc7804461f46ce40d",
+      "bytes": 14449
+    },
+    {
+      "path": "src\\Defra.Tools.Mcp\\Providers\\WaterProvider.cs",
+      "sha256": "e295c83ed4783549fb6ccb004ebedd9bdcceb3db75d1e0014cf7b3fe803abf8b",
+      "bytes": 27974
+    },
+    {
+      "path": "src\\Defra.Tools.Mcp\\Providers\\WelfareProvider.cs",
+      "sha256": "cbc57673fd30b0f88c32f0da22120cb355a2674d739d6afbefbf4457c1c56de2",
+      "bytes": 9614
+    },
+    {
+      "path": "src\\Defra.Tools.Mcp\\Tools\\OutbreakTools.cs",
+      "sha256": "49d60030d3a6af31d13d9998b1de80c9f0d1dff8904b2acbad699e4957ad77fd",
+      "bytes": 6662
+    },
+    {
+      "path": "src\\Defra.Tools.Mcp\\Tools\\PlanetaryComputerTools.cs",
+      "sha256": "47cc5d71347910d91faf68bfc4898de71b67947ddded964adb88d4862028c38f",
+      "bytes": 2494
+    },
+    {
+      "path": "src\\Defra.Tools.Mcp\\Tools\\WaterTools.cs",
+      "sha256": "14c61dfcb5f7c811c1d9650078a2008531dba1deaa915043b7f5eec3e3708894",
+      "bytes": 6180
+    },
+    {
+      "path": "src\\Defra.Tools.Mcp\\Tools\\WelfareTools.cs",
+      "sha256": "e1e4a36e7e129cc8efa83e5b1b3c050fb3287962d129e3c3cccef7c89a7609f4",
+      "bytes": 4441
+    },
+    {
+      "path": "src\\Demo2.Web\\Agent\\WelfareAgentClient.cs",
+      "sha256": "e9864164a8d7fb0f08ebb7eb4503115691ef31be0a6146c46cc644eefe57c4fd",
+      "bytes": 37765
+    },
+    {
+      "path": "src\\Demo2.Web\\Agent\\WelfareAgentStreaming.cs",
+      "sha256": "28b442f325c9312c6755059c38c68d3ef377e96aacd69bc87fc6a397caec5b78",
+      "bytes": 5457
+    },
+    {
+      "path": "src\\Demo2.Web\\appsettings.Development.json",
+      "sha256": "a0978bfa5c2cc7139fff81ba44b038370401542b9c17bc444e27f8216071ab7f",
+      "bytes": 261
+    },
+    {
+      "path": "src\\Demo2.Web\\appsettings.json",
+      "sha256": "67e1c771a3ac386899a692be15b3cce7071ddca67fa672cbc4a71638ca987521",
+      "bytes": 1054
+    },
+    {
+      "path": "src\\Demo2.Web\\Components\\_Imports.razor",
+      "sha256": "552c9ed5362bb6e7b24775cdb43c97426a993165adb0c57eeeb56a67224841dd",
+      "bytes": 683
+    },
+    {
+      "path": "src\\Demo2.Web\\Components\\App.razor",
+      "sha256": "3afdbd93ee9e3444a5d66697f09974040e542608c9d8d837190dceee0482d790",
+      "bytes": 802
+    },
+    {
+      "path": "src\\Demo2.Web\\Components\\Layout\\MainLayout.razor",
+      "sha256": "bad1b8ef1db6fb03388da38875096a9913e4a285e6218874dc7e6fa7c9481601",
+      "bytes": 1382
+    },
+    {
+      "path": "src\\Demo2.Web\\Components\\Layout\\MainLayout.razor.css",
+      "sha256": "ea29269c1cab20d984ce330ff390b45e1a8f4d81350d126d45bdac0541405058",
+      "bytes": 2026
+    },
+    {
+      "path": "src\\Demo2.Web\\Components\\Layout\\ReconnectModal.razor",
+      "sha256": "e1c8308c1ec6656c8f5cd50df3f1879b614e43109ad6b1e23ab26d6f1007c6db",
+      "bytes": 1362
+    },
+    {
+      "path": "src\\Demo2.Web\\Components\\Layout\\ReconnectModal.razor.css",
+      "sha256": "ba73539337ecff370e1ce8ebb9ebc0992d6ed100080a29f4bcac888f1ce1abd8",
+      "bytes": 3873
+    },
+    {
+      "path": "src\\Demo2.Web\\Components\\Layout\\ReconnectModal.razor.js",
+      "sha256": "e6efaff747ceb6d105cc4daa1cc18c3979b2f77224fc1686a8baeb9eeea67465",
+      "bytes": 2448
+    },
+    {
+      "path": "src\\Demo2.Web\\Components\\Pages\\Admin.razor",
+      "sha256": "4b552f27876d10e29b6509febd4e20e78eece1dd2a161979742f0295461e41c7",
+      "bytes": 22429
+    },
+    {
+      "path": "src\\Demo2.Web\\Components\\Pages\\Error.razor",
+      "sha256": "5e312426b58159e4025c9d5c752d6b233140cf5338d7c109192d03065c12c6c3",
+      "bytes": 766
+    },
+    {
+      "path": "src\\Demo2.Web\\Components\\Pages\\Home.razor",
+      "sha256": "506d8de20b86c1fc434313a279d3ded960eacadfa3a516ec73190e9eb8c435ac",
+      "bytes": 33890
+    },
+    {
+      "path": "src\\Demo2.Web\\Components\\Pages\\NotFound.razor",
+      "sha256": "c267b98a248a516f8ca8c79dd8410d9f09d9ad302466e65c6b9b959b5ffc7cbd",
+      "bytes": 126
+    },
+    {
+      "path": "src\\Demo2.Web\\Components\\Routes.razor",
+      "sha256": "d8ad5bf563c9a858dc9d74bddb4a437f4347cd1cfce5fc81147d324668100c4e",
+      "bytes": 300
+    },
+    {
+      "path": "src\\Demo2.Web\\Components\\UI\\Demo2RichnessModels.cs",
+      "sha256": "72cd664b053c194dd4d37f594958d13139ac0ed0396fbfad1a0dea172488c6c3",
+      "bytes": 17500
+    },
+    {
+      "path": "src\\Demo2.Web\\Components\\UI\\Demo2UiModels.cs",
+      "sha256": "cc0bff3e477d24f951eeb73bee1099fdfda6134f5c306d5d44750d9c1e3aae4d",
+      "bytes": 8798
+    },
+    {
+      "path": "src\\Demo2.Web\\Configuration\\Demo2AuditPathResolver.cs",
+      "sha256": "02325363048fd8eb14e8287147c3c39811c1d02f9665a1f42f0110fb04fb56f4",
+      "bytes": 1871
+    },
+    {
+      "path": "src\\Demo2.Web\\Configuration\\Demo2ConfigurationPathResolver.cs",
+      "sha256": "3322a032fb9529746fc4bcbaf8fdd8d86dcbccebcf92d396102f24fe11da5d55",
+      "bytes": 1123
+    },
+    {
+      "path": "src\\Demo2.Web\\Configuration\\Demo2Options.cs",
+      "sha256": "afb0380299f920e7f3238a8842268913da53cfc90bd3cd42008a317f3742e5e4",
+      "bytes": 10299
+    },
+    {
+      "path": "src\\Demo2.Web\\Demo2.Web.csproj",
+      "sha256": "aa278596d36df46571427569a60fde5c08f3d627c0a9158a5db7af6afcf1785b",
+      "bytes": 1764
+    },
+    {
+      "path": "src\\Demo2.Web\\Domain\\WelfareModels.cs",
+      "sha256": "6e0795c6714f748769f3dbaaba239fcbe0cd94f8ac7e4258964f164cfd53ed5e",
+      "bytes": 4402
+    },
+    {
+      "path": "src\\Demo2.Web\\Domain\\WelfarePolicy.cs",
+      "sha256": "0e3e2835109a979311c8e237fb39d09250fc0ea74c0b076deddda15205651ec5",
+      "bytes": 8265
+    },
+    {
+      "path": "src\\Demo2.Web\\Observability\\Demo2AuditTrail.cs",
+      "sha256": "fd3d727709bbd66cd2415eb98fb27410257bd46b2a1489c94d5fe046d48444f1",
+      "bytes": 1324
+    },
+    {
+      "path": "src\\Demo2.Web\\Observability\\Demo2Observability.cs",
+      "sha256": "53953e4c4e25483bfcb46cb1553454f3216d759991c19d9b46be4c47be75fdca",
+      "bytes": 1392
+    },
+    {
+      "path": "src\\Demo2.Web\\Persistence\\Demo2StateStores.cs",
+      "sha256": "a5c5ec88b29601f8c99c9c9789fe3cdcab1f443345c89b2ffd558220893437c9",
+      "bytes": 14827
+    },
+    {
+      "path": "src\\Demo2.Web\\Program.cs",
+      "sha256": "9731fc29b0e742c41acb3db5b3bd93032b31b7f3c7591d161499ba82403faa34",
+      "bytes": 7797
+    },
+    {
+      "path": "src\\Demo2.Web\\Properties\\launchSettings.json",
+      "sha256": "f12b58efbd49af7e62f67c81374cd787da6d29595aad066d61777b5abd2d6136",
+      "bytes": 681
+    },
+    {
+      "path": "src\\Demo2.Web\\Security\\SecurityHeadersMiddleware.cs",
+      "sha256": "39215715d0552dab55755847ec48a01853557e96e8274fd6c60e48e3e235f6cf",
+      "bytes": 1135
+    },
+    {
+      "path": "src\\Demo2.Web\\Services\\AdminWorkflowService.cs",
+      "sha256": "ad45c02b2989d406a83049208bef0cc268f0f33c8262cb47864775f72cd0c32c",
+      "bytes": 15410
+    },
+    {
+      "path": "src\\Demo2.Web\\Services\\McpWelfareToolboxClient.cs",
+      "sha256": "7d1844084a7ab6da6b7c4d4c7b54e77d62c39210a12219595d2ed7d17631c219",
+      "bytes": 7495
+    },
+    {
+      "path": "src\\Demo2.Web\\Services\\WelfareAssessmentService.cs",
+      "sha256": "486cb1e803db8826a486e30f32de4796bda4aa6d5fa909bd7c1054dd54e484d5",
+      "bytes": 23257
+    },
+    {
+      "path": "src\\Demo2.Web\\wwwroot\\app.css",
+      "sha256": "7535f755746e35ca4b1f75a6d4b80d18f1cf484a31f142077b717656ed65b535",
+      "bytes": 19161
+    },
+    {
+      "path": "src\\Demo2.Web\\wwwroot\\dialog.js",
+      "sha256": "f5e76020210595631eb62d1e64e3a88f5f2b516a3f381e5c05c055babaadb958",
+      "bytes": 242
+    },
+    {
+      "path": "src\\Demo2.Web\\wwwroot\\favicon.svg",
+      "sha256": "857266b6dd341ff5b305acc1d066f1806731efacc19f9e2274382cbb8f462cdd",
+      "bytes": 234
+    },
+    {
+      "path": "tests\\Defra.ContractTests\\Defra.ContractTests.csproj",
+      "sha256": "d5c70af2c8c359c92780bc91071abaa618f6e97235ba2532fd6ee45a54a0a1f7",
+      "bytes": 721
+    },
+    {
+      "path": "tests\\Defra.ContractTests\\McpContractTests.cs",
+      "sha256": "606865a3695532ebfce960635cd3e20a4aa2788a9c0bef07d885fc85f60e1d77",
+      "bytes": 9673
+    },
+    {
+      "path": "tests\\Defra.ContractTests\\SerializationTests.cs",
+      "sha256": "3272b05504ddbcbc48004e1abc82254296444daeea5a7eae2f755056dbaca284",
+      "bytes": 4918
+    },
+    {
+      "path": "tests\\Defra.EvalTests\\Defra.EvalTests.csproj",
+      "sha256": "61d91a8aa5ba0e6df998d1f0e3f26fe1347e2fbce087d78e64f152dcb605f8c8",
+      "bytes": 968
+    },
+    {
+      "path": "tests\\Defra.EvalTests\\Demo2EvalTests.cs",
+      "sha256": "48204c7d3fcdddc40bf28631b17141003882272d618c5ec5885d024311e5f8df",
+      "bytes": 7030
+    },
+    {
+      "path": "tests\\Defra.EvalTests\\Demo2PolicySeedEvalTests.cs",
+      "sha256": "9290393e9543e27d9a5acc3b125bb4aa6e86a87d254bc190a7206c4cd1dcc89c",
+      "bytes": 4253
+    },
+    {
+      "path": "tests\\Defra.IntegrationTests\\Defra.IntegrationTests.csproj",
+      "sha256": "ae69cb41d5d5a36b80c8cf06ae8ac2fa6589fd62b8c0cb1c3d49ffb3db2d8e4f",
+      "bytes": 1037
+    },
+    {
+      "path": "tests\\Defra.IntegrationTests\\Demo2InMemoryPersistenceIntegrationTests.cs",
+      "sha256": "c538937b37db4e3f05244e9aed6fac93e35aed60c07202b9da77a67a5ebfbb6f",
+      "bytes": 2981
+    },
+    {
+      "path": "tests\\Defra.IntegrationTests\\Demo2IntegrationTests.cs",
+      "sha256": "de96a4d49e8207fdce3fd97c8704b4356e1a089a5f18552b6b080ffac40cf273",
+      "bytes": 8565
+    },
+    {
+      "path": "tests\\Defra.IntegrationTests\\McpServiceIntegrationTests.cs",
+      "sha256": "de893f53719efd09274fa8df70589b53d40eb34863ed6a71e374bfb3d117bb9f",
+      "bytes": 32301
+    },
+    {
+      "path": "tests\\Defra.UnitTests\\AgentReasoningOptionsTests.cs",
+      "sha256": "926a7bc443aa4f59eae105460c0a415ee5f8682326be7fa354243d4944156f9e",
+      "bytes": 1077
+    },
+    {
+      "path": "tests\\Defra.UnitTests\\AnswerEnvelopeTests.cs",
+      "sha256": "6e283801496ab3ee6bd50aedaf872c595b03ef682c62c66157967e57419392c9",
+      "bytes": 1039
+    },
+    {
+      "path": "tests\\Defra.UnitTests\\DefaultAzureCredentialFactoryTests.cs",
+      "sha256": "500ee53c328cdb1e4ae36fb945fa4644a3734fe71f98495383d13ee18ae4070e",
+      "bytes": 1200
+    },
+    {
+      "path": "tests\\Defra.UnitTests\\Defra.UnitTests.csproj",
+      "sha256": "58a5f9532aba6511a82ae889eeb69f3b2d6de47337a026e04b0f9ac39fba1711",
+      "bytes": 1460
+    },
+    {
+      "path": "tests\\Defra.UnitTests\\DefraTelemetryTests.cs",
+      "sha256": "1c1b6cb40b309bf1cd67c31ee54b3bb3ed1f21b8714dea52596d5cb2fd1f3eae",
+      "bytes": 1337
+    },
+    {
+      "path": "tests\\Defra.UnitTests\\Demo2AgentResponseParserTests.cs",
+      "sha256": "cf1aa4bf3e1e4c3af8bfc9ff87ae18dc8e4032dbcacb4692176c41878538db07",
+      "bytes": 7715
+    },
+    {
+      "path": "tests\\Defra.UnitTests\\Demo2AuditPathResolverTests.cs",
+      "sha256": "764f3880b7ac3defcc2f2c3474f6c3006c7cef01af9d613342df17b56a658665",
+      "bytes": 1522
+    },
+    {
+      "path": "tests\\Defra.UnitTests\\Demo2CoreBehaviorTests.cs",
+      "sha256": "986816319e520561b976b68bf7aed404ae88c65e596ff6b4e6e86f7929ba9c62",
+      "bytes": 31164
+    },
+    {
+      "path": "tests\\Defra.UnitTests\\Demo2RichnessTests.cs",
+      "sha256": "ed6774d11e3d80c9264440d140861f97d278d7572d9d6017f79456864eebcee1",
+      "bytes": 17374
+    },
+    {
+      "path": "tests\\Defra.UnitTests\\Demo2UnitTests.cs",
+      "sha256": "06908b9f717fa793c13238061098e41ee7f382c5637cde1ffbfc6431849a3744",
+      "bytes": 21965
+    },
+    {
+      "path": "tests\\Defra.UnitTests\\HighImpactActionAuthorizerTests.cs",
+      "sha256": "2b9754f5f77ff37817bdb6d91b6f12af210333408c5f86a787f5bad433f19fe0",
+      "bytes": 3829
+    },
+    {
+      "path": "tests\\Defra.UnitTests\\McpToolTests.cs",
+      "sha256": "3edc4c2887c02584a81dfa3e6cbcffd3582932a9ca6dabb5ada33a5dd37be994",
+      "bytes": 34413
+    },
+    {
+      "path": "tests\\Defra.UnitTests\\PolicyTests.cs",
+      "sha256": "f9ac81b9445c80023914d652c9d26acf87bfd7b4fedf233dedfc92dd99bd74ef",
+      "bytes": 5569
+    }
+  ]
+}

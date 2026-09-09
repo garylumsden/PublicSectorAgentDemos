@@ -1,0 +1,85 @@
+@page
+@model MemoryModel
+@{
+    ViewData["Title"] = "Shared notebook records";
+}
+
+<section class="hero">
+    <p class="eyebrow">Public Sector Agent Demo 4</p>
+    <h1>Shared notebook records</h1>
+    <p>This page lists every valid record in the shared seven-day cross-government notebook. The page is read-only. It never writes, deletes, or resets a record.</p>
+    <p class="hint"><a asp-page="/Index">Return to the investigation page</a></p>
+</section>
+
+@if (Model.ErrorMessage is { } error)
+{
+    <section class="panel validation" role="alert" data-notebook-error>
+        <h2>Notebook not available</h2>
+        <p>@error</p>
+    </section>
+}
+else
+{
+    <section class="panel memory-status" data-notebook-summary>
+        <h2>Notebook contents</h2>
+        <div class="memory-grid">
+            <div>
+                <span class="status-label">Valid records</span>
+                <strong data-notebook-count>@Model.Records.Count</strong>
+                <p>Each record passed the full envelope, identifier, and retention validation.</p>
+            </div>
+            <div>
+                <span class="status-label">Items inspected</span>
+                <strong data-notebook-inspected>@Model.InspectedItemCount</strong>
+                <p>The application reads the notebook through bounded pages.</p>
+            </div>
+            <div>
+                <span class="status-label">Items rejected</span>
+                <strong data-notebook-rejected>@Model.RejectedItemCount</strong>
+                <p>Invalid or foreign items are counted only. Their content never renders.</p>
+            </div>
+            <div>
+                <span class="status-label">Retention</span>
+                <strong>Seven days</strong>
+                <p>The notebook drops each record seven days after it is written.</p>
+            </div>
+        </div>
+    </section>
+
+    @if (Model.Records.Count == 0)
+    {
+        <section class="panel" data-notebook-empty>
+            <h2>No records yet</h2>
+            <p class="empty-state">The shared notebook holds no valid record. Run the grants baseline scenario to write the first record.</p>
+        </section>
+    }
+    else
+    {
+        <section class="panel" data-notebook-records>
+            <h2>Records</h2>
+            <div class="record-list">
+                @foreach (MemoryNotebookEntry entry in Model.Records)
+                {
+                    NotebookRecordEnvelope record = entry.Record;
+                    <article class="record-card">
+                        <dl class="record-grid">
+                            <div><dt>Memory ID</dt><dd>@entry.MemoryId</dd></div>
+                            <div><dt>Record ID</dt><dd>@record.RecordId</dd></div>
+                            <div><dt>Investigation</dt><dd>@record.InvestigationReference</dd></div>
+                            <div><dt>Scenario</dt><dd>@record.ScenarioId</dd></div>
+                            <div><dt>Case</dt><dd>@record.CaseReference</dd></div>
+                            <div><dt>Public body pattern</dt><dd>@record.Pattern</dd></div>
+                            <div><dt>Window</dt><dd>@record.From.ToString("yyyy-MM-dd") to @record.To.ToString("yyyy-MM-dd")</dd></div>
+                            <div><dt>Reason</dt><dd>@record.ReasonCode</dd></div>
+                            <div><dt>Confidence</dt><dd>@record.Confidence.ToString("P0")</dd></div>
+                            <div><dt>Evidence IDs</dt><dd>@string.Join(", ", record.EvidenceIds)</dd></div>
+                            <div><dt>Created</dt><dd>@record.CreatedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss") UTC</dd></div>
+                            <div><dt>Updated</dt><dd>@entry.UpdatedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss") UTC</dd></div>
+                        </dl>
+                        <p class="record-follow-up"><strong>Recommended follow-up:</strong> @record.RecommendedFollowUp</p>
+                    </article>
+                }
+            </div>
+        </section>
+    }
+}

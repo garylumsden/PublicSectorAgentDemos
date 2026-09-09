@@ -1,0 +1,13 @@
+<Solution>
+  <Project Path="src/Defra.AgentCore/Defra.AgentCore.csproj" />
+  <Project Path="src/Defra.Audit/Defra.Audit.csproj" />
+  <Project Path="src/Defra.Contracts/Defra.Contracts.csproj" />
+  <Project Path="src/Defra.Observability/Defra.Observability.csproj" />
+  <Project Path="src/Defra.Policy/Defra.Policy.csproj" />
+  <Project Path="src/Defra.Tools.Mcp/Defra.Tools.Mcp.csproj" />
+  <Project Path="src/Demo2.Web/Demo2.Web.csproj" />
+  <Project Path="tests/Defra.ContractTests/Defra.ContractTests.csproj" />
+  <Project Path="tests/Defra.EvalTests/Defra.EvalTests.csproj" />
+  <Project Path="tests/Defra.IntegrationTests/Defra.IntegrationTests.csproj" />
+  <Project Path="tests/Defra.UnitTests/Defra.UnitTests.csproj" />
+</Solution>

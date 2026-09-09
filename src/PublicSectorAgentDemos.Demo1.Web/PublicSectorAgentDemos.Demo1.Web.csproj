@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <ItemGroup>
+    <PackageReference Include="Azure.Identity" />
+    <ProjectReference Include="..\PublicSectorAgentDemos.Demo1.FoundationAndGround\PublicSectorAgentDemos.Demo1.FoundationAndGround.csproj" />
+    <ProjectReference Include="..\Shared\PublicSectorAgentDemos.Identity\PublicSectorAgentDemos.Identity.csproj" />
+    <ProjectReference Include="..\Shared\PublicSectorAgentDemos.Observability\PublicSectorAgentDemos.Observability.csproj" />
+    <EmbeddedResource Include="..\..\data\ground\v1\fixture-set.json" LogicalName="Demo1.Fixtures.json" />
+    <EmbeddedResource Include="..\..\data\ground\v1\source-manifest.json" LogicalName="Demo1.SourceManifest.json" />
+  </ItemGroup>
+</Project>

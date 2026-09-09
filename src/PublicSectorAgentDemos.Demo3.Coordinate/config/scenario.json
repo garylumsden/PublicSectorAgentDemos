@@ -1,0 +1,88 @@
+{
+  "branding": {
+    "organisation": "Not The Government",
+    "appName": "Cross-Government Assurance Board",
+    "tagline": "Proposals, examined from every angle.",
+    "emblem": "branding/logo.svg"
+  },
+  "groundingDomains": [
+    "gov.uk",
+    "learn.microsoft.com"
+  ],
+  "council": {
+    "chair": {
+      "id": "chair",
+      "name": "Council Chair",
+      "role": "Assessment Synthesiser",
+      "description": "Synthesises member opinions into a single structured assessment.",
+      "tier": "Synthesis",
+      "promptFile": ""
+    },
+    "moderator": {
+      "id": "moderator",
+      "name": "Council Moderator",
+      "role": "Speaker Selection",
+      "description": "Decides which member speaks next. Routing only - never produces content.",
+      "tier": "Fast",
+      "promptFile": ""
+    },
+    "nexusAnalyst": {
+      "id": "nexus-analyst",
+      "name": "Nexus Analyst",
+      "role": "Post-Deliberation Interconnection Discovery",
+      "description": "Discovers interconnections between assessments.",
+      "tier": "Synthesis",
+      "promptFile": ""
+    },
+    "members": [
+      {
+        "id": "legal-statutory-powers",
+        "name": "Legal and Statutory Powers",
+        "role": "Lawful Authority and Powers",
+        "description": "Tests whether the proposal has a lawful basis, fits existing statutory powers, or requires new authority. Treats unresolved legal vires as a substantive constraint, not a drafting issue.",
+        "tier": "Reasoning",
+        "promptFile": "legal-statutory-powers.md"
+      },
+      {
+        "id": "finance-value-for-money",
+        "name": "Finance and Value for Money",
+        "role": "Affordability and Benefits",
+        "description": "Tests affordability, whole-life cost, and whether the benefits case remains credible against the delivery plan. Challenges contingency where it weakens value for money or hides uncertainty.",
+        "tier": "Reasoning",
+        "promptFile": "finance-value-for-money.md"
+      },
+      {
+        "id": "operational-delivery",
+        "name": "Operational Delivery",
+        "role": "Implementation and Live Operations",
+        "description": "Tests whether the proposal can be implemented and operated with available people, processes, suppliers, and systems. Defends sufficient contingency where delivery evidence shows material uncertainty.",
+        "tier": "Reasoning",
+        "promptFile": "operational-delivery.md"
+      },
+      {
+        "id": "information-rights-data-protection",
+        "name": "Information Rights and Data Protection",
+        "role": "Data Law and Individual Rights",
+        "description": "Tests the lawful basis for data use, inter-body sharing, retention, transparency, and individual rights. Challenges data ambitions that exceed a defined and proportionate service need.",
+        "tier": "Reasoning",
+        "promptFile": "information-rights-data-protection.md"
+      },
+      {
+        "id": "security-resilience",
+        "name": "Security and Resilience",
+        "role": "Threat, Dependency, and Failure",
+        "description": "Tests the threat surface, dependency graph, resilience design, and response to failure. Challenges integrations and shared components that widen systemic exposure without proportionate controls.",
+        "tier": "Reasoning",
+        "promptFile": "security-resilience.md"
+      },
+      {
+        "id": "service-owner",
+        "name": "Service Owner",
+        "role": "User Outcomes and Service Accountability",
+        "description": "Represents end users and the people who must operate within the outcome. Presses for usable, joined-up services while accepting only data use that can be justified and governed.",
+        "tier": "Reasoning",
+        "promptFile": "service-owner.md"
+      }
+    ]
+  }
+}

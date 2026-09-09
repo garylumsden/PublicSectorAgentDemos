@@ -1,0 +1,863 @@
+@page "/"
+@rendermode InteractiveServer
+@implements IDisposable
+@inject WelfareAssessmentService AssessmentService
+@inject Demo2AdminWorkflowService ReservationAdministration
+@inject ILogger<Home> Logger
+@inject IJSRuntime JS
+
+<PageTitle>Flood support coordination | Act</PageTitle>
+
+<div class="service-notice" role="note" aria-label="Privacy notice">
+    <strong>Protect personal information</strong>
+    <span>Use area-level situation reports. Do not include names, contact details or individual data.</span>
+</div>
+
+<div class="page-shell">
+    <div class="hero">
+        <div>
+            <p class="eyebrow">@(IsAzureFoundry ? "Azure Foundry" : "Local simulation")</p>
+            <h1>Cross-government flood support</h1>
+            <p class="lede">
+                Coordinate temporary accommodation and transport from area-level evidence.
+                Review the proposed package before the incident commander approves its reservation.
+            </p>
+            <p class="hint">Council emergency coordinator | MHCLG liaison | DfT transport coordinator | NHS liaison | Authorised incident commander</p>
+        </div>
+    </div>
+
+    <div class="content-grid">
+        <section class="panel" aria-labelledby="situation-heading">
+            <div class="panel__header">
+                <div>
+                    <p class="step-label">Step 1</p>
+                    <h2 id="situation-heading">Flood situation report</h2>
+                </div>
+                <span class="data-chip">Protected input</span>
+            </div>
+
+            <EditForm Model="_form" OnValidSubmit="SubmitAsync" FormName="situation-form">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="validation-summary" />
+
+                <fieldset class="assessment-inputs" disabled="@(_isAssessing || _isResetting)">
+                <legend class="sr-only">Editable starting report</legend>
+                <div class="form-group">
+                    <label for="case-id">Assessment reference</label>
+                    <InputText id="case-id"
+                               class="text-input"
+                               @bind-Value="_form.CaseId"
+                               autocomplete="off"
+                               aria-describedby="case-id-hint" />
+                    <span id="case-id-hint" class="hint">Letters, numbers, hyphens, and underscores only.</span>
+                    <ValidationMessage For="() => _form.CaseId" />
+                </div>
+
+                <div class="form-group">
+                    <label for="area-reference">Incident area reference <span class="optional">(required for a reservation)</span></label>
+                    <InputText id="area-reference"
+                               class="text-input"
+                               @bind-Value="_form.FarmReference"
+                               autocomplete="off"
+                               aria-describedby="area-hint" />
+                    <span id="area-hint" class="hint">Use <code>AREA-1001</code> for Riverton flood support. This identifies an area, not an individual household.</span>
+                    <ValidationMessage For="() => _form.FarmReference" />
+                </div>
+
+                <div class="form-group">
+                    <label for="situation-report">Situation report</label>
+                    <InputTextArea id="situation-report"
+                                   class="text-area"
+                                   @bind-Value="_form.ComplaintText"
+                                   rows="8"
+                                   maxlength="6000"
+                                   aria-describedby="situation-hint situation-count" />
+                    <div class="input-meta">
+                        <span id="situation-hint" class="hint">Describe area-level household totals, accommodation capacity, transport capacity, sources, and deadlines.</span>
+                        <span id="situation-count">@_form.ComplaintText.Length / 6000</span>
+                    </div>
+                    <ValidationMessage For="() => _form.ComplaintText" />
+                </div>
+                </fieldset>
+
+                <div class="button-row form-actions">
+                    <button type="submit" class="button button--primary" disabled="@(_isAssessing || _isResetting)">
+                        @(_isAssessing ? "Assessing…" : "Run assessment")
+                    </button>
+                    <button type="button" class="button button--secondary"
+                            disabled="@(_isAssessing || _isResetting)" @onclick="ResetReservationsAsync">
+                        @(_isResetting ? "Resetting…" : "Reset reservations")
+                    </button>
+                    @if (_isAssessing)
+                    {
+                        <button type="button" class="button button--danger-quiet" @onclick="CancelAssessment">Cancel</button>
+                    }
+                </div>
+                <p class="hint">Reset restores reservation capacity and starts a new assessment. Previous case and audit records are kept.</p>
+                @if (_resetNotice is not null)
+                {
+                    <p role="status">@_resetNotice</p>
+                }
+
+                <fieldset class="assessment-inputs" disabled="@(_isAssessing || _isResetting)">
+                <legend class="sr-only">Assessment scenario shortcuts</legend>
+                <div class="scenario-picker" aria-labelledby="scenario-heading">
+                    <h3 id="scenario-heading">Assessment scenarios</h3>
+                    <p class="hint">Choose a starting point, then review and edit every field before submission.</p>
+                    <div class="scenario-grid">
+                        @foreach (WelfareScenario scenario in WelfareScenarioCatalogue.All)
+                        {
+                            <FluentCard Class="scenario-card">
+                                <strong>@scenario.Title</strong>
+                                <span>@scenario.ExpectedBehavior</span>
+                                <button type="button"
+                                        class="button button--secondary"
+                                        @onclick="() => UseScenario(scenario)">
+                                    Use scenario
+                                </button>
+                            </FluentCard>
+                        }
+                    </div>
+                </div>
+                </fieldset>
+            </EditForm>
+        </section>
+
+        <section class="panel assessment-workspace" aria-labelledby="progress-heading" aria-busy="@_isAssessing">
+            <div class="panel__header">
+                <div>
+                    <p class="step-label">Step 2</p>
+                    <h2 id="progress-heading">Live assessment progress</h2>
+                </div>
+                @if (_isAssessing)
+                {
+                    <span class="live-indicator"><span aria-hidden="true"></span> Live</span>
+                }
+            </div>
+
+            <div class="sr-only" role="status" aria-live="polite">@_liveMessage</div>
+
+            @if (_outcome is not null && _board.IsComplete)
+            {
+                <FluentCard Class="final-recommendation" role="status">
+                    <div>
+                        <span class="eyebrow">Validated recommendation</span>
+                        <h3>@FormatEnum(_outcome.Case.Route)</h3>
+                        <p>@_outcome.Case.Summary</p>
+                    </div>
+                    <span class="urgency urgency--@UrgencyClass(_outcome.Case.Urgency)">
+                        @_outcome.Case.Urgency urgency
+                    </span>
+                </FluentCard>
+            }
+
+            <FluentCard Class="activity-card">
+                <div>
+                    <span class="eyebrow">Current activity</span>
+                    <h3>@_board.CurrentActivity</h3>
+                    <p>@_board.CurrentDetail</p>
+                </div>
+                <div class="assessment-counters" aria-label="Assessment counters">
+                    <span><strong>@_board.EvidenceCount</strong> evidence items</span>
+                    <span><strong>@_board.GuardrailCount</strong> guardrail interventions</span>
+                </div>
+            </FluentCard>
+
+            <div class="stage-grid" aria-label="Assessment stages">
+                @foreach (AssessmentStageState stage in _board.Stages)
+                {
+                    <FluentCard Class="@($"stage-card stage-card--{stage.Status.ToString().ToLowerInvariant()}")">
+                        <div class="stage-card__heading">
+                            <h3>@stage.Title</h3>
+                            <span class="stage-status stage-status--@stage.Status.ToString().ToLowerInvariant()">
+                                @stage.Status
+                            </span>
+                        </div>
+                        <p>@stage.Result</p>
+                        @if (stage.ElapsedText is { } elapsed)
+                        {
+                            <small>Elapsed: @elapsed</small>
+                        }
+                    </FluentCard>
+                }
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(_errorMessage))
+            {
+                <div class="alert alert--error" role="alert">
+                    <strong>Assessment stopped</strong>
+                    <span>@_errorMessage</span>
+                </div>
+            }
+
+            <details class="technical-trace">
+                <summary>Technical trace (@_timeline.Count safe events)</summary>
+                @if (_timeline.Count == 0)
+                {
+                    <p class="muted">No workflow events recorded.</p>
+                }
+                else
+                {
+                    <ol class="timeline" aria-label="Chronological technical trace">
+                        @foreach (AssessmentTimelineItem item in _timeline)
+                        {
+                            <li class="timeline__item timeline__item--@item.Tone" @key="item.Id">
+                                <span class="timeline__marker" aria-hidden="true">@item.Icon</span>
+                                <div>
+                                    <div class="timeline__meta">
+                                        <strong>@item.Title</strong>
+                                        <time datetime="@item.Timestamp.ToString("O")">@item.Timestamp.ToLocalTime().ToString("HH:mm:ss")</time>
+                                    </div>
+                                    <p>@item.Message</p>
+                                </div>
+                            </li>
+                        }
+                    </ol>
+                }
+            </details>
+        </section>
+    </div>
+
+    @if (_outcome is not null)
+    {
+        <section class="result-section" aria-labelledby="result-heading">
+            <div class="section-heading">
+                <div>
+                    <p class="step-label">Step 3</p>
+                    <h2 id="result-heading">Supporting evidence and controls</h2>
+                </div>
+                <span class="urgency urgency--@UrgencyClass(_outcome.Case.Urgency)">
+                    @_outcome.Case.Urgency urgency
+                </span>
+            </div>
+
+            <div class="result-grid">
+                <article class="panel result-summary">
+                    <h3>Recommended route</h3>
+                    <p class="route">@FormatEnum(_outcome.Case.Route)</p>
+                    <p>@_outcome.Case.Summary</p>
+                    <dl class="key-values">
+                        <div><dt>Assessment</dt><dd>@_outcome.Case.CaseId</dd></div>
+                        <div><dt>Incident area reference</dt><dd>@(_outcome.Case.FarmReference ?? "Not supplied")</dd></div>
+                        <div><dt>Status</dt><dd>@FormatEnum(_outcome.Case.Status)</dd></div>
+                        <div><dt>Version</dt><dd>@_outcome.Case.Version</dd></div>
+                    </dl>
+                </article>
+
+                <article class="panel">
+                    <h3>Guardrail interventions</h3>
+                    @if (_guardrails.Count == 0)
+                    {
+                        <p class="muted">No escalation guardrail changed this assessment.</p>
+                    }
+                    else
+                    {
+                        <ul class="guardrail-list">
+                            @foreach (string guardrail in _guardrails)
+                            {
+                                <li><span aria-hidden="true">✓</span> @guardrail</li>
+                            }
+                        </ul>
+                    }
+                    @if (_outcome.Approval is { } approval)
+                    {
+                        <div class="alert @(approval.DispatchReference is not null ? "alert--success" : "alert--warning")">
+                            <strong>@(approval.DispatchReference is not null ? "Support package reserved" : "Reservation decision recorded")</strong>
+                            <span>
+                                @(approval.DispatchReference is not null
+                                    ? $"Reservation receipt: {approval.DispatchReference}."
+                                    : approval.Decision?.Outcome == ApprovalOutcome.Approved
+                                        ? "Approval granted, but no completed reservation receipt is available."
+                                        : approval.Decision?.Outcome == ApprovalOutcome.Denied
+                                            ? "The reservation was rejected. No reservation was made."
+                                            : "The reservation is awaiting a decision.")
+                            </span>
+                        </div>
+                    }
+                </article>
+
+                <article class="panel">
+                    <h3>Evidence used</h3>
+                    @if (_outcome.Evidence.Count == 0)
+                    {
+                        <p class="muted">Deterministic emergency route; provider evidence not requested.</p>
+                    }
+                    else
+                    {
+                        <ul>
+                            @foreach (string evidence in _outcome.Evidence)
+                            {
+                                <li>@evidence</li>
+                            }
+                        </ul>
+                    }
+                </article>
+
+                <article class="panel">
+                    <h3>Tool and policy trace</h3>
+                    <ol class="trace-list">
+                        @foreach (WorkflowTraceItem trace in _toolTrace)
+                        {
+                            <li>
+                                <span class="trace-status trace-status--@trace.Tone">@trace.Status</span>
+                                <div><strong>@trace.Name</strong><small>@trace.Detail</small></div>
+                            </li>
+                        }
+                    </ol>
+                </article>
+            </div>
+            @if (_outcome.Case.SupportRequest is not null || _outcome.Approval is not null)
+            {
+                <article class="panel recorded-package">
+                    <RecordedSupportPackage Case="_outcome.Case" Approval="_outcome.Approval" />
+                </article>
+            }
+        </section>
+    }
+</div>
+
+@if (_showAgentApprovalModal && _pendingAgentApproval is not null)
+{
+    <dialog class="approval-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="support-approval-title"
+            aria-describedby="support-approval-description"
+            @ref="_agentApprovalDialog"
+            @onkeydown="HandleAgentApprovalKeyDown">
+        <FloodSupportApprovalContent Context="_approvalPresentation" IsAzureFoundry="IsAzureFoundry"
+                                     CanApprove="CanApproveDispatch" DecisionRunning="_approvalDecisionRunning"
+                                     Error="@_approvalError" @bind-Rationale="_approvalRationale"
+                                     OnApprove="() => CompleteAgentApprovalAsync(true)"
+                                     OnReject="() => CompleteAgentApprovalAsync(false)"
+                                     OnCancel="CancelAgentApprovalAsync" />
+    </dialog>
+}
+
+@code {
+    private readonly ComplaintFormModel _form = new();
+    private WelfareAssessmentBoardState _board = new();
+    private readonly List<AssessmentTimelineItem> _timeline = [];
+    private readonly List<string> _guardrails = [];
+    private readonly List<WorkflowTraceItem> _toolTrace = [];
+    private long _timelineSequence;
+    private CancellationTokenSource? _assessmentCancellation;
+    private WelfareAssessmentCommand? _activeCommand;
+    private WelfareAssessmentOutcome? _outcome;
+    private bool _isAssessing;
+    private bool _isResetting;
+    private string? _resetNotice;
+    private string _liveMessage = "Ready to assess.";
+    private string? _errorMessage;
+    private AgentMcpApprovalRequest? _pendingAgentApproval;
+    private DispatchApprovalPresentation? _approvalPresentation;
+    private TaskCompletionSource<AgentMcpApprovalDecision>? _approvalDecisionSource;
+    private string _approvalRationale = "package-reviewed";
+    private string? _approvalError;
+    private bool _approvalDecisionRunning;
+    private bool _showAgentApprovalModal;
+    private bool _openAgentApprovalDialogOnRender;
+    private ElementReference _agentApprovalDialog;
+    private DotNetObjectReference<Home>? _dialogOwner;
+
+    private bool IsAzureFoundry => AssessmentService.ExecutionProvider == AssessmentExecutionProvider.AzureFoundry;
+
+    private bool CanApproveDispatch =>
+        !_approvalDecisionRunning &&
+        _approvalDecisionSource is { Task.IsCompleted: false } &&
+        IsApprovalContextCurrent;
+
+    private bool IsApprovalContextCurrent =>
+        _pendingAgentApproval is { } request &&
+        _approvalPresentation is { } context &&
+        _activeCommand is { } command &&
+        _form.CaseId.Trim() == command.CaseId &&
+        _form.ComplaintText.Trim() == command.ComplaintText &&
+        _form.FarmReference.Trim() == command.FarmReference &&
+        context.MatchesCurrent(request, _form.FarmReference.Trim());
+
+    protected override void OnInitialized()
+    {
+        _board.Configure(AssessmentService.ExecutionProvider);
+        ResetCaseReference();
+        _dialogOwner = DotNetObjectReference.Create(this);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_openAgentApprovalDialogOnRender || !_showAgentApprovalModal)
+        {
+            return;
+        }
+
+        _openAgentApprovalDialogOnRender = false;
+        try
+        {
+            await JS.InvokeVoidAsync("defraDialogs.showModal", _agentApprovalDialog, _dialogOwner);
+        }
+        catch (JSException exception)
+        {
+            string traceId = TraceReference();
+            Logger.LogError(
+                exception,
+                "MCP approval dialog could not open. Trace {TraceId}.",
+                traceId);
+            _errorMessage =
+                $"Approval dialog could not open. The reservation was rejected. Give reference {traceId} to the service operator.";
+            _showAgentApprovalModal = false;
+            _approvalDecisionSource?.TrySetResult(
+                new(false, "approval-dialog-unavailable"));
+        }
+    }
+
+    private async Task SubmitAsync()
+    {
+        if (_isAssessing || _isResetting)
+        {
+            return;
+        }
+
+        _assessmentCancellation?.Cancel();
+        _assessmentCancellation?.Dispose();
+        _assessmentCancellation = new CancellationTokenSource();
+        CancellationToken cancellationToken = _assessmentCancellation.Token;
+
+        _timeline.Clear();
+        _timelineSequence = 0;
+        _guardrails.Clear();
+        _toolTrace.Clear();
+        _outcome = null;
+        _errorMessage = null;
+        _resetNotice = null;
+        _isAssessing = true;
+        _board.Start(DateTimeOffset.UtcNow, AssessmentService.ExecutionProvider);
+        _liveMessage = "Assessment started.";
+
+        try
+        {
+            ReservationInventoryState inventory = await ReservationAdministration.GetInventoryStateAsync(cancellationToken);
+            WelfareAssessmentCommand command = new(
+                _form.CaseId.Trim(),
+                string.IsNullOrWhiteSpace(_form.FarmReference) ? null : _form.FarmReference.Trim(),
+                _form.ComplaintText.Trim(),
+                DateTimeOffset.UtcNow,
+                Demo2SyntheticOperator.ObjectId)
+            {
+                ReservationGeneration = inventory.Generation
+            };
+            _activeCommand = command;
+
+            await foreach (WelfareAssessmentEvent assessmentEvent in AssessmentService.AssessAsync(
+                               command,
+                               cancellationToken,
+                               RequestAgentApprovalAsync))
+            {
+                _timeline.Add(AssessmentTimelineItem.From(
+                    assessmentEvent,
+                    ++_timelineSequence));
+                _board.Apply(assessmentEvent);
+                _liveMessage = _timeline[^1].Title + ": " + assessmentEvent.Message;
+                TrackGuardrail(assessmentEvent);
+                TrackToolUse(assessmentEvent);
+                _outcome = assessmentEvent.Outcome ?? _outcome;
+                if (assessmentEvent.Outcome?.ToolTrace is { Count: > 0 } toolTrace)
+                {
+                    foreach (ToolTraceItem item in toolTrace)
+                    {
+                        _toolTrace.Add(new(
+                            item.ToolName,
+                            item.Status.ToString(),
+                            item.Error?.SafeDetail ?? "MCP tool completed with sanitized trace metadata.",
+                            item.Status == ToolCallStatus.Succeeded ? "success" : "warning"));
+                    }
+                }
+                await InvokeAsync(StateHasChanged);
+                await Task.Yield();
+            }
+        }
+        catch (SupportReservationNotExecutedException exception)
+        {
+            Logger.LogWarning(exception, "Support package capacity was unavailable. Trace {TraceId}.", TraceReference());
+            _errorMessage = exception.ErrorCode == "reservation.generation_changed"
+                ? "Reservations were reset while this assessment was running. No reservation was made. Run the assessment again."
+                : "The available rooms or transport are already reserved. No reservation was made. Select Reset reservations to restore capacity, then run again.";
+            _liveMessage = "No reservation was made.";
+            _board.Fail(DateTimeOffset.UtcNow, _errorMessage);
+        }
+        catch (WelfareAssessmentRejectedException exception)
+        {
+            Logger.LogWarning(
+                exception,
+                "Flood support assessment rejected by input policy {DecisionCode}.",
+                exception.DecisionCode);
+            _errorMessage = $"Input guard blocked this request ({exception.DecisionCode}). Remove unsafe instructions or personal data and try again.";
+            _guardrails.Add($"Input rejected by policy: {exception.DecisionCode}");
+            _toolTrace.Add(new("Input guard", "Blocked", $"Policy decision: {exception.DecisionCode}", "danger"));
+            _liveMessage = "Assessment blocked by the input guard.";
+            _board.Fail(DateTimeOffset.UtcNow, _errorMessage);
+        }
+        catch (OperationCanceledException)
+        {
+            _liveMessage = "Assessment cancelled.";
+            _board.Cancel(DateTimeOffset.UtcNow, "The operator cancelled this assessment.");
+        }
+        catch (Exception exception)
+        {
+            string traceId = TraceReference();
+            Logger.LogError(
+                exception,
+                "Flood support assessment failed. Trace {TraceId}.",
+                traceId);
+            _errorMessage = $"Assessment could not complete. No situation report text was logged. Retry once, then give reference {traceId} to the service operator.";
+            _liveMessage = "Assessment failed.";
+            _board.Fail(DateTimeOffset.UtcNow, _errorMessage);
+        }
+        finally
+        {
+            _isAssessing = false;
+            _activeCommand = null;
+        }
+    }
+
+    private void TrackGuardrail(WelfareAssessmentEvent assessmentEvent)
+    {
+        AssessmentExecutionProvider provider = assessmentEvent.ExecutionProvider ?? _board.ExecutionProvider;
+        string? intervention = assessmentEvent.Kind switch
+        {
+            AssessmentEventKind.EmergencyFloorApplied => "Emergency rule forced a High urgency floor before provider assessment.",
+            AssessmentEventKind.RepeatOffenderEscalated => "Recurring unmet need raised urgency after provider assessment.",
+            AssessmentEventKind.ContinuationFloorApplied => "Continuation policy prevented an urgency downgrade.",
+            AssessmentEventKind.McpApprovalDecided when provider == AssessmentExecutionProvider.AzureFoundry => "Azure Foundry paused the MCP reservation call until the incident commander decided.",
+            AssessmentEventKind.McpApprovalDecided => "The reservation waited for the incident commander's decision.",
+            _ => null
+        };
+
+        if (intervention is not null && !_guardrails.Contains(intervention, StringComparer.Ordinal))
+        {
+            _guardrails.Add(intervention);
+        }
+    }
+
+    private void TrackToolUse(WelfareAssessmentEvent assessmentEvent)
+    {
+        switch (assessmentEvent.Kind)
+        {
+            case AssessmentEventKind.Accepted:
+                _toolTrace.Add(new("Input guard", "Allowed", assessmentEvent.Message, "success"));
+                break;
+            case AssessmentEventKind.EmergencyFloorApplied:
+                _toolTrace.Add(new("Emergency policy", "Applied", "High urgency floor set before assessment provider access.", "warning"));
+                break;
+            case AssessmentEventKind.AgentStarted:
+            {
+                bool azure = assessmentEvent.ExecutionProvider == AssessmentExecutionProvider.AzureFoundry;
+                _toolTrace.Add(new(
+                    azure ? "Azure Foundry flood support agent" : "Local deterministic assessment",
+                    "Running",
+                    azure
+                        ? "Service-managed prompt agent with configured direct MCP policy."
+                        : "In-process deterministic contract; no live Foundry or MCP call.",
+                    "info"));
+                break;
+            }
+            case AssessmentEventKind.AgentCompleted:
+            {
+                bool azure = assessmentEvent.ExecutionProvider == AssessmentExecutionProvider.AzureFoundry;
+                string name = azure ? "Azure Foundry flood support agent" : "Local deterministic assessment";
+                int index = _toolTrace.FindIndex(item => item.Name == name);
+                WorkflowTraceItem completed = new(name, "Completed", azure
+                    ? "Response parsed against the strict structured JSON contract."
+                    : "Typed deterministic result accepted.", "success");
+                if (index >= 0)
+                {
+                    _toolTrace[index] = completed;
+                }
+                else
+                {
+                    _toolTrace.Add(completed);
+                }
+                break;
+            }
+            case AssessmentEventKind.McpApprovalDecided:
+                if (assessmentEvent.ApprovalGranted is true)
+                {
+                    UpdateDispatchTrace("Approved", assessmentEvent.Message, "success");
+                }
+                else if (assessmentEvent.ApprovalGranted is false)
+                {
+                    UpdateDispatchTrace("Rejected", assessmentEvent.Message, "danger");
+                }
+                else
+                {
+                    UpdateDispatchTrace("Decision recorded", assessmentEvent.Message, "warning");
+                }
+                break;
+            case AssessmentEventKind.DispatchCompleted:
+                UpdateDispatchTrace("Completed", assessmentEvent.Message, "success");
+                break;
+            case AssessmentEventKind.Persisted:
+                _toolTrace.Add(new("State store", "Completed", "Assessment and workflow state saved; situation report text is not retained.", "success"));
+                break;
+        }
+    }
+
+    private async Task<AgentMcpApprovalDecision> RequestAgentApprovalAsync(
+        AgentMcpApprovalRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (_approvalDecisionSource is not null)
+        {
+            throw new InvalidOperationException(
+                "Another MCP approval request is already awaiting a decision.");
+        }
+
+        _pendingAgentApproval = request;
+        DispatchApprovalPresentation.TryCreate(
+            request,
+            _activeCommand?.FarmReference ?? string.Empty,
+            out _approvalPresentation);
+        _approvalDecisionSource = new(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        _showAgentApprovalModal = true;
+        _openAgentApprovalDialogOnRender = true;
+        _approvalDecisionRunning = false;
+        _approvalRationale = "package-reviewed";
+        _approvalError = null;
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        _board.MarkApprovalPending(now, request.ToolName);
+        string approvalNotice = FloodSupportCaptions.ApprovalDescription(IsAzureFoundry);
+        if (!_guardrails.Contains(approvalNotice, StringComparer.Ordinal))
+        {
+            _guardrails.Add(approvalNotice);
+        }
+        UpdateDispatchTrace(
+            "Awaiting approval",
+            approvalNotice,
+            "warning");
+        _liveMessage = FloodSupportCaptions.ApprovalMode(IsAzureFoundry) + " required.";
+        await InvokeAsync(StateHasChanged);
+
+        TaskCompletionSource<AgentMcpApprovalDecision> source = _approvalDecisionSource;
+        using CancellationTokenRegistration registration = cancellationToken.Register(
+            () => source.TrySetCanceled(cancellationToken));
+        using CancellationTokenSource monitorCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        Task monitor = MonitorApprovalAsync(monitorCancellation.Token);
+        try
+        {
+            AgentMcpApprovalDecision decision = await source.Task;
+            _board.MarkApprovalDecision(DateTimeOffset.UtcNow, decision.Approved);
+            await InvokeAsync(StateHasChanged);
+            return decision;
+        }
+        finally
+        {
+            await monitorCancellation.CancelAsync();
+            await monitor;
+            if (_showAgentApprovalModal)
+            {
+                await CloseAgentApprovalDialogAsync();
+            }
+            _pendingAgentApproval = null;
+            _approvalPresentation = null;
+            _approvalDecisionSource = null;
+            _showAgentApprovalModal = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task CompleteAgentApprovalAsync(bool approved)
+    {
+        if (_approvalDecisionRunning || _approvalDecisionSource is not { Task.IsCompleted: false } source)
+        {
+            return;
+        }
+
+        if (approved && !CanApproveDispatch)
+        {
+            _approvalError =
+                "Reservation approval is unavailable because the decision context is missing, changed, mismatched, or expired. Reject the request.";
+            return;
+        }
+
+        if (approved && !TryValidateDecisionCode(_approvalRationale))
+        {
+            _approvalError =
+                "Enter an audit-safe rationale code using letters, numbers, hyphens, underscores, or dots.";
+            return;
+        }
+
+        string rationale = TryValidateDecisionCode(_approvalRationale)
+            ? _approvalRationale
+            : "operator-rejected";
+        // Latch the decision before JS interop yields, then check expiry and context again.
+        _approvalDecisionRunning = true;
+        await CloseAgentApprovalDialogAsync();
+        if (approved && !IsApprovalContextCurrent)
+        {
+            approved = false;
+            rationale = "approval-context-changed-or-expired";
+            _errorMessage = "The approval context changed or expired. No reservation was approved.";
+        }
+        source.TrySetResult(new(approved, rationale));
+    }
+
+    private async Task CloseAgentApprovalDialogAsync()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("defraDialogs.close", _agentApprovalDialog);
+        }
+        catch (JSException exception)
+        {
+            Logger.LogWarning(
+                exception,
+                "MCP approval dialog could not close cleanly. Trace {TraceId}.",
+                TraceReference());
+        }
+        finally
+        {
+            _showAgentApprovalModal = false;
+        }
+    }
+
+    private async Task HandleAgentApprovalKeyDown(
+        Microsoft.AspNetCore.Components.Web.KeyboardEventArgs eventArgs)
+    {
+        if (!string.Equals(eventArgs.Key, "Escape", StringComparison.Ordinal) ||
+            _approvalDecisionSource is null)
+        {
+            return;
+        }
+
+        await CancelAgentApprovalAsync();
+    }
+
+    [JSInvokable]
+    public Task CancelAgentApprovalAsync()
+    {
+        if (!_approvalDecisionRunning)
+        {
+            _approvalRationale = "operator-cancelled";
+        }
+        return CompleteAgentApprovalAsync(false);
+    }
+
+    private async Task MonitorApprovalAsync(CancellationToken cancellationToken)
+    {
+        using PeriodicTimer timer = new(TimeSpan.FromSeconds(1));
+        try
+        {
+            while (await timer.WaitForNextTickAsync(cancellationToken))
+            {
+                await InvokeAsync(() =>
+                {
+                    if (!_approvalDecisionRunning && _approvalPresentation is not null && !CanApproveDispatch)
+                    {
+                        _approvalError = "The approval context changed or expired. Approval is disabled. Reject the reservation.";
+                    }
+                    StateHasChanged();
+                });
+            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // The decision or assessment ended; no further expiry updates are needed.
+        }
+    }
+
+    private void UpdateDispatchTrace(string status, string detail, string tone)
+    {
+        int index = _toolTrace.FindIndex(item => item.Name == "reserveSupportPackage");
+        WorkflowTraceItem updated = new("reserveSupportPackage", status, detail, tone);
+        if (index >= 0)
+        {
+            _toolTrace[index] = updated;
+        }
+        else
+        {
+            _toolTrace.Add(updated);
+        }
+    }
+
+    private static bool TryValidateDecisionCode(string value) =>
+        !string.IsNullOrWhiteSpace(value) &&
+        value.Length <= 128 &&
+        value.All(character =>
+            char.IsAsciiLetterOrDigit(character) ||
+            character is '-' or '_' or '.');
+
+    private void UseScenario(WelfareScenario scenario)
+    {
+        if (_isAssessing || _isResetting)
+        {
+            _liveMessage = "The current report is locked until the assessment ends.";
+            return;
+        }
+        _form.LoadScenario(scenario, CreateCaseReference());
+        _liveMessage = $"{scenario.Title} loaded. Review the editable fields before assessment.";
+    }
+
+    private void CancelAssessment() => _assessmentCancellation?.Cancel();
+
+    private async Task ResetReservationsAsync()
+    {
+        if (_isAssessing || _isResetting)
+        {
+            return;
+        }
+        _isResetting = true;
+        _resetNotice = null;
+        try
+        {
+            ReservationInventoryState inventory = await ReservationAdministration.ResetReservationsAsync();
+            if (inventory.ReservationCount != 0)
+            {
+                throw new WelfareToolboxException("inventory.reset_not_confirmed", "Reservation reset was not confirmed.");
+            }
+            ResetCaseReference();
+            _board = new();
+            _board.Configure(AssessmentService.ExecutionProvider);
+            _timeline.Clear();
+            _timelineSequence = 0;
+            _guardrails.Clear();
+            _toolTrace.Clear();
+            _outcome = null;
+            _activeCommand = null;
+            _errorMessage = null;
+            _liveMessage = "Ready to assess.";
+            _resetNotice = "Reservations reset. Capacity restored. Previous records kept.";
+        }
+        catch (Exception exception) when (exception is HttpRequestException or WelfareToolboxException or
+            OperationCanceledException or System.Text.Json.JsonException or Azure.Identity.AuthenticationFailedException)
+        {
+            Logger.LogWarning(exception, "Reservation reset could not be confirmed. Trace {TraceId}.", TraceReference());
+            _errorMessage = "Reservation reset could not be confirmed. Retry Reset reservations before starting another assessment.";
+        }
+        finally
+        {
+            _isResetting = false;
+        }
+    }
+
+    private void ResetCaseReference() =>
+        _form.CaseId = CreateCaseReference();
+
+    private static string CreateCaseReference() =>
+        $"FLOOD-{DateTimeOffset.UtcNow:yyyyMMdd}-{Guid.NewGuid():N}";
+
+    private static string TraceReference() =>
+        System.Diagnostics.Activity.Current?.TraceId.ToString() ?? Guid.NewGuid().ToString("N");
+
+    private static string UrgencyClass(WelfareUrgency urgency) => urgency.ToString().ToLowerInvariant();
+
+    private static string FormatEnum<T>(T value) where T : struct, Enum =>
+        FloodSupportCaptions.Format(value);
+
+    public void Dispose()
+    {
+        _assessmentCancellation?.Cancel();
+        _assessmentCancellation?.Dispose();
+        _approvalDecisionSource?.TrySetCanceled();
+        _dialogOwner?.Dispose();
+    }
+}

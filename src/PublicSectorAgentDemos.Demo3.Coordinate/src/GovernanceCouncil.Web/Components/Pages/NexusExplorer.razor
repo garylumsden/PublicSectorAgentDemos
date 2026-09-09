@@ -1,0 +1,189 @@
+@page "/nexus"
+@using GovernanceCouncil.Core.Interfaces
+@using GovernanceCouncil.Core.Models
+@using Microsoft.JSInterop
+@inject INexusStore NexusStore
+@inject IAssessmentStore AssessmentStore
+@inject IJSRuntime JS
+@rendermode InteractiveServer
+@implements IAsyncDisposable
+
+<PageTitle>Nexus Explorer</PageTitle>
+
+<header class="gc-page-head">
+    <span class="gc-eyebrow">Intelligence</span>
+    <h1>Nexus Explorer</h1>
+    <p class="lead">Discover interconnections between policy assessments.</p>
+</header>
+
+@if (_allNexuses is not null && _allNexuses.Any())
+{
+    <div class="border rounded bg-white mb-4" style="height: 450px; position: relative;" id="cy-container">
+    </div>
+    <div class="small text-muted mb-3">
+        <strong>Legend:</strong>
+        <span class="me-2 legend-implication">● Implication</span>
+        <span class="me-2 legend-contradiction">● Contradiction</span>
+        <span class="me-2 legend-dependency">● Dependency</span>
+        <span class="me-2 legend-supersession">● Supersession</span>
+        <span class="me-2 legend-reinforcement">● Reinforcement</span>
+        <span class="me-2 legend-tension">● Tension</span>
+        <span class="ms-3 text-muted">Click a node or edge to filter. Click again to reset.</span>
+    </div>
+}
+
+<div class="mb-3 d-flex align-items-center gap-3">
+    <div>
+        <label class="form-label mb-0">Filter by Type</label>
+        <select class="form-select form-select-sm w-auto d-inline-block ms-2" @onchange="OnFilterChanged">
+            <option value="">All Types</option>
+            @foreach (var t in Enum.GetValues<NexusType>())
+            {
+                <option value="@t">@t</option>
+            }
+        </select>
+    </div>
+    @if (!string.IsNullOrEmpty(_graphFilter))
+    {
+        <span class="badge bg-info">Filtered: @_graphFilter</span>
+        <button class="btn btn-sm btn-outline-secondary" @onclick="ClearGraphFilter">Clear</button>
+    }
+    <a href="/nexus/alerts" class="btn btn-warning btn-sm ms-auto">View Alerts</a>
+</div>
+
+@if (_nexuses is null)
+{
+    <p>Loading...</p>
+}
+else if (!_nexuses.Any())
+{
+    <p class="text-muted">No nexuses found.</p>
+}
+else
+{
+    <div class="gc-card gc-grid-card">
+        <FluentDataGrid Items="@_nexuses.AsQueryable()" TGridItem="Nexus" GridTemplateColumns="1fr 1.1fr 1.1fr 2.4fr 0.9fr 1fr" Class="gc-grid">
+            <TemplateColumn Title="Type">
+                <span class="gc-pill badge-conditions">@context.NexusType</span>
+            </TemplateColumn>
+            <TemplateColumn Title="Source">
+                <a href="/assessment/@context.SourceAssessmentId">@context.SourceAssessmentId</a>
+            </TemplateColumn>
+            <TemplateColumn Title="Target">
+                <a href="/assessment/@context.TargetAssessmentId">@context.TargetAssessmentId</a>
+            </TemplateColumn>
+            <TemplateColumn Title="Summary">@context.Summary</TemplateColumn>
+            <TemplateColumn Title="Confidence">
+                <span class="text-muted">@context.Confidence</span>
+            </TemplateColumn>
+            <TemplateColumn Title="Actions" Align="Align.End">
+                <FluentAnchor Href="@($"/nexus/{context.Id}/{context.SourceAssessmentId}")" Appearance="Appearance.Accent">Detail</FluentAnchor>
+            </TemplateColumn>
+        </FluentDataGrid>
+    </div>
+}
+
+@code {
+    private IReadOnlyList<Nexus>? _nexuses;
+    private IReadOnlyList<Nexus>? _allNexuses;
+    private IReadOnlyList<Assessment>? _assessments;
+    private string _graphFilter = "";
+    private DotNetObjectReference<NexusExplorer>? _dotNetRef;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _allNexuses = await NexusStore.ListAllAsync();
+        _assessments = await AssessmentStore.ListAsync();
+        _nexuses = _allNexuses;
+    }
+
+    private bool _graphRendered;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_graphRendered && _allNexuses is not null && _allNexuses.Any())
+        {
+            _graphRendered = true;
+            _dotNetRef = DotNetObjectReference.Create(this);
+
+            var assessmentIds = _allNexuses
+                .SelectMany(n => new[] { n.SourceAssessmentId, n.TargetAssessmentId })
+                .Distinct();
+
+            var nodes = assessmentIds.Select(id =>
+            {
+                var assessment = _assessments?.FirstOrDefault(a => a.AssessmentId == id);
+                var label = assessment is not null
+                    ? $"{id[..Math.Min(12, id.Length)]}\n{assessment.DossierTitle[..Math.Min(25, assessment.DossierTitle.Length)]}"
+                    : id[..Math.Min(12, id.Length)];
+                return new { id, label, recommendation = assessment?.OverallRecommendation ?? "" };
+            }).ToArray();
+
+            var edges = _allNexuses.Select(n => new
+            {
+                id = n.Id,
+                source = n.SourceAssessmentId,
+                target = n.TargetAssessmentId,
+                nexusType = n.NexusType.ToString()
+            }).ToArray();
+
+            await JS.InvokeVoidAsync("nexusGraph.init", "cy-container", nodes, edges, _dotNetRef);
+        }
+    }
+
+    [JSInvokable]
+    public void OnGraphNodeClicked(string assessmentId)
+    {
+        _graphFilter = assessmentId;
+        _nexuses = _allNexuses?.Where(n =>
+            n.SourceAssessmentId == assessmentId || n.TargetAssessmentId == assessmentId).ToList();
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void OnGraphEdgeClicked(string nexusId)
+    {
+        _graphFilter = nexusId;
+        _nexuses = _allNexuses?.Where(n => n.Id == nexusId).ToList();
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public async Task OnGraphBackgroundClicked()
+    {
+        await ClearGraphFilter();
+    }
+
+    private async Task ClearGraphFilter()
+    {
+        _graphFilter = "";
+        _nexuses = _allNexuses;
+        try { await JS.InvokeVoidAsync("nexusGraph.resetGraph"); } catch { }
+        StateHasChanged();
+    }
+
+    private void OnFilterChanged(ChangeEventArgs e)
+    {
+        var value = e.Value?.ToString();
+        _graphFilter = "";
+        if (string.IsNullOrEmpty(value))
+        {
+            _nexuses = _allNexuses;
+        }
+        else if (Enum.TryParse<NexusType>(value, out var nexusType))
+        {
+            _nexuses = _allNexuses?.Where(n => n.NexusType == nexusType).ToList();
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("nexusGraph.destroy");
+        }
+        catch (InvalidOperationException) { /* JS interop not available during prerender */ }
+        catch (JSDisconnectedException) { /* Circuit disconnected */ }
+        _dotNetRef?.Dispose();
+    }
+}

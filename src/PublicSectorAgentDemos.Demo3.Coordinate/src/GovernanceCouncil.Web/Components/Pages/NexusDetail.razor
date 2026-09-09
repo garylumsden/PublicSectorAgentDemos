@@ -1,0 +1,107 @@
+@page "/nexus/{NexusId}/{SourceAssessmentId}"
+@using GovernanceCouncil.Core.Interfaces
+@using GovernanceCouncil.Core.Models
+@inject INexusStore NexusStore
+@inject IAssessmentStore AssessmentStore
+
+<PageTitle>Nexus Detail</PageTitle>
+
+@if (_nexus is null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/nexus">Nexus Explorer</a></li>
+            <li class="breadcrumb-item active">@_nexus.Id</li>
+        </ol>
+    </nav>
+
+    <header class="gc-page-head">
+        <span class="gc-eyebrow">Intelligence</span>
+        <h1>Nexus Detail</h1>
+    </header>
+    <span class="badge bg-warning text-dark fs-5 mb-3">@_nexus.NexusType</span>
+    <span class="badge bg-secondary fs-6 ms-2">Confidence: @_nexus.Confidence</span>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header fw-bold">Source Assessment</div>
+                <div class="card-body">
+                    <h5><a href="/assessment/@_nexus.SourceAssessmentId">@_nexus.SourceAssessmentId</a></h5>
+                    <p class="mb-0">@(_sourceTitle ?? "Loading...")</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header fw-bold">Target Assessment</div>
+                <div class="card-body">
+                    <h5><a href="/assessment/@_nexus.TargetAssessmentId">@_nexus.TargetAssessmentId</a></h5>
+                    <p class="mb-0">@(_targetTitle ?? "Loading...")</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h3 class="mt-4">Summary</h3>
+    <p class="text-break-word">@_nexus.Summary</p>
+
+    <h3 class="mt-4">Nexus Points</h3>
+    @if (_nexus.NexusPoints.Any())
+    {
+        @foreach (var point in _nexus.NexusPoints)
+        {
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-5">
+                            <h6 class="text-primary">Source Excerpt</h6>
+                            <div class="border-start border-3 border-primary ps-3 small" style="word-break: break-word;">@point.SourceExcerpt</div>
+                        </div>
+                        <div class="col-md-2 text-center align-self-center">
+                            <span class="badge bg-dark text-wrap" style="word-break: break-word;">@point.Relationship</span>
+                        </div>
+                        <div class="col-md-5">
+                            <h6 class="text-success">Target Excerpt</h6>
+                            <div class="border-start border-3 border-success ps-3 small" style="word-break: break-word;">@point.TargetExcerpt</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <p class="text-muted">No nexus points recorded.</p>
+    }
+
+    <div class="mt-3">
+        <a href="/nexus" class="btn btn-outline-secondary">← Back to Explorer</a>
+    </div>
+}
+
+@code {
+    [Parameter] public string NexusId { get; set; } = "";
+    [Parameter] public string SourceAssessmentId { get; set; } = "";
+
+    private Nexus? _nexus;
+    private string? _sourceTitle;
+    private string? _targetTitle;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _nexus = await NexusStore.GetAsync(NexusId, SourceAssessmentId);
+        if (_nexus is not null)
+        {
+            try { _sourceTitle = (await AssessmentStore.GetAsync(_nexus.SourceAssessmentId)).DossierTitle; }
+            catch { _sourceTitle = _nexus.SourceAssessmentId; }
+
+            try { _targetTitle = (await AssessmentStore.GetAsync(_nexus.TargetAssessmentId)).DossierTitle; }
+            catch { _targetTitle = _nexus.TargetAssessmentId; }
+        }
+    }
+}

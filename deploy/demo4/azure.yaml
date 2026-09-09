@@ -1,0 +1,87 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+requiredVersions:
+    extensions:
+        azure.ai.agents: '>=1.0.0-beta.5'
+        azure.ai.projects: '>=1.0.0-beta.2'
+name: public-sector-demo4-preview
+services:
+    ai-project:
+        host: azure.ai.project
+    demo4-application:
+        project: application-package
+        host: appservice
+        language: dotnet
+        hooks:
+            prepackage:
+                windows:
+                    shell: pwsh
+                    run: ./prepare-application-package.ps1
+        uses:
+            - ai-project
+            - demo4-hosted-agent
+    demo4-hosted-agent:
+        project: agent-package
+        host: azure.ai.agent
+        language: csharp
+        uses:
+            - ai-project
+        codeConfiguration:
+            dependencyResolution: remote_build
+            entryPoint: PublicSectorAgentDemos.Demo4.HostedAgents.dll
+            runtime: dotnet_10
+        container:
+            resources:
+                cpu: "1"
+                memory: 2Gi
+        description: Preview agent for cross-government control investigations.
+        displayName: Cross-Government Control Investigator
+        environmentVariables:
+            - name: FOUNDRY_PROJECT_ENDPOINT
+              value: ${FOUNDRY_PROJECT_ENDPOINT}
+            - name: AZURE_AI_MODEL_DEPLOYMENT_NAME
+              value: ${AZURE_AI_MODEL_DEPLOYMENT_NAME}
+            - name: TOOLBOX_NAME
+              value: demo4-case-pattern-toolbox
+            - name: AZURE_TENANT_ID
+              value: ${AZURE_TENANT_ID}
+        kind: hosted
+        name: demo4-hosted-agent
+        protocols:
+            - protocol: responses
+              version: 2.0.0
+infra:
+    provider: bicep
+    path: ../../infra/demo4
+    module: main
+hooks:
+    postprovision:
+        windows:
+            shell: pwsh
+            run: ./hooks/configure-foundry.ps1
+    postup:
+        windows:
+            shell: pwsh
+            run: ./agent-package/configure-hosted-agent.ps1
+    predeploy:
+        windows:
+            shell: pwsh
+            run: ./prepare-agent-package.ps1
+workflows:
+    up:
+        steps:
+            - azd:
+                args:
+                    - provision
+            - azd:
+                args:
+                    - deploy
+                    - ai-project
+            - azd:
+                args:
+                    - deploy
+                    - demo4-hosted-agent
+            - azd:
+                args:
+                    - deploy
+                    - demo4-application

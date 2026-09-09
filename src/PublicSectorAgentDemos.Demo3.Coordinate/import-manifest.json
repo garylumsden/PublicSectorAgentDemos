@@ -1,0 +1,1481 @@
+{
+  "schemaVersion": 1,
+  "sourceRepository": "cross-gov-assurance-board-demo",
+  "sourceCommit": "bc98334e4e61e233291f30ede79ed4b807eb7d1b",
+  "destination": "src/PublicSectorAgentDemos.Demo3.Coordinate",
+  "importedAtUtc": "2026-09-06T13:44:42Z",
+  "hashAlgorithm": "SHA-256",
+  "sourceByteVerification": "Every imported source file also matches its raw Git blob at the pinned commit.",
+  "applicationSourceChanged": false,
+  "infrastructureDepartures": [
+    {
+      "path": "infra\\resources.bicep",
+      "resource": "logAnalytics",
+      "change": "Move sku.name PerGB2018 from the resource root to properties.sku; retain 30-day retention. Sequence content policy, model deployments, and project creation to avoid concurrent AI-account writes on fresh provisioning.",
+      "reference": "https://learn.microsoft.com/en-us/azure/templates/microsoft.operationalinsights/2022-10-01/workspaces"
+    }
+  ],
+  "files": [
+    {
+      "path": ".gitignore",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "0aee24a6edecb41a5c5312e4070d81c367aebcf3",
+      "sourceSha256": "8ba047a90a2095c3487243996fd5d1b0cc23b591caf3d8fdc0df9a5c42534b58",
+      "bundledSha256": "19496bed119880353161b32ff6f06ddb04a05462de9faa1b74e476cb02417027",
+      "status": "build-isolation"
+    },
+    {
+      "path": "azure.yaml",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "f7b743b9fed20d5fdccc5a8a5c5e2381ee88a04a",
+      "sourceSha256": "aa94a70a7bb30bad9bb82c0489b4c74d3ce72c7916cc1a1cfee300356e099cbd",
+      "bundledSha256": "aa94a70a7bb30bad9bb82c0489b4c74d3ce72c7916cc1a1cfee300356e099cbd",
+      "status": "byte-identical"
+    },
+    {
+      "path": "config\\prompts\\.gitkeep",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "8b137891791fe96927ad78e64b0aad7bded08bdc",
+      "sourceSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "bundledSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "status": "byte-identical"
+    },
+    {
+      "path": "config\\prompts\\finance-value-for-money.md",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "3123e3c63e1d022e2159025fa0deeb4dcb6ceef2",
+      "sourceSha256": "7d6ede7f97239519f9da0b0202fe15a00d233d6f8f141655bc73f38ee39783dd",
+      "bundledSha256": "7d6ede7f97239519f9da0b0202fe15a00d233d6f8f141655bc73f38ee39783dd",
+      "status": "byte-identical"
+    },
+    {
+      "path": "config\\prompts\\information-rights-data-protection.md",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "04adf1ac1573de715000b2f3f6430997bc428f4f",
+      "sourceSha256": "9a7dfbb841833be8f72619bdf064b80d6d37083e96af21dd28aa4a8e4daedd60",
+      "bundledSha256": "9a7dfbb841833be8f72619bdf064b80d6d37083e96af21dd28aa4a8e4daedd60",
+      "status": "byte-identical"
+    },
+    {
+      "path": "config\\prompts\\legal-statutory-powers.md",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "e136b43a29e50be6ca9e6f7b588784e12c89ff93",
+      "sourceSha256": "d726a573b47165e5fb711e989c0b2a5c9fa881735eaf6ec51cfc0ca8bfb44a3f",
+      "bundledSha256": "d726a573b47165e5fb711e989c0b2a5c9fa881735eaf6ec51cfc0ca8bfb44a3f",
+      "status": "byte-identical"
+    },
+    {
+      "path": "config\\prompts\\operational-delivery.md",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "83412c5866f7d03640fa52599828b556cc84514b",
+      "sourceSha256": "b993f720383b2d10e3ac96283c61e0f2fd8035f3fdd7128d457f6fabad85f4d0",
+      "bundledSha256": "b993f720383b2d10e3ac96283c61e0f2fd8035f3fdd7128d457f6fabad85f4d0",
+      "status": "byte-identical"
+    },
+    {
+      "path": "config\\prompts\\security-resilience.md",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "7a418399ebe4131cf46ce7d3e721c547a4662b9f",
+      "sourceSha256": "a9b3048f203d2411972e12e19ebc85832ab4373bd758eb2694c661a61c4beacf",
+      "bundledSha256": "a9b3048f203d2411972e12e19ebc85832ab4373bd758eb2694c661a61c4beacf",
+      "status": "byte-identical"
+    },
+    {
+      "path": "config\\prompts\\service-owner.md",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "38bbc64033e688a01dd24b174d52fb1a47f247dd",
+      "sourceSha256": "e400ce9205eb6aa8b46233920a581bc200f96ea04a3ab73034ae5b9f7e709b0d",
+      "bundledSha256": "e400ce9205eb6aa8b46233920a581bc200f96ea04a3ab73034ae5b9f7e709b0d",
+      "status": "byte-identical"
+    },
+    {
+      "path": "config\\scenario.example.json",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "4d62b936990384cb3916311bd72ca26df3b4735b",
+      "sourceSha256": "689fd88438fff8e79b0d1614e707f1bde546307318c07acc993d54cd86cedc42",
+      "bundledSha256": "689fd88438fff8e79b0d1614e707f1bde546307318c07acc993d54cd86cedc42",
+      "status": "byte-identical"
+    },
+    {
+      "path": "config\\scenario.json",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "b08e2c52380a5ff89dc89146b689e1c99c076e64",
+      "sourceSha256": "6b8a367825a220fa46d1fa429cf03c91e2a8508da822ba77c316a5e213a50fc2",
+      "bundledSha256": "6b8a367825a220fa46d1fa429cf03c91e2a8508da822ba77c316a5e213a50fc2",
+      "status": "byte-identical"
+    },
+    {
+      "path": "data\\README.md",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "1b52b9b5b28319901c3eb2681ae1804c6b5182d3",
+      "sourceSha256": "162cb229c4d157e5f3c4b9e70ddbc5210427bc9891926be5e71f8477914d4eae",
+      "bundledSha256": "162cb229c4d157e5f3c4b9e70ddbc5210427bc9891926be5e71f8477914d4eae",
+      "status": "byte-identical"
+    },
+    {
+      "path": "data\\policies\\.gitkeep",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "8b137891791fe96927ad78e64b0aad7bded08bdc",
+      "sourceSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "bundledSha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "status": "byte-identical"
+    },
+    {
+      "path": "data\\policies\\dossier-case-management-consolidation.md",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "62899e7bb031596637ef43796e74a80a6ff34354",
+      "sourceSha256": "405d8eb827e7763f960d99f26c65c9680a485bce12a275d14c91133e1ae94844",
+      "bundledSha256": "405d8eb827e7763f960d99f26c65c9680a485bce12a275d14c91133e1ae94844",
+      "status": "byte-identical"
+    },
+    {
+      "path": "data\\policies\\dossier-shared-ai-service.md",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "af6df4afe4c98cf7d47f6725dfd0136d502b0363",
+      "sourceSha256": "aec1132ec573891f0d5706ab4746a012d29f9999e5f89fca50ed0d50b39c322b",
+      "bundledSha256": "aec1132ec573891f0d5706ab4746a012d29f9999e5f89fca50ed0d50b39c322b",
+      "status": "byte-identical"
+    },
+    {
+      "path": "infra\\hooks\\postprovision.ps1",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "34c4222fc0a199eda444857c8ff41111970f369f",
+      "sourceSha256": "b48fcd771ca6f5757e1edc877a961838a52be52998712350d57074831cae107a",
+      "bundledSha256": "b48fcd771ca6f5757e1edc877a961838a52be52998712350d57074831cae107a",
+      "status": "byte-identical"
+    },
+    {
+      "path": "infra\\hooks\\postprovision.sh",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "5c416fa40dfbd6a0194ec1d6edc74951e61d5a9a",
+      "sourceSha256": "f489d765426f2f4f7fb44e95e3c4ab5a03465b4ab7693226795ef8bbadf8661a",
+      "bundledSha256": "f489d765426f2f4f7fb44e95e3c4ab5a03465b4ab7693226795ef8bbadf8661a",
+      "status": "byte-identical"
+    },
+    {
+      "path": "infra\\main.bicep",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "55902b2a85c6e4a9ec2d336fb8fffd6498e5cf4c",
+      "sourceSha256": "cc50254915a936e72fb064059f40a6671dc6fc3db27d9d2f1aa389f2a23ca153",
+      "bundledSha256": "cc50254915a936e72fb064059f40a6671dc6fc3db27d9d2f1aa389f2a23ca153",
+      "status": "byte-identical"
+    },
+    {
+      "path": "infra\\main.parameters.json",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "1d88703c4dabb6a1e69a30ea259bafade1cd31df",
+      "sourceSha256": "cdad8a57b062c24f7ec115ad00d1a06ca1c03692afaf1d051867e5b2327d74ae",
+      "bundledSha256": "cdad8a57b062c24f7ec115ad00d1a06ca1c03692afaf1d051867e5b2327d74ae",
+      "status": "byte-identical"
+    },
+    {
+      "path": "infra\\model-deployment.bicep",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "6cbc1ce72915c2021c5fb30a0d295d665720eabd",
+      "sourceSha256": "c9b8dc5d6f24b1d20e51afb173d18fd6a5e8b3718815d21e18343344b8fd7302",
+      "bundledSha256": "c9b8dc5d6f24b1d20e51afb173d18fd6a5e8b3718815d21e18343344b8fd7302",
+      "status": "byte-identical"
+    },
+    {
+      "path": "infra\\resources.bicep",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "6b7577a4d698d67c2b5efcfee72796999ca1d9ad",
+      "sourceSha256": "10a43f7c9cda11989417b14c850178b38b68b7cf23df0b763a78ba1346d35428",
+      "bundledSha256": "479c00a0654fa3dc88b3226ae22cd7dfbdad433cb53984f160af675f88a2a658",
+      "status": "infrastructure-only"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Agents\\Debate\\AssessmentParser.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "0421ea33e99a58d00aec49575a080fd66be10516",
+      "sourceSha256": "8c59cbef5b86c4734de5677d72c97b33650ff21e3dc8e7ad552bf78148bdd464",
+      "bundledSha256": "8c59cbef5b86c4734de5677d72c97b33650ff21e3dc8e7ad552bf78148bdd464",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Agents\\Debate\\ContentSafety.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "3abc4a4849886d013a4a498f293e66007a18b7da",
+      "sourceSha256": "3030b8b58a0296dd3face991fe28d36c482d80fbc1537f7086308ffb87d77afa",
+      "bundledSha256": "3030b8b58a0296dd3face991fe28d36c482d80fbc1537f7086308ffb87d77afa",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Agents\\Debate\\ContributionParser.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "41d264b09cb863c216ba731296815342c3893d06",
+      "sourceSha256": "78e9db4166193857b48fcaf54a154f59676b484cc80c82d1752229bf81641dd1",
+      "bundledSha256": "78e9db4166193857b48fcaf54a154f59676b484cc80c82d1752229bf81641dd1",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Agents\\Debate\\CouncilDebate.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "d9a1597392e3e5e7a35f54afe58b371ad7277b93",
+      "sourceSha256": "bf885ab2c80b7cf6770b2fd84404a01c646ee402901b8d5d714a5f62f900f901",
+      "bundledSha256": "bf885ab2c80b7cf6770b2fd84404a01c646ee402901b8d5d714a5f62f900f901",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Agents\\Debate\\DebateSchemas.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "2f7f23bd188c7b33ef4a48569519e43920516ad5",
+      "sourceSha256": "517f0b474efb3efb2f434e617b6db6a5a943399def805ecf44f52f97cffd1203",
+      "bundledSha256": "517f0b474efb3efb2f434e617b6db6a5a943399def805ecf44f52f97cffd1203",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Agents\\Debate\\DebateSupport.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "e9c3d251081ceea64fb502186b8632fbf7cc2eab",
+      "sourceSha256": "149eec6755f939f45c25be354f31bd2cd27c8a76774ac761cdc60170bf598503",
+      "bundledSha256": "149eec6755f939f45c25be354f31bd2cd27c8a76774ac761cdc60170bf598503",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Agents\\Debate\\DossierPromptBuilder.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "ab0312f5cfa43012257cecc0023b8c831ea1aab8",
+      "sourceSha256": "55c949e864a7882867f56e0606425193a682fdbc56085976974cd5815d66e66b",
+      "bundledSha256": "55c949e864a7882867f56e0606425193a682fdbc56085976974cd5815d66e66b",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Agents\\Debate\\ModelRetry.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "a40d034b00b1f2b0bc95ec3d79fdcf0dc9f784d8",
+      "sourceSha256": "1c9cf5df6bbda413c9f3fb6b850f39b3dcd9ea2442d90539abd9f1b0d66030bf",
+      "bundledSha256": "1c9cf5df6bbda413c9f3fb6b850f39b3dcd9ea2442d90539abd9f1b0d66030bf",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Agents\\Debate\\ParallelPhase1Runner.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "06b3bd43fe500de19f2d6a1e792bbb384eabefbe",
+      "sourceSha256": "f7df39db31f36b071a7a7196ca445cd48eb53fbe3604063b1b047bbd89f16b1b",
+      "bundledSha256": "f7df39db31f36b071a7a7196ca445cd48eb53fbe3604063b1b047bbd89f16b1b",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Agents\\Debate\\TranscriptRenderer.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "d70f77d6ddf325d8f3d3f05f262cc1f1521f6ca4",
+      "sourceSha256": "0928721539654faa3cd12abc79970e730d2b7f7028ae4056912cb443c3eb5f79",
+      "bundledSha256": "0928721539654faa3cd12abc79970e730d2b7f7028ae4056912cb443c3eb5f79",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Agents\\GovernanceCouncil.Agents.csproj",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "d4d5d2903f89514d35b1bbb1857aeb8d44d1fe21",
+      "sourceSha256": "4c0b36d3d40166d5aa4c16c10b0f7610fe0ab2972d1847f0d579333e85de1b13",
+      "bundledSha256": "4c0b36d3d40166d5aa4c16c10b0f7610fe0ab2972d1847f0d579333e85de1b13",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Agents\\Ingestion\\DossierIngestionService.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "e3e479408f42a79727dace6736e85e33c376e361",
+      "sourceSha256": "0ce0b207366872046382d77a798e5dbeb14bf348a6e8ed8eaebafaf1c68c7de1",
+      "bundledSha256": "0ce0b207366872046382d77a798e5dbeb14bf348a6e8ed8eaebafaf1c68c7de1",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Agents\\Knowledge\\KnowledgeBaseManager.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "f6be50a88b4f23681a4a2029c15ede39ba3aed3d",
+      "sourceSha256": "02cc14b75f333824547af19c72c39eeb606060dae16db9e03c5c5c87de88d72c",
+      "bundledSha256": "02cc14b75f333824547af19c72c39eeb606060dae16db9e03c5c5c87de88d72c",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Agents\\Nexus\\NexusAnalystService.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "942a30cd1ffdb35a31b38fd185c5c973686db153",
+      "sourceSha256": "5686b68633bad2333a64ccd0dd4044684405d23246b3893312ae2c20a941b4aa",
+      "bundledSha256": "5686b68633bad2333a64ccd0dd4044684405d23246b3893312ae2c20a941b4aa",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Agents\\Orchestration\\CouncilOrchestrator.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "e3c404b5e115abed5928c5e9f87e6d236a313ec4",
+      "sourceSha256": "36fb0f28e8ec58887987b4862818d0fb8f42df85997b6814bc16a83f307a9ecf",
+      "bundledSha256": "36fb0f28e8ec58887987b4862818d0fb8f42df85997b6814bc16a83f307a9ecf",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Agents\\Prompts\\chair.md",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "115980b2a4ed0bd67d787dbd259127805d5b94de",
+      "sourceSha256": "a64edd3201571abf2eef349a88868098c8d41de94e21a684e7866c8cf1c77d76",
+      "bundledSha256": "a64edd3201571abf2eef349a88868098c8d41de94e21a684e7866c8cf1c77d76",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Agents\\Prompts\\moderator.md",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "f0b414d4a4d06b0d2aca5425f6875739039087b9",
+      "sourceSha256": "a87ce813c898f0591debd18c185c372b77f13ab2fcd764000c8550e308b43651",
+      "bundledSha256": "a87ce813c898f0591debd18c185c372b77f13ab2fcd764000c8550e308b43651",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Agents\\Prompts\\nexus-analyst.md",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "61e13ccae8a348a82adb801bad6643d68003a2da",
+      "sourceSha256": "5b820b2f1c94d1f564d46e696023f9d227e4992053bcf0f1ed0341d24a4fdfb8",
+      "bundledSha256": "5b820b2f1c94d1f564d46e696023f9d227e4992053bcf0f1ed0341d24a4fdfb8",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Agents\\Provisioning\\AgentCache.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "731298627cedfbc29c47f1c422a97461f7074b5b",
+      "sourceSha256": "c1e0b9399411548990abfbc4f9b8f74cd14eb2ab25d79a7b878bb547a4b3b55e",
+      "bundledSha256": "c1e0b9399411548990abfbc4f9b8f74cd14eb2ab25d79a7b878bb547a4b3b55e",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Agents\\Provisioning\\AgentProvisioner.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "121df4569c8e8c3083843fdc86df50a605482d07",
+      "sourceSha256": "34436ac85f8fc88043ed314b9456d04a6c96ba781ebb30ebb2c394d4dc13d409",
+      "bundledSha256": "34436ac85f8fc88043ed314b9456d04a6c96ba781ebb30ebb2c394d4dc13d409",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Agents\\Provisioning\\CouncilPrompts.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "39bef28e101e63f14e8743c2a8742f8881648ed3",
+      "sourceSha256": "97490c30a1712751288843f5fff3b40a5d44299e0079ec854523127e43b2eb2d",
+      "bundledSha256": "97490c30a1712751288843f5fff3b40a5d44299e0079ec854523127e43b2eb2d",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Agents\\Provisioning\\FoundryAgentHelpers.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "3655927a70ea1bd20e7c057e088d09329a4d39bb",
+      "sourceSha256": "1b0ed8dd1b52a9ae952c46d3ec124b385998652930fd6d53a1f673c6d2ce538a",
+      "bundledSha256": "1b0ed8dd1b52a9ae952c46d3ec124b385998652930fd6d53a1f673c6d2ce538a",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Agents\\Provisioning\\RaiPolicyManager.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "594a5afbce5c099a7fea15d78043c392c6e970ff",
+      "sourceSha256": "1b34f2c82b197b974916ddcafbe66a2423a761600924752d411163a5b5d44a36",
+      "bundledSha256": "1b34f2c82b197b974916ddcafbe66a2423a761600924752d411163a5b5d44a36",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Agents\\Runtime\\CouncilRuntimeProvider.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "c3a74c8abc7cbc5effef6208ed0058888cd11342",
+      "sourceSha256": "d6a5aa73f7e41e886911e8c8cd75ef4bedbf4c44cdf217907482f5371cade101",
+      "bundledSha256": "d6a5aa73f7e41e886911e8c8cd75ef4bedbf4c44cdf217907482f5371cade101",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Agents\\Runtime\\FoundryCouncilRuntime.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "27996e8cf85dc53f21ddd2c37c6945a83ea3b6af",
+      "sourceSha256": "640e21c228ebbb33e21e98a0b6b30e574fc185873738342f721661acb2f341d5",
+      "bundledSha256": "640e21c228ebbb33e21e98a0b6b30e574fc185873738342f721661acb2f341d5",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Agents\\Runtime\\GroundingTools.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "801123314c72c9519466754a41908724ffcc0792",
+      "sourceSha256": "a849e6b613b3e765c7d5b050a3b058b97823cfff390f7e280eb8ddd1f6234be9",
+      "bundledSha256": "a849e6b613b3e765c7d5b050a3b058b97823cfff390f7e280eb8ddd1f6234be9",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Agents\\Runtime\\ICouncilRuntime.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "1f74a557d4d2d71711dbb260e26ed58b7234d552",
+      "sourceSha256": "24bc8be5b21cb62be4aab6ee3f40c6f5791a5019e6b273c972670141d7d90166",
+      "bundledSha256": "24bc8be5b21cb62be4aab6ee3f40c6f5791a5019e6b273c972670141d7d90166",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Agents\\Runtime\\MafCouncilRuntime.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "e99f28a42edda5c94a548d71dc433d15c6dfd065",
+      "sourceSha256": "eab01f47fff804bb11772aeeb72beb9e243e3daa3057188785f535d20c1beb33",
+      "bundledSha256": "eab01f47fff804bb11772aeeb72beb9e243e3daa3057188785f535d20c1beb33",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Agents\\Runtime\\PersonaChatClient.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "f3dc13fffe3b8fb72d757da872826e65ad2a5fd6",
+      "sourceSha256": "2274853452d49d1062e386250eecfde8382573cd28a28df9e610a82662d897f5",
+      "bundledSha256": "2274853452d49d1062e386250eecfde8382573cd28a28df9e610a82662d897f5",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Agents\\Runtime\\ReasoningEffortChatClient.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "a345a63a219a28fac23bb0eb9a38047cc6f58bad",
+      "sourceSha256": "0fe995f7a957145a446efa424507fa665cca2df191b42801d204b38f7b46aebd",
+      "bundledSha256": "0fe995f7a957145a446efa424507fa665cca2df191b42801d204b38f7b46aebd",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Agents\\Runtime\\SearchBudgetResetChatClient.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "7caa7f39e654ca996f42e3fe4717fe160136f33b",
+      "sourceSha256": "e3426cf4c5094639ac3836340209c4fd3e43fb056a5681bc528d06c7ae0d3c8f",
+      "bundledSha256": "e3426cf4c5094639ac3836340209c4fd3e43fb056a5681bc528d06c7ae0d3c8f",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Core\\GovernanceCouncil.Core.csproj",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "b760144708e78e674952c02b6553b53e44be0e5b",
+      "sourceSha256": "11c0c110e19c9eaeaef66a0382f7a3e4ff6ab395d99ca6664e1ba378371cc47c",
+      "bundledSha256": "11c0c110e19c9eaeaef66a0382f7a3e4ff6ab395d99ca6664e1ba378371cc47c",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Core\\Interfaces\\IAssessmentStore.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "c5c025b4c199f18c5ff38660aaa65bc8c2971f06",
+      "sourceSha256": "7a5cda0d53e1c2df9c29dc9d3f9274fe37a3c3b7806989f85095f08d3ec69f78",
+      "bundledSha256": "7a5cda0d53e1c2df9c29dc9d3f9274fe37a3c3b7806989f85095f08d3ec69f78",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Core\\Interfaces\\IDeliberationNotifier.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "7cb46b56240aab9c3ad8cec9f8cd45d052d172d6",
+      "sourceSha256": "d13c85e16860fb48bda300ab8c4af76ef87eeb959b8da8f7b85e719c079e41bc",
+      "bundledSha256": "d13c85e16860fb48bda300ab8c4af76ef87eeb959b8da8f7b85e719c079e41bc",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Core\\Interfaces\\IDeliberationStore.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "256124616b6ead4c470d0a8cc275aa21b52bcad4",
+      "sourceSha256": "8b8edb1734afd441e85283a8872b6fccc2f3cbee7a646268012c915441f0ea59",
+      "bundledSha256": "8b8edb1734afd441e85283a8872b6fccc2f3cbee7a646268012c915441f0ea59",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Core\\Interfaces\\IDossierBlobService.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "57e84059eb9c220604502404f7316f9a46ba27ec",
+      "sourceSha256": "8bf70bed52054fc490c8d247fc047cecf717308c1d95fcc5c8054c9de8c4e126",
+      "bundledSha256": "8bf70bed52054fc490c8d247fc047cecf717308c1d95fcc5c8054c9de8c4e126",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Core\\Interfaces\\IDossierStore.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "9f14b05e879dc5cfd72b738e0ca145253070243a",
+      "sourceSha256": "54713ee4c939fbb9f14658ba8da7cdd58f02aa27686640a53a3b363ea82b4720",
+      "bundledSha256": "54713ee4c939fbb9f14658ba8da7cdd58f02aa27686640a53a3b363ea82b4720",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Core\\Interfaces\\INexusStore.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "1ae3451546c0ca271108cdfbb180405294f87b02",
+      "sourceSha256": "715cdf63b4305e236e6a83af5ea9c5dd7b10c29c4080c04a19088ca480f91afb",
+      "bundledSha256": "715cdf63b4305e236e6a83af5ea9c5dd7b10c29c4080c04a19088ca480f91afb",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Core\\Models\\AgentRuntime.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "f5f0b6881ecdc7baccdc4f751871a5fc1802776e",
+      "sourceSha256": "8baa5a1483065fa2bdfa81f59ec9fbaa7c52167cf13ab0686d4f59f54b496bb4",
+      "bundledSha256": "8baa5a1483065fa2bdfa81f59ec9fbaa7c52167cf13ab0686d4f59f54b496bb4",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Core\\Models\\Assessment.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "cb71fd803f1a05bc1897a70ae8bb8489b4df1043",
+      "sourceSha256": "4c490b00c75cfd03dde930a75afcfde529ca0beffbb6f2f989a2e182a22733fc",
+      "bundledSha256": "4c490b00c75cfd03dde930a75afcfde529ca0beffbb6f2f989a2e182a22733fc",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Core\\Models\\Citation.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "670f9af7e3b6143eaea955377b7c9adf3470b482",
+      "sourceSha256": "1a9ec3e8b83997db69079e0a14f3518260abf50ea852ce64fa334064eaf0c432",
+      "bundledSha256": "1a9ec3e8b83997db69079e0a14f3518260abf50ea852ce64fa334064eaf0c432",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Core\\Models\\CouncilMember.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "23655b5e33675cab12f6b9603db78df221e4b057",
+      "sourceSha256": "1ac8d66ed81a2e4956c54745c8c8959956f8ee852aef54727b18e833b67d25f1",
+      "bundledSha256": "1ac8d66ed81a2e4956c54745c8c8959956f8ee852aef54727b18e833b67d25f1",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Core\\Models\\CouncilMembers.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "bb048e7382efb73db3f117e18aac81e0d67a08da",
+      "sourceSha256": "adadaf13153693fb182374b7d9dd6d7b538bcfa696d4612885148fa1bb4b19fb",
+      "bundledSha256": "adadaf13153693fb182374b7d9dd6d7b538bcfa696d4612885148fa1bb4b19fb",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Core\\Models\\CouncilModels.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "5d5d1d795310ddad69e5240d7cbf05917372df61",
+      "sourceSha256": "2d020dd662b81aea339076701245e499230dfe90379d204c81af4e4ada78982f",
+      "bundledSha256": "2d020dd662b81aea339076701245e499230dfe90379d204c81af4e4ada78982f",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Core\\Models\\Deliberation.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "37fca7c08339001de6386538c416470e17c846fc",
+      "sourceSha256": "bb5f9c9c3a560ff59555cdc5497995ac3cb33c9e63d434080fd417cad06e8a16",
+      "bundledSha256": "bb5f9c9c3a560ff59555cdc5497995ac3cb33c9e63d434080fd417cad06e8a16",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Core\\Models\\Dossier.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "866f263026d38ec680cf082662d82e030ac66b08",
+      "sourceSha256": "da00bb32ff449aa01c8b91ec4c2fc95c3a313455e0f79cc6fd4ee19ee14ac248",
+      "bundledSha256": "da00bb32ff449aa01c8b91ec4c2fc95c3a313455e0f79cc6fd4ee19ee14ac248",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Core\\Models\\Grounding.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "e33865ec2f146345baf8967108b74e6ab0c0010b",
+      "sourceSha256": "60e5bb73042536edecea8284bbe835bb3c11234bd8f4cbc043707ec1f4d58248",
+      "bundledSha256": "60e5bb73042536edecea8284bbe835bb3c11234bd8f4cbc043707ec1f4d58248",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Core\\Models\\MemberPosition.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "8bc55dcfc9d38a6d9660c1cb3c8711637fecc3e8",
+      "sourceSha256": "c068262bc5935f5e2d3c08755b0188aa724077cdc113e9c7a9b3e0f0777776c1",
+      "bundledSha256": "c068262bc5935f5e2d3c08755b0188aa724077cdc113e9c7a9b3e0f0777776c1",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Core\\Models\\ModelText.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "088ba2713ca632e620b20059be11fbbc3c5d0547",
+      "sourceSha256": "1d782f3bef69016e6cc0cffbe8e8c98e78e4fe5480eac250ee4e123cbbe9542f",
+      "bundledSha256": "1d782f3bef69016e6cc0cffbe8e8c98e78e4fe5480eac250ee4e123cbbe9542f",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Core\\Models\\Nexus.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "ccf9cf5092e948e87158cd2f85894b7f067a257c",
+      "sourceSha256": "5f7eadf95a5a6c89db565dbb870e159864e229f9856825f25d5c37139e5683f3",
+      "bundledSha256": "5f7eadf95a5a6c89db565dbb870e159864e229f9856825f25d5c37139e5683f3",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Core\\Models\\Scenario.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "2883f9ce2da3ae7fe18dfb6a983456c236c9955e",
+      "sourceSha256": "b66e167fdcc0177282e5a9f4dedb64bfb0c0a4bc5d5a2d01d86084978168d00a",
+      "bundledSha256": "b66e167fdcc0177282e5a9f4dedb64bfb0c0a4bc5d5a2d01d86084978168d00a",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Core\\Models\\ScenarioConfig.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "a8ec74375373c5e336357f28f93c3ad548a71bb5",
+      "sourceSha256": "26c98c072271aa9d43c3a268841ef6c3960af960bbaffd1602bb075c65c9d9cd",
+      "bundledSha256": "26c98c072271aa9d43c3a268841ef6c3960af960bbaffd1602bb075c65c9d9cd",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Data\\BlobDossierService.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "a88e5c9aa9224e119f499906708d5467e908f1ee",
+      "sourceSha256": "4d12d3ab2d2fce9d36f11030b074137c91756df6ede4f7fe86d4aea0b04b2754",
+      "bundledSha256": "4d12d3ab2d2fce9d36f11030b074137c91756df6ede4f7fe86d4aea0b04b2754",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Data\\CosmosAssessmentStore.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "bbcb6baef15a0d0c9bec610d62b2e1744d3e1bd7",
+      "sourceSha256": "c28f5fbe4018ba61a18ebc494f840cffbfeb1e2754f17f49d0fdfe655911dfa7",
+      "bundledSha256": "c28f5fbe4018ba61a18ebc494f840cffbfeb1e2754f17f49d0fdfe655911dfa7",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Data\\CosmosDeliberationStore.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "5885e982abc4e036d1d2c7e28af637e72d55ee3d",
+      "sourceSha256": "4197376b3b843523c91d694d3bccfb41a73ecddf9902f90dbfec403a32512b88",
+      "bundledSha256": "4197376b3b843523c91d694d3bccfb41a73ecddf9902f90dbfec403a32512b88",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Data\\CosmosDossierStore.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "f885b5026615ff99a7f4f3063978e5220414395f",
+      "sourceSha256": "3826e1c685b64b8cd906712582308925710b9adb844413503dc539d7e9a8da54",
+      "bundledSha256": "3826e1c685b64b8cd906712582308925710b9adb844413503dc539d7e9a8da54",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Data\\CosmosNexusStore.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "19ee4a511bc2b122a20c50d43998df0b95b71836",
+      "sourceSha256": "82c3f071e9191b47a86d08c31477cb9320eb9440bed59b1e328e009c2a3e2f80",
+      "bundledSha256": "82c3f071e9191b47a86d08c31477cb9320eb9440bed59b1e328e009c2a3e2f80",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Data\\GovernanceCouncil.Data.csproj",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "bcb6aa9916661929e665c6b3bb49fd38c253abc4",
+      "sourceSha256": "f7da3037ebc3f0cae49661e9ff9dbe72f14fe2a773c57f1fdf7040b4a6e5f43d",
+      "bundledSha256": "f7da3037ebc3f0cae49661e9ff9dbe72f14fe2a773c57f1fdf7040b4a6e5f43d",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Data\\ServiceCollectionExtensions.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "362903b8f5f2d286579ec7f54e95021f02dece45",
+      "sourceSha256": "a21a1ff811a547d00aa7b1b47541c54dd6ced92995e5ba6d044acafd638c451d",
+      "bundledSha256": "a21a1ff811a547d00aa7b1b47541c54dd6ced92995e5ba6d044acafd638c451d",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\.env.template",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "e34199665cdf7b805fcca4624141a9529feacf33",
+      "sourceSha256": "766ef9db174034b481837dfebad34e560176c7db7a27dc815f757b2514ee8c42",
+      "bundledSha256": "766ef9db174034b481837dfebad34e560176c7db7a27dc815f757b2514ee8c42",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\Avatars.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "8dc0a101caef84db80457f9b42b67265e6a4ae8c",
+      "sourceSha256": "4f08c2eb4ba2abf1ce013707f92e9f79521cf793c57aad511d9fa0eddaf470d7",
+      "bundledSha256": "4f08c2eb4ba2abf1ce013707f92e9f79521cf793c57aad511d9fa0eddaf470d7",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\Branding.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "eb31790b84a9ffae3c5090c0e5a5dcd8eeeb6d27",
+      "sourceSha256": "924ddb46007c4aa48d4523157926b0e0d13e48507742cef9a5ddf70cdb0828c3",
+      "bundledSha256": "924ddb46007c4aa48d4523157926b0e0d13e48507742cef9a5ddf70cdb0828c3",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\Components\\App.razor",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "53bb49cf619482861a1feec2afbe12295977c3e6",
+      "sourceSha256": "b5a4f2f106a1ae51e43d0b472a04713fe60b33050ac2ddaa48d3cff799834968",
+      "bundledSha256": "b5a4f2f106a1ae51e43d0b472a04713fe60b33050ac2ddaa48d3cff799834968",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\Components\\DebateChamber.razor",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "89ef586f0091c1f4ed542f9e1f800867861084cd",
+      "sourceSha256": "0fa83a66b278e15ecc5bf181c8d640ad74e68480e41f51740f0779b4c8b7874f",
+      "bundledSha256": "0fa83a66b278e15ecc5bf181c8d640ad74e68480e41f51740f0779b4c8b7874f",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\Components\\Layout\\MainLayout.razor",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "7fa241c6a6bb00b117392cfdda96693e78dc70e0",
+      "sourceSha256": "a6af8fdbe2d7d304fd02c130c3e9417bd501778a9aa71e33a18304c9dd499c3f",
+      "bundledSha256": "a6af8fdbe2d7d304fd02c130c3e9417bd501778a9aa71e33a18304c9dd499c3f",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\Components\\Layout\\MainLayout.razor.css",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "566b2e77e9beb84773f7bc1cf039008adb5fa87c",
+      "sourceSha256": "1a4600835c2e7febdbb04f20a098ce31d6b955d1959bf81c25ff48aa8c36fbe8",
+      "bundledSha256": "1a4600835c2e7febdbb04f20a098ce31d6b955d1959bf81c25ff48aa8c36fbe8",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\Components\\Layout\\NavMenu.razor",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "ad2cdaa0f30aae3429b9a3735c503b6143642a43",
+      "sourceSha256": "33079d5b49c4b08864264f5df72df242e659d4c2f3f2625f3460598c206d44d4",
+      "bundledSha256": "33079d5b49c4b08864264f5df72df242e659d4c2f3f2625f3460598c206d44d4",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\Components\\Layout\\NavMenu.razor.css",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "83c984c19362c3e85d6775e8896887670c1e1120",
+      "sourceSha256": "1b2517a3ea39ac691821e906fb50ddedeab3dd2eb46be3f36bfe990b384c72c8",
+      "bundledSha256": "1b2517a3ea39ac691821e906fb50ddedeab3dd2eb46be3f36bfe990b384c72c8",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\Components\\Layout\\ReconnectModal.razor",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "e740b0c8784585d2929e3e3485ea2862c91450fd",
+      "sourceSha256": "06987994d4625c5c48cdd15373c05e3a2d81a3f92af790fcaabc7bbf80dbca5a",
+      "bundledSha256": "06987994d4625c5c48cdd15373c05e3a2d81a3f92af790fcaabc7bbf80dbca5a",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\Components\\Layout\\ReconnectModal.razor.css",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "9f8c3623e508bb89037c7435322cf93420590038",
+      "sourceSha256": "4b5e81f5f22c907b5f2af1f64cf61353b9c8b92e5ec8c7317f8535115f8f5067",
+      "bundledSha256": "4b5e81f5f22c907b5f2af1f64cf61353b9c8b92e5ec8c7317f8535115f8f5067",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\Components\\Layout\\ReconnectModal.razor.js",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "a44de78d836d2706ad41189e3241f9c32bff264f",
+      "sourceSha256": "bc924313acad6186b22e5331a52fe18a4e3186a5082185e40f2e89620932814e",
+      "bundledSha256": "bc924313acad6186b22e5331a52fe18a4e3186a5082185e40f2e89620932814e",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\Components\\Pages\\AssessmentDetail.razor",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "9d4b0d62e13191fe46c8be847a84180ee2b944a4",
+      "sourceSha256": "09974fe9d5122aeaac2e60ca7cac7810393684bffa503925750418cf0da82ac8",
+      "bundledSha256": "09974fe9d5122aeaac2e60ca7cac7810393684bffa503925750418cf0da82ac8",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\Components\\Pages\\AssessmentList.razor",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "4e9f6f68dc60928b956de2c62866f82dac0c081c",
+      "sourceSha256": "5f342ed6c7e7f2a6df8625b2343a729e75cede7151f7a13013aa1ea297e71667",
+      "bundledSha256": "5f342ed6c7e7f2a6df8625b2343a729e75cede7151f7a13013aa1ea297e71667",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\Components\\Pages\\DossierDetail.razor",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "4cdc5a5960233a4f37a4a945de795db52dc6e6c2",
+      "sourceSha256": "2dbd1293cea6fd8fdf713978901ef03c9e68a1e849a2519937cba14366d492ea",
+      "bundledSha256": "2dbd1293cea6fd8fdf713978901ef03c9e68a1e849a2519937cba14366d492ea",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\Components\\Pages\\DossierLibrary.razor",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "8ea0e7cfbc94e94e6577a9fbebb1b744303ef73c",
+      "sourceSha256": "5be2f7c8cc91b738f925535b9c411c34ee3b377ba69ffb8b3b8876db4a3885e0",
+      "bundledSha256": "5be2f7c8cc91b738f925535b9c411c34ee3b377ba69ffb8b3b8876db4a3885e0",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\Components\\Pages\\Error.razor",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "2881c265f2ef82db15dca97c73e1848680688d28",
+      "sourceSha256": "af05fbd6c808fa68ca4a55da9a13f83f48f0c4460d8d97e67e968ef815cbd572",
+      "bundledSha256": "af05fbd6c808fa68ca4a55da9a13f83f48f0c4460d8d97e67e968ef815cbd572",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\Components\\Pages\\Home.razor",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "b98b0cd3965131f0753f22e1f713369abc708579",
+      "sourceSha256": "7e83bac6b369b79c2541558245e4d10d21bc7feb11f5eddbaa3f4533df48f3fc",
+      "bundledSha256": "7e83bac6b369b79c2541558245e4d10d21bc7feb11f5eddbaa3f4533df48f3fc",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\Components\\Pages\\LiveDeliberation.razor",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "6ec63ad0800a44ff030780f6088273801af48dcd",
+      "sourceSha256": "4cbf3d438fb022fd7d6d1880f9d15ecd4f96f1c7d5bf21d946bfdf90b5da29a6",
+      "bundledSha256": "4cbf3d438fb022fd7d6d1880f9d15ecd4f96f1c7d5bf21d946bfdf90b5da29a6",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\Components\\Pages\\NexusAlerts.razor",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "07f121ac9c70127c1380c96b18f72a512f24a844",
+      "sourceSha256": "c5f08185ffe7afa9d9a1a32c32fb725a667fd4fce2a55c4b7beadac8936197a3",
+      "bundledSha256": "c5f08185ffe7afa9d9a1a32c32fb725a667fd4fce2a55c4b7beadac8936197a3",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\Components\\Pages\\NexusDetail.razor",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "649ca8a9af0cb2b47da27040a27079ddd7bd0752",
+      "sourceSha256": "c3dd62f8e121b1d957460bc06b3176c30e3deaba5c20c8e5e793a9eac0e17ff0",
+      "bundledSha256": "c3dd62f8e121b1d957460bc06b3176c30e3deaba5c20c8e5e793a9eac0e17ff0",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\Components\\Pages\\NexusExplorer.razor",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "f12a7319911c020ef049d0e73b2fe187502e8845",
+      "sourceSha256": "6d19dbd33affe679e252e786b701d3069897ecebaea58b29899075b34f750ab2",
+      "bundledSha256": "6d19dbd33affe679e252e786b701d3069897ecebaea58b29899075b34f750ab2",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\Components\\Pages\\NotFound.razor",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "b05349ab1ede8fe18cc3c1505a64a7f5a865f409",
+      "sourceSha256": "947f9fec129422c30e6c7fbcda29e384e51ac1fcbfd0fb378bace12ba3aead0b",
+      "bundledSha256": "947f9fec129422c30e6c7fbcda29e384e51ac1fcbfd0fb378bace12ba3aead0b",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\Components\\Routes.razor",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "105855d4577431ea2504480de80d3b0516ed6102",
+      "sourceSha256": "f1b6d3574e2fb5d9286936ad6a1421071ba5d2c98d3e20b54e7559492574cf03",
+      "bundledSha256": "f1b6d3574e2fb5d9286936ad6a1421071ba5d2c98d3e20b54e7559492574cf03",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\Components\\_Imports.razor",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "2ede1b818a523e699a7f35d37b22d7b254e4d2e1",
+      "sourceSha256": "6567791ec9ff75fcab6eef88c6283526209b32bc4352e305fd23c5ede3bc655b",
+      "bundledSha256": "6567791ec9ff75fcab6eef88c6283526209b32bc4352e305fd23c5ede3bc655b",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\DotEnvLoader.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "ecd90437fcf3c0843a1af3ae155990c70a713bc6",
+      "sourceSha256": "3c308b3851037ab22d1a21c98fc8fa395b2d3ef026bcd5bd8358ce7561999d83",
+      "bundledSha256": "3c308b3851037ab22d1a21c98fc8fa395b2d3ef026bcd5bd8358ce7561999d83",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\GovernanceCouncil.Web.csproj",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "20558674f1a837cf17d91033b093e9fa9af4df17",
+      "sourceSha256": "56d5e4a4047587974462400ee79291be1713e50a1ed5ca1eab607c3fca486ea7",
+      "bundledSha256": "56d5e4a4047587974462400ee79291be1713e50a1ed5ca1eab607c3fca486ea7",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\Hubs\\DeliberationHub.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "1ba885dd193289f22d485faa78de3a5dd83ccb95",
+      "sourceSha256": "04ae7d262b198fc18f6c8289ae70bf02d3084220c4fc47a3c4865fadd475c02f",
+      "bundledSha256": "04ae7d262b198fc18f6c8289ae70bf02d3084220c4fc47a3c4865fadd475c02f",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\Program.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "cc077600ed26d37331129091f55e955073242cfa",
+      "sourceSha256": "0286d37c41976bdf7c91adeb72a30e7d3d6e724eff47024d2ed6f7df11f51588",
+      "bundledSha256": "0286d37c41976bdf7c91adeb72a30e7d3d6e724eff47024d2ed6f7df11f51588",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\Properties\\launchSettings.json",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "a77cff703690e6fd95a2995a4cac612f7eb84088",
+      "sourceSha256": "9ae08167b20546031ee89b6b7a755cf427e1f90e2e930659a937323b6407579a",
+      "bundledSha256": "9ae08167b20546031ee89b6b7a755cf427e1f90e2e930659a937323b6407579a",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\Services\\DeliberationNotifier.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "8b858ba8be3485c961729afaa2c554f1ea4358a8",
+      "sourceSha256": "4eada088bcbcefc28fde294e2eab000efe084e4f537640b623c80c05c2aae8b2",
+      "bundledSha256": "4eada088bcbcefc28fde294e2eab000efe084e4f537640b623c80c05c2aae8b2",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\UiStyles.cs",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "1f311823cf0ce5b9434c0a9846cde9bd762a8d0d",
+      "sourceSha256": "6e8e180dc881b69a4bc94f050f3002c07d4179aa701c4a78da4c637e59111a0d",
+      "bundledSha256": "6e8e180dc881b69a4bc94f050f3002c07d4179aa701c4a78da4c637e59111a0d",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\appsettings.Development.json",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "fbd2d43f63c4d609e8f019d037defc4e345e9eb3",
+      "sourceSha256": "c693c4b9b63da11797a3352c58716bb0e4e9fc270cd3905ebba2c48b5d917e14",
+      "bundledSha256": "c693c4b9b63da11797a3352c58716bb0e4e9fc270cd3905ebba2c48b5d917e14",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\appsettings.json",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "10f68b8c8b4f796baf8ddeee7551b6a52b9437cc",
+      "sourceSha256": "2d8bb40059df22089b94c025be8baad5a869b72d4d755d199c872f03bfe6f225",
+      "bundledSha256": "2d8bb40059df22089b94c025be8baad5a869b72d4d755d199c872f03bfe6f225",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\app.css",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "93c5420a8bcc3a800da133505c83fbbea55dabeb",
+      "sourceSha256": "aa1f89670170b46cf1f27e2c57ddb3ccab97d14d66ccc93efbcda7c3d17cbf18",
+      "bundledSha256": "aa1f89670170b46cf1f27e2c57ddb3ccab97d14d66ccc93efbcda7c3d17cbf18",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\branding\\README.md",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "a2c222c91454c41f120c6bf5960728a4e825a78b",
+      "sourceSha256": "de2d263341f8c4cd0c97c4342511877bac8af6ba9ceb255b8237704c75127f9d",
+      "bundledSha256": "de2d263341f8c4cd0c97c4342511877bac8af6ba9ceb255b8237704c75127f9d",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\branding\\avatars\\chair.svg",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "57e3172fe8fb432010ab94e24accf2ff1b200559",
+      "sourceSha256": "85e45cab2b0085ce1dfcda8552823699a366e3610617042a3d39ee752a9ab64e",
+      "bundledSha256": "85e45cab2b0085ce1dfcda8552823699a366e3610617042a3d39ee752a9ab64e",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\branding\\avatars\\member.svg",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "db64ea0be166cc4b4837dc6f33a463b3c1269473",
+      "sourceSha256": "3b12de16506b55ab8c0d2dd4e9230bc3f91ddba27c2fcc90d8205d273a6a7a73",
+      "bundledSha256": "3b12de16506b55ab8c0d2dd4e9230bc3f91ddba27c2fcc90d8205d273a6a7a73",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\branding\\avatars\\moderator.svg",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "5cad648bfd9499c49f1f0c159367091fc88d1366",
+      "sourceSha256": "b90f5337cdc8c321d511fba17ba1c4114c620452e740ca2b48306cf212e6c80d",
+      "bundledSha256": "b90f5337cdc8c321d511fba17ba1c4114c620452e740ca2b48306cf212e6c80d",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\branding\\avatars\\nexus.svg",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "d3df087889424ba406605c76b56d408509586fc7",
+      "sourceSha256": "7f53b4bfec8ed636f40abae5c5c59178d3da4b42c71b85634a0b49f2c7f59c1c",
+      "bundledSha256": "7f53b4bfec8ed636f40abae5c5c59178d3da4b42c71b85634a0b49f2c7f59c1c",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\branding\\logo.svg",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "609d67b0954cb0d000c6e4b2437895cc6854236e",
+      "sourceSha256": "6c3178eb0cb3946e34a9d29a7151726d1a358220513499d87b6374632eded417",
+      "bundledSha256": "6c3178eb0cb3946e34a9d29a7151726d1a358220513499d87b6374632eded417",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\css\\debate.css",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "3d83cdd6782dca2ddc396e71ddeaf1e82a26910f",
+      "sourceSha256": "33cccd1b4941f9a2a56c66ac55975066aec6aa20276f3e820b777d7ddc91d15b",
+      "bundledSha256": "33cccd1b4941f9a2a56c66ac55975066aec6aa20276f3e820b777d7ddc91d15b",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\favicon.png",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "8422b59695935d180d11d5dbe99653e711097819",
+      "sourceSha256": "e265ac0f2dda1e5dfa65b1adf330722bb3ef7789115283604d8cd19f098f1f08",
+      "bundledSha256": "e265ac0f2dda1e5dfa65b1adf330722bb3ef7789115283604d8cd19f098f1f08",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\js\\cytoscape.min.js",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "f36c15d00f5e2589b531b501ed8783ebf06ad15d",
+      "sourceSha256": "1bb5340e549511e111b31e5684872c949ad33d40ea5dba0ad8e7d90c62c7b3b9",
+      "bundledSha256": "1bb5340e549511e111b31e5684872c949ad33d40ea5dba0ad8e7d90c62c7b3b9",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\js\\debate-scroll.js",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "466f8438f38a7a14f217cc730fae8ae92e174a14",
+      "sourceSha256": "af6675c0f872798e8688b55834373671ec1a5cb6f6b0e9110d9f7fb92314de59",
+      "bundledSha256": "af6675c0f872798e8688b55834373671ec1a5cb6f6b0e9110d9f7fb92314de59",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\js\\nexus-graph.js",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "79da694ca2e60fc346e1656268696ddda81f0d29",
+      "sourceSha256": "3a679369d3ac74faf2747da815a4913890d48c19f1fb467a932f847dbe74b91d",
+      "bundledSha256": "3a679369d3ac74faf2747da815a4913890d48c19f1fb467a932f847dbe74b91d",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "3882a8199be0701199474e2d943eef33e52a39ed",
+      "sourceSha256": "632e7f841a919a6536309d532b03f6697a133baf8e8f3acb98922c0b65b2e07f",
+      "bundledSha256": "632e7f841a919a6536309d532b03f6697a133baf8e8f3acb98922c0b65b2e07f",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css.map",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "ce99ec1966147d246588ebacb74ead3451318a7a",
+      "sourceSha256": "c404fe9f6e4513986f3a38f67c6e1874ec2bd5b97822500904d83a3db84b4f61",
+      "bundledSha256": "c404fe9f6e4513986f3a38f67c6e1874ec2bd5b97822500904d83a3db84b4f61",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "49b843b1947c3edbfd46010e7436d69a9d395a7c",
+      "sourceSha256": "e670c73068b27d91e5dd45de3ee84b0d047d9dc3df051d4725e64b5f224d576e",
+      "bundledSha256": "e670c73068b27d91e5dd45de3ee84b0d047d9dc3df051d4725e64b5f224d576e",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css.map",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "a0db8b57a8db611e11a939692cda8f2685d889a3",
+      "sourceSha256": "9202fec7056633c20eb35e659e81edf5d691d8b44c8811bf7188143dc290398e",
+      "bundledSha256": "9202fec7056633c20eb35e659e81edf5d691d8b44c8811bf7188143dc290398e",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "1a5d65630b24445eadf1a660c18fdbb187031c68",
+      "sourceSha256": "099c6817cce368b97256472f5420e573c09e411d70d5132bbe0631df472cf243",
+      "bundledSha256": "099c6817cce368b97256472f5420e573c09e411d70d5132bbe0631df472cf243",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css.map",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "8df43cfcc3f0552c7ff49269dba8b94834406044",
+      "sourceSha256": "fec890500f325fcdf48fe70be1a98a1d8df206d9f79fccf7120f95675e5ff749",
+      "bundledSha256": "fec890500f325fcdf48fe70be1a98a1d8df206d9f79fccf7120f95675e5ff749",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "672cbc2e625faf2402462ab85409ea2791984964",
+      "sourceSha256": "bccc5372f902e0bcbb2e2013dc6f32132f44a53afb1607b849ccd6a74effa779",
+      "bundledSha256": "bccc5372f902e0bcbb2e2013dc6f32132f44a53afb1607b849ccd6a74effa779",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css.map",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "1c926af57ec9afa95b50095264c9e02e52f601d4",
+      "sourceSha256": "ec674e970ed4ff083269e52d166c4fcf9fcca6176f5523ed54e3a54e7f5cdf74",
+      "bundledSha256": "ec674e970ed4ff083269e52d166c4fcf9fcca6176f5523ed54e3a54e7f5cdf74",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "6305410923d611e3165b5e1f7c2cf625723d76dc",
+      "sourceSha256": "968f5823cd8e174defa2376ef97391dfe0d1acb229321a7364d9876cce420cc0",
+      "bundledSha256": "968f5823cd8e174defa2376ef97391dfe0d1acb229321a7364d9876cce420cc0",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css.map",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "5fe522b6d709706ef19f5d48109926709cb87699",
+      "sourceSha256": "45727f4198817c75e83ed5d1d84802f9b168da97b71ad6d93bbdb646d88b1b34",
+      "bundledSha256": "45727f4198817c75e83ed5d1d84802f9b168da97b71ad6d93bbdb646d88b1b34",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "aa8035949c6988bca5ef2eb24b4a9dff59441e78",
+      "sourceSha256": "97cbede68a33bfde7c78c77d4c5b0f016825f4924af5829f6d54acf2672143ce",
+      "bundledSha256": "97cbede68a33bfde7c78c77d4c5b0f016825f4924af5829f6d54acf2672143ce",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css.map",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "e4774804709fac4ef1307dbbbd37c7553407e0ed",
+      "sourceSha256": "d1ea954fada4a912c987da13a8b7881f852742c92a56389bf219767d7c65e258",
+      "bundledSha256": "d1ea954fada4a912c987da13a8b7881f852742c92a56389bf219767d7c65e258",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "2103919f4cb49080fc85bd7ed153b44e6f779bef",
+      "sourceSha256": "57ca6c9c7a094bf30f9425d6c1cfc9ded1ada7d7378061519aab08420a67f868",
+      "bundledSha256": "57ca6c9c7a094bf30f9425d6c1cfc9ded1ada7d7378061519aab08420a67f868",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css.map",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "31c8d2542df839050d8b19670950e25ee90c0e3b",
+      "sourceSha256": "3a8415c21ec0ae9edb5682b66624f1d92fff2ab9cfad23f33d9f770aa08c85ef",
+      "bundledSha256": "3a8415c21ec0ae9edb5682b66624f1d92fff2ab9cfad23f33d9f770aa08c85ef",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "b1da1a5ac85d70c10b4c6cf443043720b5efea05",
+      "sourceSha256": "ffc8e1f217043052b24ba8285aa9cdbbbb7713364f0867506603bab02908f2d2",
+      "bundledSha256": "ffc8e1f217043052b24ba8285aa9cdbbbb7713364f0867506603bab02908f2d2",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css.map",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "689b5b6b592e531e1330298ea4259644f0976f97",
+      "sourceSha256": "f75d33c3eacc75c8342ece3c013a7ae6f127f2b7791ef3f138a9b6c77fc20482",
+      "bundledSha256": "f75d33c3eacc75c8342ece3c013a7ae6f127f2b7791ef3f138a9b6c77fc20482",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "aaa63792780594bf3fcbe47ad6590a18d714a404",
+      "sourceSha256": "d81b9b80d50f950485ff4c0b15c45743f623ce4f6fb146c301e2b640cfa1fb2a",
+      "bundledSha256": "d81b9b80d50f950485ff4c0b15c45743f623ce4f6fb146c301e2b640cfa1fb2a",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css.map",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "5a3e2bae2ce2229a1e49ce0886e8869b182e9b3c",
+      "sourceSha256": "35f8eb73852bf45bf6a0112cc10588c819cd0cff7dabe2e12fecfde79dced1c6",
+      "bundledSha256": "35f8eb73852bf45bf6a0112cc10588c819cd0cff7dabe2e12fecfde79dced1c6",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "50d34056b72a3a664a0055e5c7dcd9f2b6ef2b10",
+      "sourceSha256": "2b213dc5b28ef42b98c741d7a482a0b1622f5e401f213b62435ef68f6eb0991b",
+      "bundledSha256": "2b213dc5b28ef42b98c741d7a482a0b1622f5e401f213b62435ef68f6eb0991b",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css.map",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "41d4357a317438f04033183da8a3dfe8193f0a45",
+      "sourceSha256": "ac70e68a9e09673b9a18e71243541242b21b1b411bdd98daf7086a485d736085",
+      "bundledSha256": "ac70e68a9e09673b9a18e71243541242b21b1b411bdd98daf7086a485d736085",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "2d71422372e74337f039c2d55d303b32d2211920",
+      "sourceSha256": "1fac2405b4b08ee6b6bde2684e1268e2ecb5eb58e9f833a2653968525719eaa4",
+      "bundledSha256": "1fac2405b4b08ee6b6bde2684e1268e2ecb5eb58e9f833a2653968525719eaa4",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css.map",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "3e4a515e5c6674fb20d526bc77041c5ad85de7a3",
+      "sourceSha256": "a74055ab955efdda2104875f6eb66ca1036ed36252b0a875834c1bca242251a5",
+      "bundledSha256": "a74055ab955efdda2104875f6eb66ca1036ed36252b0a875834c1bca242251a5",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "7641ef68b8080b9f7cdb836ddf01cedb702d1ff4",
+      "sourceSha256": "18052e9ba163c10f07ad719aa054671d3a9040ba658d719abd3ee6057f04f6a5",
+      "bundledSha256": "18052e9ba163c10f07ad719aa054671d3a9040ba658d719abd3ee6057f04f6a5",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css.map",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "9fd3e1272586bac3608607feaeb509e9ff94c055",
+      "sourceSha256": "a3c5cadf699c63f15f70e4350f61c9bd5b99d184d74944590cb5c22b47e741e0",
+      "bundledSha256": "a3c5cadf699c63f15f70e4350f61c9bd5b99d184d74944590cb5c22b47e741e0",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "b7ab57f2adb13f01d8ebbb1c37f022494db7e0c0",
+      "sourceSha256": "18a105d7cb38e01e5ed0ca255c092992a2e211b39594a7fa57262bfc6fc4ea9c",
+      "bundledSha256": "18a105d7cb38e01e5ed0ca255c092992a2e211b39594a7fa57262bfc6fc4ea9c",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css.map",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "a1f9a1891ab1dca45f80a7dd35c53af94087aef1",
+      "sourceSha256": "2b3355477a7b51919b6bde1d9c2b6573a8d78cae6ead23e267f78d9ca4e60e4c",
+      "bundledSha256": "2b3355477a7b51919b6bde1d9c2b6573a8d78cae6ead23e267f78d9ca4e60e4c",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "39934146ffdc3af1e17b83657576b2d21f3cbecd",
+      "sourceSha256": "3c8f27e6009ccfd710a905e6dcf12d0ee3c6f2ac7da05b0572d3e0d12e736fc8",
+      "bundledSha256": "3c8f27e6009ccfd710a905e6dcf12d0ee3c6f2ac7da05b0572d3e0d12e736fc8",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css.map",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "90ce798738d86c6e2f6736ef86896abe542eee7e",
+      "sourceSha256": "f12338536350a422c64d02d6e43ff1dea493c3156ad823fe19761cdd5d56c05b",
+      "bundledSha256": "f12338536350a422c64d02d6e43ff1dea493c3156ad823fe19761cdd5d56c05b",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "753823c2729a6f23a5a05c2121b2c39676c161e6",
+      "sourceSha256": "8f91385c88f5a7590d9c38b4c75b5e5fd457a21d7f14d94fbc230bf589918764",
+      "bundledSha256": "8f91385c88f5a7590d9c38b4c75b5e5fd457a21d7f14d94fbc230bf589918764",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css.map",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "34a6d2a14de8e886e38b0cf4c66d8ff06a8a09b8",
+      "sourceSha256": "ddb61652289560c65fbf6c2ae499d722c1e540a8122acfd57118af823819d61a",
+      "bundledSha256": "ddb61652289560c65fbf6c2ae499d722c1e540a8122acfd57118af823819d61a",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "802b60d0a1e37b338b6ab25a37b7bd2546be27b0",
+      "sourceSha256": "879944ecd9bc4a4788a411c763137df6ca4fdd5b8614a97935982ca1c8a5ef39",
+      "bundledSha256": "879944ecd9bc4a4788a411c763137df6ca4fdd5b8614a97935982ca1c8a5ef39",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css.map",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "a77bdfb00e5937b85bd38821e1e4c16af0fa7124",
+      "sourceSha256": "ad3cd79677a971bfef80502207e53b3834007ce9492df337818e8853b78800d9",
+      "bundledSha256": "ad3cd79677a971bfef80502207e53b3834007ce9492df337818e8853b78800d9",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "6294dff3dfb3956b992065c7991d4083bc0b9d9b",
+      "sourceSha256": "9a4a11a15db88d5fab08f59c1c34796b03f1f15bb3cc928dd226e1c59f7f59a3",
+      "bundledSha256": "9a4a11a15db88d5fab08f59c1c34796b03f1f15bb3cc928dd226e1c59f7f59a3",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js.map",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "681f25c4ab72d272fe06dbdcd678f65cd9a07dd2",
+      "sourceSha256": "5aae1a596d6b41d27eea8020cb525073d2018c72fd4f730a7d74c136a3afd367",
+      "bundledSha256": "5aae1a596d6b41d27eea8020cb525073d2018c72fd4f730a7d74c136a3afd367",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "04e9185bd638bb11ef576be7b8439f2a7bdcb05e",
+      "sourceSha256": "0833b2e9c3a26c258476c46266e6877fc75218625162e0460be9a3a098a61c6c",
+      "bundledSha256": "0833b2e9c3a26c258476c46266e6877fc75218625162e0460be9a3a098a61c6c",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js.map",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "69440cc7e431ed5b6f2b1fadb8376f551551d30c",
+      "sourceSha256": "5e3e0763164143baaa1ca0706b6100ba0452f911d6ce9713b48e3dbe07b35125",
+      "bundledSha256": "5e3e0763164143baaa1ca0706b6100ba0452f911d6ce9713b48e3dbe07b35125",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "8c83b36f8e0a639495f4a5cdb482cccf11026e85",
+      "sourceSha256": "7b189764d243c2e7177ee8dedc26d73dbb92ebe12bcb7cfdb0ffa9826be1f270",
+      "bundledSha256": "7b189764d243c2e7177ee8dedc26d73dbb92ebe12bcb7cfdb0ffa9826be1f270",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js.map",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "3949d7cc86d9500286817039af683b238664de67",
+      "sourceSha256": "10f44b829a9691a84bc449fa0948dd33be91218230d71747c136de1ecb2e8ffe",
+      "bundledSha256": "10f44b829a9691a84bc449fa0948dd33be91218230d71747c136de1ecb2e8ffe",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "c573a34463763631ad17e6eda0ccbdfa388a6789",
+      "sourceSha256": "4197454f564d765cb8ae681406d5e65c54bd054d454dafac3deea1efde2c1514",
+      "bundledSha256": "4197454f564d765cb8ae681406d5e65c54bd054d454dafac3deea1efde2c1514",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js.map",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "8c38db72cecdd51cbee934110b19ee249a004bc5",
+      "sourceSha256": "4ec6eff33e9594d815113f31bf3ff22e8fefe622474c08f62788648633f5ac73",
+      "bundledSha256": "4ec6eff33e9594d815113f31bf3ff22e8fefe622474c08f62788648633f5ac73",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.js",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "e3a59e3a1c3cd659a3475fe4128e7da427c5c223",
+      "sourceSha256": "f945bcd36c2055f9e36926ddc321cb954ec056995bd164e83a5bcdd429f321a7",
+      "bundledSha256": "f945bcd36c2055f9e36926ddc321cb954ec056995bd164e83a5bcdd429f321a7",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.js.map",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "98a87052b8cb57d159dc8b342ae1e3d527dfcece",
+      "sourceSha256": "f56afb1f17bc802243a081e1e713f6f65757bc2de43761a489f423f5cf2f631e",
+      "bundledSha256": "f56afb1f17bc802243a081e1e713f6f65757bc2de43761a489f423f5cf2f631e",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.min.js",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "d5dc5ea1f632023ca90e6941452e30d003ad4dcb",
+      "sourceSha256": "de040986d9a3ed89d5d5f9ad6d5727015e9e238c2cd13af8f1b55909386d0864",
+      "bundledSha256": "de040986d9a3ed89d5d5f9ad6d5727015e9e238c2cd13af8f1b55909386d0864",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.Web\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.min.js.map",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "4d43715223124fe313a1884b0aced70e220f4442",
+      "sourceSha256": "648d357bf9ece3bdc62af0021b831c82025dc6f15f148c38c6ca704221bc61ee",
+      "bundledSha256": "648d357bf9ece3bdc62af0021b831c82025dc6f15f148c38c6ca704221bc61ee",
+      "status": "byte-identical"
+    },
+    {
+      "path": "src\\GovernanceCouncil.slnx",
+      "upstreamGitMode": "100644",
+      "upstreamGitBlobSha1": "f1da713acc3654ab316e39983ce13e2dbe7febf0",
+      "sourceSha256": "1d311e38fdc2baac44913f3a2ec127d7c5f734be111ef120d9497843f0d77a2c",
+      "bundledSha256": "1d311e38fdc2baac44913f3a2ec127d7c5f734be111ef120d9497843f0d77a2c",
+      "status": "byte-identical"
+    }
+  ],
+  "excludedTrackedFiles": [
+    {
+      "path": ".github\\agents\\scenario-architect.agent.md",
+      "upstreamGitBlobSha1": "1f789723a2a1d7ce6e7069596c6a03b2e21bbc55",
+      "reason": "External agent instructions; not required by the application or azd."
+    },
+    {
+      "path": ".github\\instructions\\agent-council.instructions.md",
+      "upstreamGitBlobSha1": "3cb2d384e58751fad20bb85c5c2e347c075f1fda",
+      "reason": "External agent instructions; not required by the application or azd."
+    },
+    {
+      "path": "ARCHITECTURE.md",
+      "upstreamGitBlobSha1": "e370656d67fb3b5c701b34053060bea23d3fede3",
+      "reason": "Upstream overview or design documentation; replaced by bundle-local integration documentation."
+    },
+    {
+      "path": "README.md",
+      "upstreamGitBlobSha1": "ce8834014bbfff22f446a4797835b8ba72cde1eb",
+      "reason": "Upstream overview or design documentation; replaced by bundle-local integration documentation."
+    },
+    {
+      "path": "SPEC.md",
+      "upstreamGitBlobSha1": "0b638589b7b9e590be3d6fea72f1411403edaa69",
+      "reason": "Upstream overview or design documentation; replaced by bundle-local integration documentation."
+    },
+    {
+      "path": "docs\\DESIGN.md",
+      "upstreamGitBlobSha1": "136672a864bf8be72630099518146f09c1f0b033",
+      "reason": "Upstream overview or design documentation; replaced by bundle-local integration documentation."
+    },
+    {
+      "path": "infra\\main.json",
+      "upstreamGitBlobSha1": "cc023d8409bfe8ab3318a8ce62606de426fc572e",
+      "reason": "Generated ARM template; azd compiles the retained Bicep source."
+    },
+    {
+      "path": "scripts\\Foundry\\clear-agent-memories.ps1",
+      "upstreamGitBlobSha1": "e0fa437262f78dbaa81f1af627ef72c02b4dfad1",
+      "reason": "Optional maintenance scripts; not referenced by the application or azd hooks."
+    },
+    {
+      "path": "scripts\\Foundry\\delete-memory-stores.ps1",
+      "upstreamGitBlobSha1": "e864cf5335f6e4bc92fde29b27123f4acd85456e",
+      "reason": "Optional maintenance scripts; not referenced by the application or azd hooks."
+    },
+    {
+      "path": "scripts\\Foundry\\list-agents.ps1",
+      "upstreamGitBlobSha1": "211fb19fd12a23f2b19a50a88903116e8e7b1f5a",
+      "reason": "Optional maintenance scripts; not referenced by the application or azd hooks."
+    },
+    {
+      "path": "scripts\\Foundry\\list-memory-stores.ps1",
+      "upstreamGitBlobSha1": "ffb63a39b62d23d2afbbffb2158db0bcaaf3c67b",
+      "reason": "Optional maintenance scripts; not referenced by the application or azd hooks."
+    },
+    {
+      "path": "scripts\\data-management\\purge-data.ps1",
+      "upstreamGitBlobSha1": "77e7f60484a3d3ef4ec9317ec80eb337ecdd3b8c",
+      "reason": "Optional maintenance scripts; not referenced by the application or azd hooks."
+    },
+    {
+      "path": "scripts\\gc-common.ps1",
+      "upstreamGitBlobSha1": "3e9d756da9c8147c6df45bc936f8e00cdbfcefd2",
+      "reason": "Optional maintenance scripts; not referenced by the application or azd hooks."
+    }
+  ],
+  "bundleOnlyFiles": [
+    ".editorconfig",
+    ".gitattributes",
+    "Build.ps1",
+    "Directory.Build.props",
+    "Directory.Packages.props",
+    "global.json",
+    "NuGet.config",
+    "README.md",
+    "THIRD-PARTY-NOTICES.txt",
+    "import-manifest.json"
+  ],
+  "excludedLocalState": [
+    ".git",
+    ".azure",
+    ".env",
+    "bin",
+    "obj",
+    "untracked files"
+  ],
+  "buildIsolationDepartures": [
+    {
+      "path": ".gitignore",
+      "change": "Add !src/GovernanceCouncil.Web/Properties/launchSettings.json so the parent ignore rule cannot omit the unchanged upstream launch profile."
+    }
+  ]
+}

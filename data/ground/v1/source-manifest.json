@@ -1,0 +1,20 @@
+{
+  "dataVersion": "v1",
+  "generatedAt": "2026-09-02T12:52:21Z",
+  "sources": [
+    {
+      "sourceId": "govuk-managing-public-money-2026",
+      "knowledgeSourceName": "managing-public-money-govuk-v1",
+      "officialName": "Managing Public Money - April 2026",
+      "publisher": "HM Treasury",
+      "officialUrl": "https://www.gov.uk/government/publications/managing-public-money",
+      "downloadUrl": "https://assets.publishing.service.gov.uk/media/69e0b17861d2e8e9b9e42e13/Managing_Public_Money_-_April_2026.pdf",
+      "blobContainerName": "managing-public-money-v1",
+      "expectedLocalFilename": "managing-public-money-april-2026.pdf",
+      "checksumAlgorithm": "SHA-256",
+      "expectedChecksum": "d763aa52d5fcd2cf4f7b011d57d7149cfdcd82a85adb5f9414054cffa86476f5",
+      "checksumStatus": "verified-pinned-copy",
+      "contentIncluded": true
+    }
+  ]
+}

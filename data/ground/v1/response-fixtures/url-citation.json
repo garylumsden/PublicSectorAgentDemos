@@ -1,0 +1,23 @@
+{
+  "dataVersion": "v1",
+  "output": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "text": "FourStandards\nRegularity is required. [1]",
+          "annotations": [
+            {
+              "type": "url_citation",
+              "start_index": 38,
+              "end_index": 41,
+              "url": "https://www.gov.uk/government/publications/managing-public-money",
+              "title": "Managing Public Money"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

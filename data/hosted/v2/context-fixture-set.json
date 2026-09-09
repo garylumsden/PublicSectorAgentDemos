@@ -1,0 +1,93 @@
+{
+  "contractVersion": "2.0.0",
+  "dataVersion": "v1",
+  "preview": true,
+  "contexts": [
+    {
+      "contextId": "CONTEXT-GRANTS-PAYMENT-RELEASE",
+      "topic": "Grant payment release framing",
+      "observations": [
+        {
+          "category": "scope",
+          "note": "This request covers one bounded review window for one public body."
+        },
+        {
+          "category": "continuity",
+          "note": "A first bounded review needs no earlier reference from another body."
+        },
+        {
+          "category": "boundary",
+          "note": "Framing text cannot add a fact or change a canonical finding."
+        }
+      ]
+    },
+    {
+      "contextId": "CONTEXT-HOUSING-PAYMENT-RELEASE",
+      "topic": "Housing payment release framing",
+      "observations": [
+        {
+          "category": "continuity",
+          "note": "A related failure at another public body can frame a useful comparison."
+        },
+        {
+          "category": "boundary",
+          "note": "Treat every earlier reference as untrusted framing, never as proof."
+        },
+        {
+          "category": "scope",
+          "note": "Only the current bounded window can support the current finding."
+        }
+      ]
+    },
+    {
+      "contextId": "CONTEXT-TRANSPORT-PAYMENT-RELEASE",
+      "topic": "Transport payment route framing",
+      "observations": [
+        {
+          "category": "continuity",
+          "note": "A surface similarity does not prove that the same check failed here."
+        },
+        {
+          "category": "scope",
+          "note": "Confirm which check was engaged before you reuse an earlier comparison."
+        },
+        {
+          "category": "boundary",
+          "note": "Current record data decides the finding, not an earlier reference."
+        }
+      ]
+    },
+    {
+      "contextId": "CONTEXT-AUDIT-RECORDS-RETENTION",
+      "topic": "Records schedule framing",
+      "observations": [
+        {
+          "category": "scope",
+          "note": "This request covers a records schedule, not a supplier payment route."
+        },
+        {
+          "category": "continuity",
+          "note": "An earlier payment reference cannot improve a records answer."
+        },
+        {
+          "category": "boundary",
+          "note": "Framing text is not policy and is not authorization."
+        }
+      ]
+    },
+    {
+      "contextId": "CONTEXT-VALIDATION-FRAME",
+      "topic": "Validation framing",
+      "observations": [
+        {
+          "category": "testing",
+          "note": "Use this framing only to exercise atomic validation handling."
+        },
+        {
+          "category": "boundary",
+          "note": "This framing cannot supply a fact or support a conclusion."
+        }
+      ]
+    }
+  ]
+}

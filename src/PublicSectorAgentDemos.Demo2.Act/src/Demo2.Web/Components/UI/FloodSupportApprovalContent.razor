@@ -1,0 +1,80 @@
+<div class="approval-modal__alert">
+    <span aria-hidden="true">!</span>
+    <strong>Human reservation approval required</strong>
+</div>
+<div class="approval-modal__body">
+    <button type="button" class="approval-modal__close icon-button" aria-label="Close and reject reservation"
+            disabled="@DecisionRunning" @onclick="OnCancel">Close</button>
+    <p class="eyebrow">@FloodSupportCaptions.ApprovalMode(IsAzureFoundry)</p>
+    <h2 id="support-approval-title" tabindex="-1">Reserve this support package?</h2>
+    <p id="support-approval-description" class="approval-modal__lead">@FloodSupportCaptions.ApprovalDescription(IsAzureFoundry)</p>
+    @if (Context is { } context)
+    {
+        <SupportPackageDetails Package="context.Package" IncidentReference="@context.IncidentReference" Justification="@context.Justification" />
+        <dl class="approval-modal__details">
+            <div><dt>Action request ID</dt><dd><code>@context.ActionRequestId</code></dd></div>
+            <div><dt>Approval requested</dt><dd><time datetime="@context.RequestedAt.ToString("O")">@context.RequestedAt.ToUniversalTime().ToString("dd MMM yyyy HH:mm:ss 'UTC'")</time></dd></div>
+            <div><dt>Approval expires</dt><dd><time datetime="@context.ExpiresAt.ToString("O")">@context.ExpiresAt.ToUniversalTime().ToString("dd MMM yyyy HH:mm:ss 'UTC'")</time></dd></div>
+        </dl>
+        <details class="approval-modal__parameters">
+            <summary>Exact MCP input: reserveSupportPackage</summary>
+            <dl class="approval-modal__details">
+                @foreach (KeyValuePair<string, string> argument in context.ExactArguments)
+                {
+                    <div><dt><code>@argument.Key</code></dt><dd><code>@argument.Value</code></dd></div>
+                }
+            </dl>
+        </details>
+    }
+    else
+    {
+        <div class="alert alert--error" role="alert">
+            <strong>Decision context unavailable</strong>
+            <span>The package request is missing, malformed, mismatched, or expired. Approval is disabled. Reject the reservation.</span>
+        </div>
+    }
+    @if (!string.IsNullOrWhiteSpace(Error))
+    {
+        <div class="alert alert--error" role="alert">@Error</div>
+    }
+    <div class="form-group">
+        <label for="agent-approval-rationale">Decision rationale code</label>
+        <input id="agent-approval-rationale" class="text-input" value="@Rationale"
+               @oninput="UpdateRationaleAsync" disabled="@DecisionRunning"
+               autocomplete="off" aria-describedby="agent-approval-rationale-hint" />
+        <span id="agent-approval-rationale-hint" class="hint">To approve, enter letters, numbers, hyphens, underscores, or dots. You can always reject without a valid code.</span>
+    </div>
+    <div class="approval-modal__authority">
+        <strong>Approval scope</strong>
+        <p>Approves this package only. It does not grant spending, evacuation, or eligibility authority.</p>
+        <p>Reject, Close, Escape, or Cancel means no reservation.</p>
+    </div>
+    <div class="approval-modal__actions" aria-busy="@DecisionRunning">
+        <button type="button" class="button button--primary approval-modal__confirm"
+                disabled="@(!CanApprove || Context is null || Context.ExpiresAt <= DateTimeOffset.UtcNow || DecisionRunning)" @onclick="OnApprove">
+            Reserve this package and continue
+        </button>
+        <button type="button" class="button button--secondary" autofocus
+                disabled="@DecisionRunning" @onclick="OnReject">
+            Reject - no reservation
+        </button>
+        <button type="button" class="button button--danger-quiet"
+                disabled="@DecisionRunning" @onclick="OnCancel">Cancel</button>
+    </div>
+</div>
+
+@code {
+    [Parameter] public DispatchApprovalPresentation? Context { get; set; }
+    [Parameter] public bool IsAzureFoundry { get; set; }
+    [Parameter] public bool CanApprove { get; set; }
+    [Parameter] public bool DecisionRunning { get; set; }
+    [Parameter] public string? Error { get; set; }
+    [Parameter] public string Rationale { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> RationaleChanged { get; set; }
+    [Parameter] public EventCallback OnApprove { get; set; }
+    [Parameter] public EventCallback OnReject { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private Task UpdateRationaleAsync(ChangeEventArgs args) =>
+        RationaleChanged.InvokeAsync(args.Value?.ToString() ?? string.Empty);
+}

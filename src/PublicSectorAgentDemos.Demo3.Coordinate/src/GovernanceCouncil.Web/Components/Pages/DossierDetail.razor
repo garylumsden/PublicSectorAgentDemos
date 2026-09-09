@@ -1,0 +1,91 @@
+@page "/dossier/{DossierId}"
+@using GovernanceCouncil.Core.Interfaces
+@using GovernanceCouncil.Core.Models
+@using Markdig
+@inject IDossierStore DossierStore
+@inject IDossierBlobService BlobService
+@rendermode InteractiveServer
+
+<PageTitle>Dossier — @(_dossier?.Title ?? DossierId)</PageTitle>
+
+@if (_dossier is null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/dossiers">Dossiers</a></li>
+            <li class="breadcrumb-item active">@_dossier.Title</li>
+        </ol>
+    </nav>
+
+    <h1 class="mt-2">@_dossier.Title</h1>
+
+    <div class="mb-3">
+        <span class="badge bg-secondary">@_dossier.Source</span>
+        <span class="text-muted ms-2">@_dossier.DossierId</span>
+        <span class="text-muted ms-2">Uploaded @_dossier.UploadedDate.ToString("dd MMM yyyy HH:mm")</span>
+        @if (!string.IsNullOrEmpty(_dossier.SourceUrl))
+        {
+            <a href="@_dossier.SourceUrl" target="_blank" class="ms-2">Original source ↗</a>
+        }
+    </div>
+
+    <ul class="nav nav-tabs mb-3" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link @(_activeTab == "rendered" ? "active" : "")" @onclick='() => _activeTab = "rendered"'>
+                Rendered
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link @(_activeTab == "source" ? "active" : "")" @onclick='() => _activeTab = "source"'>
+                Markdown Source
+            </button>
+        </li>
+    </ul>
+
+    @if (_markdownContent is null)
+    {
+        <p>Loading content...</p>
+    }
+    else if (_activeTab == "rendered")
+    {
+        <div class="border rounded p-4 bg-white">
+            @((MarkupString)Markdown.ToHtml(_markdownContent, _markdownPipeline))
+        </div>
+    }
+    else
+    {
+        <pre class="border rounded p-4 bg-light"><code>@_markdownContent</code></pre>
+    }
+}
+
+@code {
+    [Parameter] public string DossierId { get; set; } = "";
+
+    private Dossier? _dossier;
+    private string? _markdownContent;
+    private string _activeTab = "rendered";
+
+    private static readonly MarkdownPipeline _markdownPipeline = new MarkdownPipelineBuilder()
+        .UseAdvancedExtensions()
+        .Build();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _dossier = await DossierStore.GetAsync(DossierId);
+        if (_dossier is not null)
+        {
+            try
+            {
+                _markdownContent = await BlobService.GetMarkdownAsync(_dossier.MarkdownBlobPath);
+            }
+            catch
+            {
+                _markdownContent = "*Markdown content not available.*";
+            }
+        }
+    }
+}

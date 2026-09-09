@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "correlationId",
+    "isSuccess",
+    "evidence",
+    "decisionBoundary"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "correlationId": {
+      "$ref": "../../v1/mcp-common.schema.json#/$defs/correlationId"
+    },
+    "isSuccess": {
+      "type": "boolean"
+    },
+    "data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "areaReference",
+        "vehicles",
+        "transportSeats",
+        "accessibleTransportPlaces",
+        "reportedAt",
+        "evidence",
+        "capacityBoundary"
+      ],
+      "properties": {
+        "areaReference": {
+          "type": "string",
+          "pattern": "^AREA-[0-9]{4}$"
+        },
+        "vehicles": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "transportSeats": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "accessibleTransportPlaces": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "reportedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "capacityBoundary": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "$ref": "../../v1/mcp-common.schema.json#/$defs/evidenceReference"
+      }
+    },
+    "error": {
+      "$ref": "../../v1/mcp-common.schema.json#/$defs/structuredToolError"
+    },
+    "decisionBoundary": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "isSuccess": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "data"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "isSuccess": {
+            "const": false
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "error"
+        ]
+      }
+    }
+  ]
+}

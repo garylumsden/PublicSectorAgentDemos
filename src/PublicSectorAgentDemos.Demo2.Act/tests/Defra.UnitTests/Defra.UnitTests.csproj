@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Defra.AgentCore\Defra.AgentCore.csproj" />
+    <ProjectReference Include="..\..\src\Defra.Audit\Defra.Audit.csproj" />
+    <ProjectReference Include="..\..\src\Defra.Contracts\Defra.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\Defra.Observability\Defra.Observability.csproj" />
+    <ProjectReference Include="..\..\src\Defra.Policy\Defra.Policy.csproj" />
+    <ProjectReference Include="..\..\src\Demo2.Web\Demo2.Web.csproj" />
+    <ProjectReference Include="..\..\src\Defra.Tools.Mcp\Defra.Tools.Mcp.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>PublicSectorAgentDemos.Demo4.Application</AssemblyName>
+    <RootNamespace>PublicSectorAgentDemos.Demo4.Application</RootNamespace>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <EnableDefaultContentItems>false</EnableDefaultContentItems>
+    <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <UserSecretsId>93ef57a0-21cf-4325-a958-cb5c5a1917ea</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Azure.Identity" Version="1.21.0" />
+    <PackageReference Include="Azure.Monitor.OpenTelemetry.AspNetCore" Version="1.6.0" />
+    <PackageReference Include="Microsoft.Identity.Web" Version="4.14.2" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.16.0" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.16.0" />
+    <Compile Include="src\**\*.cs" />
+    <EmbeddedResource Include="src\PublicSectorAgentDemos.Demo4.Application\Data\fixture-set.json" LogicalName="Demo4.CaseFixtures.json" />
+    <EmbeddedResource Include="src\PublicSectorAgentDemos.Demo4.Application\Data\context-fixture-set.json" LogicalName="Demo4.ContextFixtures.json" />
+    <Content Include="src\PublicSectorAgentDemos.Demo4.Application\Pages\**\*.cshtml"
+             Link="Pages\%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="src\PublicSectorAgentDemos.Demo4.Application\wwwroot\**\*"
+             Link="wwwroot\%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

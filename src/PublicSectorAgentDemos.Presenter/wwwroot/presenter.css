@@ -1,0 +1,106 @@
+:root {
+  color-scheme: light;
+  font-family: Arial, sans-serif;
+  color: #202124;
+  background: #f5f5f5;
+}
+
+body {
+  margin: 0;
+}
+
+main {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 2rem 1rem 4rem;
+}
+
+header {
+  margin-bottom: 2rem;
+}
+
+.eyebrow {
+  margin-bottom: 0.25rem;
+  color: #555;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.2;
+}
+
+h1 {
+  margin-top: 0;
+}
+
+.sessions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: 1rem;
+}
+
+.session-card {
+  padding: 1.25rem;
+  border: 1px solid #bbb;
+  border-radius: 0.25rem;
+  background: #fff;
+}
+
+.session-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.session-title h2 {
+  margin: 0;
+}
+
+.optional {
+  padding: 0.2rem 0.45rem;
+  border: 1px solid #777;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+}
+
+.proof {
+  min-height: 2.5rem;
+}
+
+.session-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+pre {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  background: #f8f8f8;
+}
+
+button,
+a {
+  font: inherit;
+}
+
+button {
+  padding: 0.45rem 0.7rem;
+  cursor: pointer;
+}
+
+.fallback {
+  padding: 0.75rem;
+  border-left: 0.25rem solid #666;
+  background: #f2f2f2;
+}
+
+#warm-up-results {
+  padding-left: 1.25rem;
+}

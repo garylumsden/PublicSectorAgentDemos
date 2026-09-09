@@ -1,0 +1,2 @@
+<!-- Stop MSBuild target discovery at this bundle boundary. -->
+<Project />

@@ -1,0 +1,115 @@
+.site-header {
+    background: #123524;
+    color: #fff;
+}
+
+.site-header__inner {
+    align-items: center;
+    display: flex;
+    gap: 2rem;
+    justify-content: space-between;
+    margin: 0 auto;
+    max-width: 76rem;
+    padding: 1rem 1.5rem;
+}
+
+.brand {
+    align-items: center;
+    color: #fff;
+    display: flex;
+    gap: .75rem;
+    text-decoration: none;
+}
+
+.brand__mark {
+    align-items: center;
+    background: #fff;
+    border-radius: .2rem;
+    color: #123524;
+    display: inline-flex;
+    font-size: 1.25rem;
+    font-weight: 800;
+    height: 2.5rem;
+    justify-content: center;
+    width: 2.5rem;
+}
+
+.brand strong,
+.brand small {
+    display: block;
+}
+
+.brand small {
+    color: #cde8d8;
+    font-size: .75rem;
+    margin-top: .1rem;
+}
+
+nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem;
+}
+
+nav a {
+    border-radius: .25rem;
+    color: #fff;
+    font-weight: 700;
+    padding: .65rem .8rem;
+    text-decoration: none;
+}
+
+nav a:hover,
+nav a:focus-visible {
+    background: #285b40;
+}
+
+nav a.active {
+    background: #fff;
+    color: #123524;
+}
+
+main {
+    min-height: calc(100vh - 13rem);
+}
+
+.site-footer {
+    background: #e9f2ed;
+    border-top: 1px solid #c8d9cf;
+    color: #294437;
+    font-size: .875rem;
+    margin-top: 4rem;
+    padding: 1.5rem 0;
+}
+
+#blazor-error-ui {
+    background: #fce8e6;
+    border-top: 3px solid #b3261e;
+    bottom: 0;
+    box-shadow: 0 -1px 6px rgb(0 0 0 / 20%);
+    box-sizing: border-box;
+    display: none;
+    left: 0;
+    padding: .8rem 3.5rem .8rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+#blazor-error-ui .dismiss {
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    font-size: 1.4rem;
+    position: absolute;
+    right: .75rem;
+    top: .35rem;
+}
+
+@media (max-width: 44rem) {
+    .site-header__inner {
+        align-items: stretch;
+        flex-direction: column;
+        gap: .75rem;
+    }
+}

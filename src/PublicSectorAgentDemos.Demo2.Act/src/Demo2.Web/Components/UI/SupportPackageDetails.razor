@@ -1,0 +1,42 @@
+<section class="support-package" aria-label="Support package details">
+    <h3>WHAT is being requested</h3>
+    <p class="route">Reserve one accommodation and transport support package</p>
+    <dl class="approval-modal__details">
+        <div><dt>Accommodation site</dt><dd>@Package.AccommodationSite</dd></div>
+        <div><dt>Rooms</dt><dd>@Package.Rooms rooms, including @Package.AccessibleRooms accessible rooms</dd></div>
+        <div><dt>Transport</dt><dd>@Package.Vehicles coaches, @Package.TransportSeats seats, including @Package.AccessibleTransportPlaces accessible transport places</dd></div>
+        <div><dt>Reservation duration</dt><dd>@Package.DurationHours hours</dd></div>
+        <div><dt>Estimated total (GBP)</dt><dd>GBP @Package.EstimatedCostGbp.ToString("N2", System.Globalization.CultureInfo.InvariantCulture)</dd></div>
+        <div><dt>Incident area reference</dt><dd><code>@Package.AreaReference</code></dd></div>
+        <div><dt>Incident reference</dt><dd><code>@IncidentReference</code></dd></div>
+        <div><dt>Package ID / version</dt><dd><code>@Package.PackageId</code> / v@(Package.Version)</dd></div>
+    </dl>
+
+    <h3>WHY this package is requested</h3>
+    <p><strong>Agent justification:</strong> @Justification</p>
+    <p><strong>Authoritative package reason:</strong> @Package.Why</p>
+    <h4>Evidence and source facts</h4>
+    <ul>
+        @foreach (string evidence in Package.Evidence)
+        {
+            <li>@evidence</li>
+        }
+    </ul>
+    <div class="alert alert--warning">
+        <strong>Unmet need after this reservation</strong>
+        <span>@Package.UnmetHouseholds households remain without support from this package.</span>
+    </div>
+    <h4>Unresolved risks and conditions</h4>
+    <ul>
+        @foreach (string risk in Package.Risks)
+        {
+            <li>@risk</li>
+        }
+    </ul>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public SupportPackageDefinition Package { get; set; } = default!;
+    [Parameter, EditorRequired] public string IncidentReference { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string Justification { get; set; } = string.Empty;
+}

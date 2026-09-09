@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="GovernanceCouncil.Agents/GovernanceCouncil.Agents.csproj" />
+  <Project Path="GovernanceCouncil.Core/GovernanceCouncil.Core.csproj" />
+  <Project Path="GovernanceCouncil.Data/GovernanceCouncil.Data.csproj" />
+  <Project Path="GovernanceCouncil.Web/GovernanceCouncil.Web.csproj" />
+</Solution>

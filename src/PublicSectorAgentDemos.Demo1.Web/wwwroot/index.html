@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Foundation / Ground - Managing Public Money</title>
+  <link rel="stylesheet" href="/app.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">Demo 1 | Local-only | Keyless</p>
+      <h1>Foundation / Ground</h1>
+      <p>Compare the existing Managing Public Money agents with the same prompt.</p>
+      <p>Each answer appears when its agent finishes. No agent settings or instructions are changed.</p>
+    </header>
+    <form id="compare-form">
+      <label for="prompt">Prompt <span id="scenario">MPM-005</span></label>
+      <textarea id="prompt" name="prompt" rows="7" maxlength="8000" required disabled></textarea>
+      <div class="actions">
+        <button id="compare" type="submit" disabled>Compare both agents</button>
+        <button id="cancel" type="button" disabled>Cancel pending requests</button>
+        <button id="reset" type="button" disabled>Restore MPM-005</button>
+        <span id="count">0 / 8000 characters</span>
+      </div>
+      <p id="run-status" role="status">Loading the local session...</p>
+    </form>
+    <p class="notice">These are unmodified agent answers, not approved financial advice. Citation display does not verify evidence or factual accuracy.</p>
+    <p id="timing-explanation" class="timing-explanation" role="note">Loading the agent configuration...</p>
+    <div class="comparison">
+      <section id="foundation" class="panel" aria-labelledby="foundation-title">
+        <h2 id="foundation-title">Foundation</h2>
+        <p class="agent-name">managing-public-money-foundation</p>
+        <p class="agent-config" data-agent-config="foundation">Model and reasoning settings loading...</p>
+        <p class="status" role="status">Ready</p>
+        <div class="rendered" aria-label="Foundation formatted answer"></div>
+        <div class="citations"></div>
+        <label for="foundation-original">Original answer text</label>
+        <textarea id="foundation-original" class="original" rows="7" readonly></textarea>
+        <button type="button" class="copy" disabled>Copy original answer</button>
+        <details>
+          <summary>Original service response JSON</summary>
+          <textarea class="response-json" rows="6" readonly aria-label="Foundation original service response JSON"></textarea>
+          <button type="button" class="copy-json" disabled>Copy original JSON</button>
+        </details>
+      </section>
+      <section id="ground" class="panel" aria-labelledby="ground-title">
+        <h2 id="ground-title">Ground</h2>
+        <p class="agent-name">managing-public-money-ground</p>
+        <p class="agent-config" data-agent-config="ground">Model and reasoning settings loading...</p>
+        <p class="status" role="status">Ready</p>
+        <div class="rendered" aria-label="Ground formatted answer"></div>
+        <div class="citations"></div>
+        <label for="ground-original">Original answer text</label>
+        <textarea id="ground-original" class="original" rows="7" readonly></textarea>
+        <button type="button" class="copy" disabled>Copy original answer</button>
+        <details>
+          <summary>Original service response JSON</summary>
+          <textarea class="response-json" rows="6" readonly aria-label="Ground original service response JSON"></textarea>
+          <button type="button" class="copy-json" disabled>Copy original JSON</button>
+        </details>
+      </section>
+    </div>
+    <section id="quality" class="panel quality" aria-labelledby="quality-title">
+      <h2 id="quality-title">Quality assessment</h2>
+      <p>Assess the exact displayed answer pair. This does not rerun either answer agent.</p>
+      <div class="actions">
+        <button id="assess-quality" type="button" disabled>Assess quality</button>
+        <button id="cancel-assessment" type="button" disabled>Cancel assessment</button>
+        <span id="assessment-status" role="status">Run both agents to enable assessment.</span>
+      </div>
+      <p class="notice">AI-generated assessment of these answers, not verified financial advice. Both agents use the same model reasoning setting.</p>
+      <div id="assessment-result" hidden>
+        <p id="assessment-summary" class="assessment-summary"></p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Criterion</th><th>Foundation</th><th>Ground</th><th>Ground - Foundation</th></tr></thead>
+            <tbody id="assessment-criteria"></tbody>
+          </table>
+        </div>
+        <p id="assessment-reference" class="notice"></p>
+        <ul id="assessment-limitations" class="notice"></ul>
+      </div>
+    </section>
+    <p class="notice">Cancel stops local waiting and requests cancellation upstream. Foundry may continue work already accepted.</p>
+  </main>
+</body>
+</html>

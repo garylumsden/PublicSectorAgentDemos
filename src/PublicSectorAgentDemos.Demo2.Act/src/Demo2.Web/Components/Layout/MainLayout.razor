@@ -1,0 +1,43 @@
+@inherits LayoutComponentBase
+
+<FluentDesignTheme Mode="@DesignThemeModes.Light" />
+
+<a class="skip-link" href="#main-content">Skip to main content</a>
+
+<header class="site-header">
+    <div class="site-header__inner">
+        <a class="brand" href="/" aria-label="Cross-government flood support home">
+            <span class="brand__mark" aria-hidden="true">A</span>
+            <span>
+                <strong>Cross-government flood support</strong>
+                <small>Act: accommodation and transport coordination</small>
+            </span>
+        </a>
+        <nav aria-label="Primary navigation">
+            <NavLink href="/" Match="NavLinkMatch.All">Situation report</NavLink>
+            <NavLink href="/admin">Incident commander workspace</NavLink>
+        </nav>
+    </div>
+</header>
+
+<main id="main-content" tabindex="-1">
+    @Body
+</main>
+
+<footer class="site-footer">
+    <div class="page-shell">
+        Each package requires incident commander approval.
+    </div>
+</footer>
+
+<div id="blazor-error-ui" data-nosnippet>
+    Something went wrong.
+    <a href="." class="reload">Reload</a>
+    <button type="button" class="dismiss" aria-label="Dismiss error">×</button>
+</div>
+
+<FluentToastProvider />
+<FluentDialogProvider />
+<FluentTooltipProvider />
+<FluentMessageBarProvider />
+<FluentMenuProvider />

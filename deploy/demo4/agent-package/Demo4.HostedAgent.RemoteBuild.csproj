@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>PublicSectorAgentDemos.Demo4.HostedAgents</AssemblyName>
+    <RootNamespace>PublicSectorAgentDemos.Demo4.HostedAgents</RootNamespace>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <EnableDefaultContentItems>false</EnableDefaultContentItems>
+    <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <NoWarn>$(NoWarn);AAIP001;OPENAI001;MEAI001;MAAI001</NoWarn>
+    <UserSecretsId>ee0b18c1-8175-4ab3-abf5-eb87ee5fd524</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Azure.AI.Projects" Version="2.1.0-beta.4" />
+    <PackageReference Include="Azure.Identity" Version="1.21.0" />
+    <PackageReference Include="Azure.Monitor.OpenTelemetry.AspNetCore" Version="1.6.0" />
+    <PackageReference Include="Microsoft.Agents.AI" Version="1.13.0" />
+    <PackageReference Include="Microsoft.Agents.AI.Foundry.Hosting" Version="1.13.0-preview.260703.1" />
+    <PackageReference Include="Microsoft.Agents.AI.Mcp" Version="1.13.0-alpha.260703.1" />
+    <PackageReference Include="ModelContextProtocol" Version="1.4.1" />
+    <PackageReference Include="OpenAI" Version="2.10.0" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.16.0" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.16.0" />
+    <Compile Include="src\**\*.cs" />
+    <Content Include="data\hosted\v2\*.json">
+      <Link>data\hosted\v2\%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="skills\demo4\**\SKILL.md" />
+  </ItemGroup>
+</Project>

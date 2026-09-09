@@ -1,0 +1,65 @@
+@page "/nexus/alerts"
+@using GovernanceCouncil.Core.Interfaces
+@using GovernanceCouncil.Core.Models
+@inject INexusStore NexusStore
+
+<PageTitle>Nexus Alerts</PageTitle>
+
+<header class="gc-page-head">
+    <span class="gc-eyebrow">Intelligence</span>
+    <h1>Nexus Alerts</h1>
+    <p class="lead">Recently discovered nexuses (last 30 days).</p>
+</header>
+
+@if (_nexuses is null)
+{
+    <p class="text-muted">Loading…</p>
+}
+else if (!_nexuses.Any())
+{
+    <div class="gc-card gc-empty">No recent nexuses discovered.</div>
+}
+else
+{
+    <div class="gc-card gc-grid-card">
+        <FluentDataGrid Items="@_nexuses.AsQueryable()" TGridItem="Nexus" GridTemplateColumns="1.1fr 1fr 1fr 1fr 2.4fr 0.9fr 1fr" Class="gc-grid">
+            <TemplateColumn Title="Discovered">
+                <span class="text-muted">@context.DiscoveredDate.ToString("dd MMM yyyy")</span>
+            </TemplateColumn>
+            <TemplateColumn Title="Type">
+                <span class="gc-pill badge-conditions">@context.NexusType</span>
+            </TemplateColumn>
+            <TemplateColumn Title="Source">
+                <a href="/assessment/@context.SourceAssessmentId">@context.SourceAssessmentId</a>
+            </TemplateColumn>
+            <TemplateColumn Title="Target">
+                <a href="/assessment/@context.TargetAssessmentId">@context.TargetAssessmentId</a>
+            </TemplateColumn>
+            <TemplateColumn Title="Summary">@context.Summary</TemplateColumn>
+            <TemplateColumn Title="Confidence">
+                <span class="text-muted">@context.Confidence</span>
+            </TemplateColumn>
+            <TemplateColumn Title="Actions" Align="Align.End">
+                <FluentAnchor Href="@($"/nexus/{context.Id}/{context.SourceAssessmentId}")" Appearance="Appearance.Accent">Detail</FluentAnchor>
+            </TemplateColumn>
+        </FluentDataGrid>
+    </div>
+}
+
+<div class="mt-3">
+    <a href="/nexus" class="btn btn-outline-secondary">← Back to Explorer</a>
+</div>
+
+@code {
+    private IReadOnlyList<Nexus>? _nexuses;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var all = await NexusStore.ListAllAsync();
+        var cutoff = DateTimeOffset.UtcNow.AddDays(-30);
+        _nexuses = all
+            .Where(n => n.DiscoveredDate >= cutoff)
+            .OrderByDescending(n => n.DiscoveredDate)
+            .ToList();
+    }
+}

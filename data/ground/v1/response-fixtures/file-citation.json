@@ -1,0 +1,22 @@
+{
+  "dataVersion": "v1",
+  "output": [
+    {
+      "type": "message",
+      "content": [
+        {
+          "type": "output_text",
+          "text": "Assessment\nRoute: delegated [1]",
+          "annotations": [
+            {
+              "type": "file_citation",
+              "file_id": "file-mpm-001",
+              "index": 0,
+              "filename": "managing-public-money-april-2026.pdf"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

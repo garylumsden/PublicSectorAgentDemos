@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "1.0.0",
+  "canonicalBaseInstructionsPath": "config/ground/prompts/managing-public-money.base.md",
+  "definitions": [
+    {
+      "name": "managing-public-money-foundation",
+      "displayName": "Managing Public Money - Foundation",
+      "stage": "foundation",
+      "model": "gpt-5-mini",
+      "reasoningEffort": "low"
+    },
+    {
+      "name": "managing-public-money-ground",
+      "displayName": "Managing Public Money - Ground",
+      "stage": "ground",
+      "model": "gpt-5-mini",
+      "reasoningEffort": "low",
+      "instructionExtensionPath": "config/ground/prompts/managing-public-money.ground.md",
+      "foundryIq": {
+        "knowledgeBaseName": "managing-public-money-kb-v1",
+        "retrievalReasoningEffort": "minimal",
+        "knowledgeSourceName": "managing-public-money-govuk-v1",
+        "connectionName": "managing-public-money-iq",
+        "toolName": "knowledge_base_retrieve",
+        "apiVersion": "2026-05-01-preview",
+        "required": true,
+        "failClosed": true,
+        "citationsRequired": true,
+        "allowedSourceIds": [
+          "govuk-managing-public-money-2026"
+        ]
+      }
+    }
+  ]
+}

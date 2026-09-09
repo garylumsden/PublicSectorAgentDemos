@@ -1,0 +1,16 @@
+{
+  "dataVersion": "v1",
+  "output": [
+    {
+      "type": "message",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "output_text",
+          "text": "Grounding unavailable. No evidence-based assessment can be provided.",
+          "annotations": []
+        }
+      ]
+    }
+  ]
+}

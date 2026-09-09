@@ -1,0 +1,19 @@
+<section aria-label="Recorded support package">
+    <h3>Recorded support package</h3>
+    @if (DispatchApprovalPresentation.TryGetRecordedPackage(Case, Approval, out var request, out var package) &&
+         request is not null && package is not null)
+    {
+        <p class="hint">Historical request details, not a new approval. A reservation is complete only when its receipt is recorded.</p>
+        <SupportPackageDetails Package="package" IncidentReference="@request.IncidentReference" Justification="@request.Justification" />
+        <p><strong>Action request ID:</strong> <code>@request.ActionRequestId</code></p>
+    }
+    else
+    {
+        <p class="alert alert--warning">No matching package snapshot is available for this assessment version. Do not infer resources or cost from a status label.</p>
+    }
+</section>
+
+@code {
+    [Parameter, EditorRequired] public WelfareCaseRecord Case { get; set; } = default!;
+    [Parameter] public WelfareApprovalRecord? Approval { get; set; }
+}

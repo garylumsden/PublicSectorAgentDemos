@@ -1,0 +1,13 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "request"
+  ],
+  "properties": {
+    "request": {
+      "$ref": "support-package.schema.json#/$defs/request"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

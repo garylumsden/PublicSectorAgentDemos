@@ -1,0 +1,104 @@
+@page "/"
+@using GovernanceCouncil.Core.Interfaces
+@using GovernanceCouncil.Core.Models
+@inject IAssessmentStore AssessmentStore
+@inject IDossierStore DossierStore
+@inject INexusStore NexusStore
+
+<PageTitle>@Brand.AppName — Dashboard</PageTitle>
+
+<header class="gc-page-head">
+    @if (Brand.HasOrganisation)
+    {
+        <span class="gc-eyebrow">@Brand.Organisation</span>
+    }
+    <h1>@Brand.AppName</h1>
+    <p class="lead">@Brand.Tagline</p>
+</header>
+
+<div class="gc-foundry">
+    <span class="gc-foundry-label">🔗 Foundry</span>
+    <a href="@_foundryPortalUrl" target="_blank">Azure Portal →</a>
+    <a href="http://localhost:4319" target="_blank">Local Playground →</a>
+    <span class="gc-foundry-meta">Agents · traces · evaluations</span>
+</div>
+
+<div class="gc-bento">
+    <a class="gc-card gc-stat" href="/dossiers">
+        <span class="gc-eyebrow">Dossiers</span>
+        <span class="gc-stat-num">@_documentCount</span>
+        <span class="gc-stat-cta">View all →</span>
+    </a>
+    <a class="gc-card gc-stat" href="/assessments">
+        <span class="gc-eyebrow">Assessments</span>
+        <span class="gc-stat-num">@_assessmentCount</span>
+        <span class="gc-stat-cta">View all →</span>
+    </a>
+    <a class="gc-card gc-stat" href="/nexus">
+        <span class="gc-eyebrow">Nexus Alerts</span>
+        <span class="gc-stat-num">@_nexusCount</span>
+        <span class="gc-stat-cta gc-stat-cta--gold">Explore →</span>
+    </a>
+</div>
+
+<section class="gc-section">
+    <div class="gc-section-head">
+        <h2>Recent assessments</h2>
+        <a href="/assessments">All assessments →</a>
+    </div>
+    @if (_recentAssessments is null)
+    {
+        <p class="text-muted">Loading…</p>
+    }
+    else if (!_recentAssessments.Any())
+    {
+        <div class="gc-card gc-empty">
+            No assessments yet. <a href="/dossiers">Upload a dossier</a> to get started.
+        </div>
+    }
+    else
+    {
+        <div class="gc-card gc-grid-card">
+            <FluentDataGrid Items="@_recentAssessments.AsQueryable()" TGridItem="Assessment" GridTemplateColumns="1fr 2.6fr 1.6fr 1.2fr" Class="gc-grid">
+                <TemplateColumn Title="ID">
+                    <a href="/assessment/@context.AssessmentId">@context.AssessmentId</a>
+                </TemplateColumn>
+                <TemplateColumn Title="Dossier">
+                    <a href="/dossier/@context.DossierId">@context.DossierTitle</a>
+                </TemplateColumn>
+                <TemplateColumn Title="Recommendation">
+                    <span class="gc-pill @UiStyles.StanceClass(context.OverallRecommendation)">@context.OverallRecommendation</span>
+                </TemplateColumn>
+                <TemplateColumn Title="Date">
+                    <span class="text-muted">@context.ReviewDate.ToString("dd MMM yyyy")</span>
+                </TemplateColumn>
+            </FluentDataGrid>
+        </div>
+    }
+</section>
+
+@code {
+    private int _assessmentCount;
+    private int _documentCount;
+    private int _nexusCount;
+    private IReadOnlyList<Assessment>? _recentAssessments;
+    private string _foundryPortalUrl = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Build Foundry portal URL from environment
+        var projectName = Environment.GetEnvironmentVariable("AZURE_AI_PROJECT_NAME") ?? "";
+        var resourceName = Environment.GetEnvironmentVariable("AI_SERVICES_RESOURCE_NAME") ?? "";
+        _foundryPortalUrl = $"https://ai.azure.com/build/agents?wsid=/subscriptions/{Environment.GetEnvironmentVariable("AZURE_SUBSCRIPTION_ID")}/resourceGroups/{Environment.GetEnvironmentVariable("AZURE_RESOURCE_GROUP")}/providers/Microsoft.CognitiveServices/accounts/{resourceName}/projects/{projectName}";
+
+        var assessments = await AssessmentStore.ListAsync();
+        _assessmentCount = assessments.Count;
+        _recentAssessments = assessments.OrderByDescending(a => a.ReviewDate).Take(10).ToList();
+
+        var documents = await DossierStore.ListAsync();
+        _documentCount = documents.Count;
+
+        var nexuses = await NexusStore.ListAllAsync();
+        _nexusCount = nexuses.Count;
+    }
+}

@@ -1,0 +1,48 @@
+# .NET and IDE output
+[Bb]in/
+[Oo]bj/
+artifacts/
+[Tt]est[Rr]esults/
+coverage/
+coverage.*
+.vs/
+.idea/
+.worktrees/
+*.user
+*.suo
+*.rsuser
+*.sln.docstates
+
+# Azure Developer CLI and Foundry local state
+**/.azure/*
+.foundry/
+.demo-ready/
+/.playwright-mcp/
+
+# Local settings and secret material
+.env
+.env.*
+!.env.template
+!.env.example
+*.local.json
+local.settings.json
+secrets.json
+*.pfx
+*.pem
+*.key
+*.log
+*.tmp
+/preflight-report.md
+
+# Operating system files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDE-generated launch profiles
+**/Properties/launchSettings.json
+
+# Internal planning and local review artifacts
+.bicep-planning-files/
+docs/archive/
+docs/code-review/

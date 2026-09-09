@@ -1,0 +1,83 @@
+@page
+@model CasesModel
+@{
+    ViewData["Title"] = "Canonical case data";
+}
+
+<section class="hero">
+    <p class="eyebrow">Public Sector Agent Demo 4</p>
+    <h1>Canonical case data</h1>
+    <p>These repository fixtures provide the current-case facts used by the Hosted Agent tools. They are separate from the shared seven-day Memory notebook.</p>
+    <p class="hint"><a asp-page="/Index">Return to the investigation page</a> · <a asp-page="/Memory">Browse retained Memory records</a></p>
+</section>
+
+<section class="panel memory-status">
+    <h2>How each request works</h2>
+    <div class="memory-grid">
+        <div>
+            <span class="status-label">Request</span>
+            <strong>Scenario ID and prompt</strong>
+            <p>The application sends the selected scenario ID and editable prompt to the Hosted Agent.</p>
+        </div>
+        <div>
+            <span class="status-label">Current case</span>
+            <strong>Canonical case tools</strong>
+            <p>The agent calls <code>assess_case_pattern</code> for the exact case data below. It can also call <code>search_case_context</code>.</p>
+        </div>
+        <div>
+            <span class="status-label">Earlier cases</span>
+            <strong>Foundry Memory</strong>
+            <p>The agent can search retained records once when cross-government continuity can help. Memory is not the source of current-case evidence.</p>
+        </div>
+    </div>
+</section>
+
+<section class="panel" data-case-fixtures>
+    <h2>Cases used by the tools</h2>
+    <div class="record-list">
+        @foreach (CaseFixtureView item in Model.Cases)
+        {
+            <article class="record-card case-fixture-card" data-scenario-id="@item.ScenarioId">
+                <h3>@item.CaseReference · @item.ScenarioId</h3>
+                <p><strong>Prompt:</strong> @item.Prompt</p>
+                <dl class="record-grid">
+                    <div><dt>Case type</dt><dd>@item.CaseType</dd></div>
+                    <div><dt>Window</dt><dd>@item.From.ToString("yyyy-MM-dd") to @item.To.ToString("yyyy-MM-dd")</dd></div>
+                    <div><dt>Reason</dt><dd>@item.ReasonCode</dd></div>
+                    <div><dt>Confidence</dt><dd>@item.Confidence.ToString("P0")</dd></div>
+                    <div><dt>Memory action</dt><dd>@item.ExpectedMemoryAction</dd></div>
+                    <div><dt>Expected result</dt><dd>@item.ExpectedOutcome</dd></div>
+                </dl>
+                <p><strong>Canonical pattern:</strong> @item.Pattern</p>
+                <h4>Current-case evidence</h4>
+                @if (item.Evidence.Count == 0)
+                {
+                    <p class="empty-state">No evidence exists. This fixture tests invalid-result handling.</p>
+                }
+                else
+                {
+                    <div class="evidence-list">
+                        @foreach (CaseEvidenceView evidence in item.Evidence)
+                        {
+                            <section>
+                                <strong>@evidence.EvidenceId</strong>
+                                <span>@evidence.SourceId</span>
+                                <p>@evidence.Summary</p>
+                            </section>
+                        }
+                    </div>
+                }
+                <details>
+                    <summary>Bounded case context</summary>
+                    <p><strong>@item.Context.Topic</strong> · @item.ContextId</p>
+                    <ul>
+                        @foreach (CaseContextObservationView observation in item.Context.Observations)
+                        {
+                            <li><strong>@observation.Category:</strong> @observation.Note</li>
+                        }
+                    </ul>
+                </details>
+            </article>
+        }
+    </div>
+</section>

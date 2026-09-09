@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <ProjectReference Include="..\GovernanceCouncil.Core\GovernanceCouncil.Core.csproj" />
+    <ProjectReference Include="..\GovernanceCouncil.Agents\GovernanceCouncil.Agents.csproj" />
+    <ProjectReference Include="..\GovernanceCouncil.Data\GovernanceCouncil.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Azure.Identity" Version="1.21.0" />
+    <PackageReference Include="Markdig" Version="0.40.0" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="3.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.3" />
+    <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components" Version="4.14.3" />
+    <!-- Pin OpenTelemetry.Api to a non-vulnerable version to clear NU1902. -->
+    <PackageReference Include="OpenTelemetry.Api" Version="1.16.0" />
+    <!-- Microsoft.Extensions.Configuration.EnvironmentVariables removed (NU1510): env is
+         loaded via DotEnvLoader, and the variables provider ships in the shared framework. -->
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+    <AzureCosmosDisableNewtonsoftJsonCheck>true</AzureCosmosDisableNewtonsoftJsonCheck>
+    <NoWarn>OPENAI001;OPENAI002</NoWarn>
+  </PropertyGroup>
+
+</Project>

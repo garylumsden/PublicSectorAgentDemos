@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.example.invalid/defra/v1/mcp-common.schema.json",
+  "title": "DEFRA MCP v1 common definitions",
+  "$comment": "Contract version 1.0.0",
+  "$defs": {
+    "correlationId": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value"],
+      "properties": {
+        "value": {"type": "string", "minLength": 1, "maxLength": 128}
+      }
+    },
+    "evidenceReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidenceId", "label", "freshness", "provenance", "safeSummary"],
+      "properties": {
+        "evidenceId": {"type": "string", "minLength": 1},
+        "label": {"enum": ["Live", "Cached", "Sampled", "Synthetic", "Inferred", "Unavailable"]},
+        "freshness": {"enum": ["current", "stale", "unknown"]},
+        "provenance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["sourceId", "sourceName", "retrievedAt"],
+          "properties": {
+            "sourceId": {"type": "string", "minLength": 1},
+            "sourceName": {"type": "string", "minLength": 1},
+            "sourceUri": {"type": "string", "format": "uri"},
+            "retrievedAt": {"type": "string", "format": "date-time"},
+            "publishedAt": {"type": "string", "format": "date-time"}
+          }
+        },
+        "safeSummary": {"type": "string", "minLength": 1}
+      }
+    },
+    "structuredToolError": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "title", "safeDetail", "isRetryable", "correlationId"],
+      "properties": {
+        "code": {"type": "string", "minLength": 1},
+        "title": {"type": "string", "minLength": 1},
+        "safeDetail": {"type": "string", "minLength": 1},
+        "isRetryable": {"type": "boolean"},
+        "correlationId": {"$ref": "#/$defs/correlationId"}
+      }
+    },
+    "waterQualityMeasurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["measurementReference", "catchmentId", "parameter", "determinand", "observedAt", "value", "unit"],
+      "properties": {
+        "measurementReference": {"type": "string", "minLength": 1, "maxLength": 32},
+        "catchmentId": {"type": "string", "pattern": "^WQA-[A-Z0-9]{3,12}$"},
+        "parameter": {"enum": ["nitrate", "phosphorus", "pH", "dissolvedOxygen"]},
+        "determinand": {"type": "string", "minLength": 1, "maxLength": 120},
+        "observedAt": {"type": "string", "format": "date-time"},
+        "value": {"type": "number"},
+        "unit": {"enum": ["mg/L", "ug/L", "pH_units", "percent_saturation"]}
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "parameter": {"const": "nitrate"},
+            "determinand": {"const": "nitrate as NO3"},
+            "unit": {"const": "mg/L"}
+          }
+        },
+        {
+          "properties": {
+            "parameter": {"const": "phosphorus"},
+            "determinand": {"const": "reactive phosphorus"},
+            "unit": {"const": "ug/L"}
+          }
+        },
+        {
+          "properties": {
+            "parameter": {"const": "pH"},
+            "determinand": {"const": "pH"},
+            "unit": {"const": "pH_units"}
+          }
+        },
+        {
+          "properties": {
+            "parameter": {"const": "dissolvedOxygen"},
+            "determinand": {"const": "dissolved oxygen percent saturation"},
+            "unit": {"const": "percent_saturation"}
+          }
+        }
+      ]
+    }
+  }
+}

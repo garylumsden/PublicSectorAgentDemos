@@ -1,0 +1,13 @@
+{
+  "dataVersion": "1.0.0",
+  "fictional": true,
+  "catalogueSource": "Defra.Contracts.FloodSupport.FloodSupportCatalogue",
+  "situationSource": "Defra.Contracts.FloodSupport.FloodSupportFixtures",
+  "scenarios": [
+    { "scenarioId": "FLOOD-EMERGENCY-001", "areaReference": "AREA-1001", "receivedAt": "2026-09-06T15:40:00Z", "situationText": "Riverton flood-displacement affects 180 households. Accommodation reaches capacity at 18:00. Request temporary accommodation and transport.", "packageId": "PKG-RIV-060", "packageVersion": 1, "approvalExpected": true },
+    { "scenarioId": "FLOOD-REPEAT-001", "areaReference": "AREA-1001", "receivedAt": "2026-09-06T15:40:00Z", "situationText": "Riverton has repeated reports of unmet accommodation and transport needs.", "packageId": "PKG-RIV-060", "packageVersion": 1, "approvalExpected": true },
+    { "scenarioId": "FLOOD-LOW-001", "areaReference": "AREA-1002", "receivedAt": "2026-09-06T15:40:00Z", "situationText": "Meadowfield information only: confirm available temporary support before a request.", "approvalExpected": false },
+    { "scenarioId": "FLOOD-STANDARD-001", "areaReference": "AREA-1002", "receivedAt": "2026-09-06T15:40:00Z", "situationText": "Flood water is stable. Temporary accommodation has spare capacity and scheduled transport remains available. Review support coordination during normal operating hours.", "approvalExpected": false },
+    { "scenarioId": "FLOOD-UNKNOWN-001", "areaReference": null, "receivedAt": "2026-09-06T15:40:00Z", "situationText": "An unspecified area may need temporary support. Confirm the area and the incident.", "approvalExpected": false }
+  ]
+}

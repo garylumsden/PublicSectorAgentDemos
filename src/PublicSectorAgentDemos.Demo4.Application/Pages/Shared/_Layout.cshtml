@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] · Public Sector Demo 4</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+<header class="site-header">
+    <div class="site-brand">
+        <a asp-page="/Index">Public Sector Demo 4</a>
+        <span>Hosted Agent + shared Foundry Memory</span>
+    </div>
+    <nav class="site-nav" aria-label="Application">
+        <a asp-page="/Index">Investigation</a>
+        <a asp-page="/Cases">Case data</a>
+        <a asp-page="/Memory">Memory notebook</a>
+    </nav>
+    <span class="preview-badge">Preview</span>
+</header>
+<main>
+    @RenderBody()
+</main>
+<footer>Demonstration data only · Authorised review remains required.</footer>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

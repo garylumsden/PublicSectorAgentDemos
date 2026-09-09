@@ -1,0 +1,376 @@
+@page "/assessment/{AssessmentId}"
+@using GovernanceCouncil.Core.Interfaces
+@using GovernanceCouncil.Core.Models
+@using Markdig
+@inject IAssessmentStore AssessmentStore
+@inject INexusStore NexusStore
+@inject IDeliberationStore DeliberationStore
+@rendermode InteractiveServer
+
+<PageTitle>Assessment — @AssessmentId</PageTitle>
+
+@if (_assessment is null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <header class="gc-page-head">
+        <span class="gc-eyebrow">Assessment</span>
+        <h1>@_assessment.AssessmentId</h1>
+        <p class="lead">@_assessment.DossierTitle</p>
+    </header>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <span class="badge @PositionBadgeClass(_assessment.OverallRecommendation) fs-5">@_assessment.OverallRecommendation</span>
+            <span class="badge bg-secondary fs-6 ms-2">@_assessment.Status</span>
+            <a href="/dossier/@_assessment.DossierId" class="btn btn-sm btn-outline-secondary ms-2">View Document →</a>
+        </div>
+        <div class="col-md-6 text-end">
+            <small class="text-muted">Review Date: @_assessment.ReviewDate.ToString("dd MMM yyyy")</small>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(_assessment.ChairSummary))
+    {
+        <h3>Chair's Assessment</h3>
+        <div class="card mb-4">
+            <div class="card-body">
+                <p class="mb-0" style="font-size: 1.05rem;">@_assessment.ChairSummary</p>
+            </div>
+        </div>
+    }
+
+    @if (_assessment.DeliberationSummary is not null && _assessment.DeliberationSummary.Count > 0)
+    {
+        <h3>Council Members' Positions</h3>
+        <div class="row">
+        @foreach (var contribution in _assessment.DeliberationSummary)
+        {
+            <div class="col-md-6 mb-3">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between">
+                        <strong>@contribution.Member</strong>
+                        <span class="badge @PositionBadgeClass(NormalisePosition(contribution.Position))">@NormalisePosition(contribution.Position)</span>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-0">@contribution.KeyPoints</p>
+                    </div>
+                </div>
+            </div>
+        }
+        </div>
+    }
+
+    <h3>Member Decisions</h3>
+    @if (_assessment.Votes.Any())
+    {
+        <div class="table-responsive">
+        <table class="table table-bordered mb-4">
+            <thead>
+                <tr><th>Member</th><th>Position</th><th>Rationale</th></tr>
+            </thead>
+            <tbody>
+            @foreach (var vote in _assessment.Votes)
+            {
+                <tr>
+                    <td class="fw-bold text-nowrap">@FormatMemberName(vote.Key)</td>
+                    <td><span class="badge @PositionBadgeClass(NormalisePosition(vote.Value.Position))">@NormalisePosition(vote.Value.Position)</span></td>
+                    <td class="text-break-word">@vote.Value.Summary</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        </div>
+    }
+    else
+    {
+        <p class="text-muted">No member votes recorded.</p>
+    }
+
+    <h3 class="mt-4">Conditions</h3>
+    @if (_assessment.Conditions.Any())
+    {
+        <ol class="mb-4">
+        @foreach (var c in _assessment.Conditions)
+        {
+            <li class="mb-1">@c</li>
+        }
+        </ol>
+    }
+    else
+    {
+        <p class="text-muted">No conditions attached.</p>
+    }
+
+    <h3>Dissent</h3>
+    @if (_assessment.Dissent.Any())
+    {
+        <div class="table-responsive">
+        <table class="table table-bordered mb-4">
+            <thead><tr><th>Member</th><th>Concern</th></tr></thead>
+            <tbody>
+            @foreach (var d in _assessment.Dissent)
+            {
+                <tr>
+                    <td class="fw-bold text-nowrap">@d.Member</td>
+                    <td class="text-break-word">@d.Concern</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        </div>
+    }
+    else
+    {
+        <p class="text-muted">No dissenting opinions.</p>
+    }
+
+    <h3>Risk Table</h3>
+    @if (_assessment.Risks.Any())
+    {
+        <div class="table-responsive">
+        <table class="table table-bordered">
+            <thead><tr><th>Category</th><th>Description</th><th>Mitigation</th></tr></thead>
+            <tbody>
+            @foreach (var r in _assessment.Risks)
+            {
+                <tr>
+                    <td><span class="badge @RiskBadgeClass(r.Category)">@r.Category</span></td>
+                    <td class="text-break-word">@r.Description</td>
+                    <td class="text-break-word">@r.Mitigation</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        </div>
+    }
+    else
+    {
+        <p class="text-muted">No risks identified.</p>
+    }
+
+    <h3 class="mt-4">Related Nexuses</h3>
+    @if (_nexuses is null || !_nexuses.Any())
+    {
+        <p class="text-muted">No nexuses found for this assessment.</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+        <table class="table table-striped">
+            <thead><tr><th>Type</th><th>Related Assessment</th><th>Summary</th><th>Confidence</th></tr></thead>
+            <tbody>
+            @foreach (var n in _nexuses)
+            {
+                var relatedId = n.SourceAssessmentId == AssessmentId ? n.TargetAssessmentId : n.SourceAssessmentId;
+                <tr>
+                    <td><span class="badge bg-warning text-dark">@n.NexusType</span></td>
+                    <td><a href="/assessment/@relatedId">@relatedId</a></td>
+                    <td>@n.Summary</td>
+                    <td>@n.Confidence</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        </div>
+    }
+
+    <h3 class="mt-4">Minutes</h3>
+    @if (_transcript is not null && _transcript.Count > 0)
+    {
+        // Build speaker list from transcript (excluding moderator routing and nexus analyst)
+        var speakers = _transcript
+            .Where(e => !IsModeratorRouting(e) && !IsNexusAnalyst(e))
+            .Select(e => GetDisplayName(e.AgentName))
+            .Distinct()
+            .ToList();
+
+        <ul class="nav nav-pills mb-3">
+            <li class="nav-item">
+                <button class="nav-link @(_minutesFilter == "" ? "active" : "")" @onclick='() => _minutesFilter = ""'>All</button>
+            </li>
+            @foreach (var speaker in speakers)
+            {
+                var s = speaker;
+                <li class="nav-item">
+                    <button class="nav-link @(_minutesFilter == s ? "active" : "")" @onclick="() => _minutesFilter = s">@s</button>
+                </li>
+            }
+        </ul>
+
+        var turn = 1;
+        @foreach (var entry in _transcript)
+        {
+            var isChair = entry.AgentName is not null && entry.AgentName.StartsWith("gc-chair", StringComparison.OrdinalIgnoreCase);
+            var displayName = GetDisplayName(entry.AgentName);
+            var isAssessment = entry.Content.Contains("overallRecommendation");
+
+            @if (IsModeratorRouting(entry))
+            {
+                @if (string.IsNullOrEmpty(_minutesFilter))
+                {
+                    var invitedMember = ResolveInvitedMember(entry.Content);
+                    <div class="d-flex mb-1 text-muted small">
+                        <div class="flex-grow-1 fst-italic ps-3">🗣️ Moderator invited @invitedMember to contribute</div>
+                    </div>
+                }
+                turn++;
+                continue;
+            }
+
+            @if (IsNexusAnalyst(entry))
+            {
+                turn++;
+                continue;
+            }
+
+            // Apply pill filter
+            @if (!string.IsNullOrEmpty(_minutesFilter) && displayName != _minutesFilter)
+            {
+                turn++;
+                continue;
+            }
+
+            <div class="d-flex mb-3">
+                <div class="flex-shrink-0 me-2 text-center" style="width: 45px;">
+                    <span class="badge @(isChair ? "bg-dark" : "bg-primary") rounded-pill small">@turn</span>
+                </div>
+                <div class="flex-grow-1 border-start ps-3" style="min-width: 0;">
+                    <div class="fw-bold mb-1">
+                        @displayName
+                        @if (isAssessment)
+                        {
+                            <span class="badge badge-approve ms-1">Final Assessment</span>
+                        }
+                    </div>
+                    @if (isChair)
+                    {
+                        <p class="text-muted fst-italic mb-0">📋 Final assessment produced — see above.</p>
+                    }
+                    else
+                    {
+                        <div class="prose">@((MarkupString)Markdown.ToHtml(entry.Content, _mdPipeline))</div>
+                    }
+                </div>
+            </div>
+            turn++;
+        }
+    }
+    else
+    {
+        <p class="text-muted">No conversation transcript available for this assessment.</p>
+    }
+
+    <div class="mt-3">
+        <a href="/" class="btn btn-outline-secondary">← Back to Dashboard</a>
+    </div>
+}
+
+@code {
+    [Parameter] public string AssessmentId { get; set; } = "";
+
+    private static readonly MarkdownPipeline _mdPipeline = new MarkdownPipelineBuilder()
+        .UseAdvancedExtensions().Build();
+
+    private Assessment? _assessment;
+    private IReadOnlyList<Nexus>? _nexuses;
+    private List<TranscriptEntry>? _transcript;
+    private string _minutesFilter = "";
+
+    private static readonly string[] GuidPrefixes =
+    [
+        "e0500384-", "6342d1d2-", "5587c87d-", "61ecc121-",
+        "5c7d94df-", "c65237ae-", "21453c27-", "232f7239-"
+    ];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _assessment = await AssessmentStore.GetAsync(AssessmentId);
+        _nexuses = await NexusStore.ListForAssessmentAsync(AssessmentId);
+
+        if (_assessment is not null)
+        {
+            var delib = await DeliberationStore.GetOrDefaultAsync(_assessment.DeliberationId);
+            _transcript = delib?.Transcript;
+        }
+    }
+
+    private static string GetDisplayName(string? agentName)
+    {
+        var stripped = agentName?.Replace("gc-", "").Replace("-af", "");
+        return stripped switch
+        {
+            "chair" => "Council Chair",
+            "cdio" => "CDIO",
+            "ciso" => "CISO",
+            "dpo" => "DPO",
+            "finance" => "Finance Director",
+            "policy" => "Policy Director",
+            "people" => "People Director",
+            "analyst" => "Chief Economist",
+            _ => agentName ?? "Unknown"
+        };
+    }
+
+    private static string FormatMemberName(string key) => key switch
+    {
+        "cdio" => "CDIO",
+        "ciso" => "CISO",
+        "dpo" => "DPO",
+        "finance" => "Finance Director",
+        "policy" => "Policy Director",
+        "people" => "People Director",
+        "analyst" => "Chief Economist",
+        _ => key
+    };
+
+    private static bool IsModeratorRouting(TranscriptEntry entry) =>
+        entry.AgentName == "gc-moderator"
+        || entry.Content.Contains("nextSpeaker")
+        || GuidPrefixes.Any(p => entry.Content.Contains(p));
+
+    private static bool IsNexusAnalyst(TranscriptEntry entry) =>
+        entry.AgentName is not null && entry.AgentName.StartsWith("gc-nexus", StringComparison.OrdinalIgnoreCase);
+
+    private static string ResolveInvitedMember(string content) => content switch
+    {
+        var c when c.Contains("cdio", StringComparison.OrdinalIgnoreCase) => "CDIO",
+        var c when c.Contains("ciso", StringComparison.OrdinalIgnoreCase) => "CISO",
+        var c when c.Contains("dpo", StringComparison.OrdinalIgnoreCase) => "DPO",
+        var c when c.Contains("finance", StringComparison.OrdinalIgnoreCase) => "Finance Director",
+        var c when c.Contains("policy", StringComparison.OrdinalIgnoreCase) => "Policy Director",
+        var c when c.Contains("people", StringComparison.OrdinalIgnoreCase) => "People Director",
+        var c when c.Contains("analyst", StringComparison.OrdinalIgnoreCase) => "Chief Economist",
+        var c when c.Contains("done", StringComparison.OrdinalIgnoreCase) || c.Contains("signal-done") => "— end of deliberation —",
+        _ => "next member"
+    };
+
+    private static string NormalisePosition(string position) => position.ToLowerInvariant() switch
+    {
+        "support" => "Approve",
+        "support with conditions" => "Approve with Conditions",
+        var p when p.StartsWith("support") && p.Contains("condition") => "Approve with Conditions",
+        _ => position
+    };
+
+    private static string PositionBadgeClass(string position) => position.ToLowerInvariant() switch
+    {
+        "support" or "approve" => "badge-approve",
+        "support with conditions" or "approve with conditions" => "badge-conditions",
+        "oppose" or "reject" => "badge-oppose",
+        "abstain" => "badge-abstain",
+        "defer" => "badge-defer",
+        _ => "bg-secondary"
+    };
+
+    private static string RiskBadgeClass(string category) => category.ToLowerInvariant() switch
+    {
+        "security" => "badge-oppose",
+        "data protection" => "badge-conditions",
+        "financial" => "badge-defer",
+        "delivery" => "badge-defer",
+        _ => "bg-danger"
+    };
+}

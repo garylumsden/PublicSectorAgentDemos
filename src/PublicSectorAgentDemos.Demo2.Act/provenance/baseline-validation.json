@@ -1,0 +1,70 @@
+{
+  "sourceCommit": "b9c808f90f2ec04b2b6f6ef53da039ef334d130f",
+  "importedFiles": 161,
+  "initialSha256Matches": 161,
+  "applicationAndBuildFilesStillUnchanged": 87,
+  "sdk": "10.0.400",
+  "builds": [
+    {
+      "result": "passed",
+      "project": "src\\Demo2.Web\\Demo2.Web.csproj",
+      "warnings": 0,
+      "errors": 0
+    },
+    {
+      "result": "passed",
+      "project": "src\\Defra.Tools.Mcp\\Defra.Tools.Mcp.csproj",
+      "warnings": 0,
+      "errors": 0
+    }
+  ],
+  "tests": [
+    {
+      "passed": 106,
+      "project": "Defra.UnitTests",
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "passed": 12,
+      "project": "Defra.ContractTests",
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "passed": 6,
+      "project": "Defra.EvalTests",
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "passed": 6,
+      "project": "Defra.IntegrationTests",
+      "failed": 0,
+      "skipped": 0
+    }
+  ],
+  "testIsolation": "Only test project references and the integration harness were adapted before baseline tests. No other DEFRA application was imported. Kestrel used loopback port 0 and graceful stop.",
+  "buildIsolation": "Original props, package pins and global.json. Bundle EditorConfig stops inherited host IDE0040. NuGet uses Microsoft packagefeedproxy only.",
+  "welfare": {
+    "schemaHashSource": "import-manifest.json",
+    "path": "/mcp/welfare",
+    "version": "1.0.0",
+    "serverName": "defra-welfare-mcp",
+    "schemaPrefixes": [
+      "lookup-farm-register",
+      "get-complaint-history",
+      "get-weather-data",
+      "dispatch-vet"
+    ],
+    "approvalRequired": [
+      "dispatchVet"
+    ],
+    "tools": [
+      "lookupFarmRegister",
+      "getComplaintHistory",
+      "getWeatherData",
+      "dispatchVet"
+    ]
+  }
+}

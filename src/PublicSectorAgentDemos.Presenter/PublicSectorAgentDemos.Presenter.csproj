@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <ItemGroup>
+    <ProjectReference Include="..\Shared\PublicSectorAgentDemos.Identity\PublicSectorAgentDemos.Identity.csproj" />
+    <ProjectReference Include="..\Shared\PublicSectorAgentDemos.Observability\PublicSectorAgentDemos.Observability.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\..\config\presenter\sessions.v1.json"
+             Link="config\presenter\sessions.v1.json"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

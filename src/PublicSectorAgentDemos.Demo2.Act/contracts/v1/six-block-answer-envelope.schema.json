@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.example.invalid/defra/v1/six-block-answer-envelope.schema.json",
+  "title": "Six Block Answer Envelope",
+  "description": "Version 1.0.0 demonstration contract for a complete, traceable answer.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "correlationId", "blocks", "evidence", "toolTrace"],
+  "properties": {
+    "schemaVersion": {"const": "1.0.0"},
+    "correlationId": {"$ref": "#/$defs/correlationId"},
+    "blocks": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": {"$ref": "#/$defs/answerBlock"},
+      "allOf": [
+        {"contains": {"properties": {"kind": {"const": "DirectAnswer"}}}, "minContains": 1, "maxContains": 1},
+        {"contains": {"properties": {"kind": {"const": "EvidenceSummary"}}}, "minContains": 1, "maxContains": 1},
+        {"contains": {"properties": {"kind": {"const": "ProvenanceAndFreshness"}}}, "minContains": 1, "maxContains": 1},
+        {"contains": {"properties": {"kind": {"const": "CaveatsAndUncertainty"}}}, "minContains": 1, "maxContains": 1},
+        {"contains": {"properties": {"kind": {"const": "RecommendedFollowUp"}}}, "minContains": 1, "maxContains": 1},
+        {"contains": {"properties": {"kind": {"const": "ToolTrace"}}}, "minContains": 1, "maxContains": 1}
+      ]
+    },
+    "evidence": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/evidenceReference"}
+    },
+    "toolTrace": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/toolTraceItem"}
+    }
+  },
+  "$defs": {
+    "correlationId": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value"],
+      "properties": {
+        "value": {"type": "string", "minLength": 1, "maxLength": 128}
+      }
+    },
+    "answerBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "content"],
+      "properties": {
+        "kind": {
+          "enum": [
+            "DirectAnswer",
+            "EvidenceSummary",
+            "ProvenanceAndFreshness",
+            "CaveatsAndUncertainty",
+            "RecommendedFollowUp",
+            "ToolTrace"
+          ]
+        },
+        "content": {"type": "string", "minLength": 1}
+      }
+    },
+    "evidenceReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidenceId", "label", "freshness", "provenance", "safeSummary"],
+      "properties": {
+        "evidenceId": {"type": "string", "minLength": 1},
+        "label": {"enum": ["Live", "Cached", "Sampled", "Synthetic", "Inferred", "Unavailable"]},
+        "freshness": {"enum": ["Current", "Stale", "Unknown"]},
+        "provenance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["sourceId", "sourceName", "sourceUri", "retrievedAt", "publishedAt"],
+          "properties": {
+            "sourceId": {"type": "string", "minLength": 1},
+            "sourceName": {"type": "string", "minLength": 1},
+            "sourceUri": {"type": ["string", "null"], "format": "uri"},
+            "retrievedAt": {"type": "string", "format": "date-time"},
+            "publishedAt": {"type": ["string", "null"], "format": "date-time"}
+          }
+        },
+        "safeSummary": {"type": "string", "minLength": 1}
+      }
+    },
+    "toolTraceItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["callId", "correlationId", "toolName", "status", "startedAt", "completedAt", "error"],
+      "properties": {
+        "callId": {"type": "string", "minLength": 1},
+        "correlationId": {"$ref": "#/$defs/correlationId"},
+        "toolName": {"type": "string", "minLength": 1},
+        "status": {"enum": ["Started", "Succeeded", "Failed", "Denied"]},
+        "startedAt": {"type": "string", "format": "date-time"},
+        "completedAt": {"type": ["string", "null"], "format": "date-time"},
+        "error": {
+          "oneOf": [
+            {"type": "null"},
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["code", "title", "safeDetail", "isRetryable", "correlationId"],
+              "properties": {
+                "code": {"type": "string", "minLength": 1},
+                "title": {"type": "string", "minLength": 1},
+                "safeDetail": {"type": "string", "minLength": 1},
+                "isRetryable": {"type": "boolean"},
+                "correlationId": {"$ref": "#/$defs/correlationId"}
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

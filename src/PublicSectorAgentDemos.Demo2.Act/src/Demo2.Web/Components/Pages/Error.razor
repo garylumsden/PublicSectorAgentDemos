@@ -1,0 +1,26 @@
+﻿@page "/Error"
+@using System.Diagnostics
+
+<PageTitle>Request stopped | Flood support</PageTitle>
+
+<h1 class="text-danger">Request could not complete</h1>
+<p>The flood support service stopped the request. Do not assume a reservation completed without a receipt.</p>
+<p>Review the incident commander workspace before retrying. If the error continues, give the request reference below to the service operator.</p>
+
+@if (ShowRequestId)
+{
+    <p>
+        <strong>Request ID:</strong> <code>@RequestId</code>
+    </p>
+}
+
+@code{
+    [CascadingParameter]
+    private HttpContext? HttpContext { get; set; }
+
+    private string? RequestId { get; set; }
+    private bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+
+    protected override void OnInitialized() =>
+        RequestId = Activity.Current?.Id ?? HttpContext?.TraceIdentifier;
+}

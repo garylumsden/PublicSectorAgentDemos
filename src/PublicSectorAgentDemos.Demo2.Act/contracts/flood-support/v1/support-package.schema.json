@@ -1,0 +1,326 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.example.invalid/flood-support/v1/support-package.schema.json",
+  "title": "Fictional flood-support package v1",
+  "$comment": "Canonical immutable values come from Defra.Contracts.FloodSupport.FloodSupportCatalogue. Runtime validation binds the complete package snapshot.",
+  "$defs": {
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "actionRequestId",
+        "areaReference",
+        "incidentReference",
+        "packageId",
+        "packageVersion",
+        "justification",
+        "reservationGeneration"
+      ],
+      "properties": {
+        "reservationGeneration": {
+          "type": "string",
+          "pattern": "^(initial|[0-9a-f]{32})$"
+        },
+        "actionRequestId": {
+          "type": "string",
+          "pattern": "^approval-[0-9a-f]{32}$"
+        },
+        "areaReference": {
+          "type": "string",
+          "pattern": "^AREA-[0-9]{4}$"
+        },
+        "incidentReference": {
+          "type": "string",
+          "pattern": "^INC-[0-9]{4,8}$"
+        },
+        "packageId": {
+          "enum": [
+            "PKG-RIV-060",
+            "PKG-RIV-030",
+            "PKG-MEA-020"
+          ]
+        },
+        "packageVersion": {
+          "type": "integer",
+          "const": 1
+        },
+        "justification": {
+          "minLength": 1,
+          "pattern": "\\S",
+          "type": "string",
+          "maxLength": 2000
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "areaReference": {
+              "const": "AREA-1001"
+            },
+            "packageId": {
+              "enum": [
+                "PKG-RIV-060",
+                "PKG-RIV-030"
+              ]
+            }
+          }
+        },
+        {
+          "properties": {
+            "areaReference": {
+              "const": "AREA-1002"
+            },
+            "packageId": {
+              "const": "PKG-MEA-020"
+            }
+          }
+        }
+      ]
+    },
+    "package": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "packageId",
+        "version",
+        "areaReference",
+        "accommodationSite",
+        "rooms",
+        "accessibleRooms",
+        "vehicles",
+        "transportSeats",
+        "accessibleTransportPlaces",
+        "durationHours",
+        "estimatedCostGbp",
+        "why",
+        "evidence",
+        "risks",
+        "unmetHouseholds"
+      ],
+      "properties": {
+        "packageId": {
+          "enum": [
+            "PKG-RIV-060",
+            "PKG-RIV-030",
+            "PKG-MEA-020"
+          ]
+        },
+        "version": {
+          "type": "integer",
+          "const": 1
+        },
+        "areaReference": {
+          "type": "string",
+          "pattern": "^AREA-[0-9]{4}$"
+        },
+        "accommodationSite": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rooms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 60
+        },
+        "accessibleRooms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 12
+        },
+        "vehicles": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2
+        },
+        "transportSeats": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 120
+        },
+        "accessibleTransportPlaces": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4
+        },
+        "durationHours": {
+          "type": "integer",
+          "const": 24
+        },
+        "estimatedCostGbp": {
+          "type": "number",
+          "minimum": 0
+        },
+        "why": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "risks": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "unmetHouseholds": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "accessibleRooms": {
+              "const": 12
+            },
+            "accessibleTransportPlaces": {
+              "const": 4
+            },
+            "accommodationSite": {
+              "const": "Riverton Government Training Centre"
+            },
+            "areaReference": {
+              "const": "AREA-1001"
+            },
+            "durationHours": {
+              "const": 24
+            },
+            "estimatedCostGbp": {
+              "const": 8100
+            },
+            "packageId": {
+              "const": "PKG-RIV-060"
+            },
+            "rooms": {
+              "const": 60
+            },
+            "transportSeats": {
+              "const": 120
+            },
+            "unmetHouseholds": {
+              "const": 120
+            },
+            "vehicles": {
+              "const": 2
+            }
+          }
+        },
+        {
+          "properties": {
+            "accessibleRooms": {
+              "const": 6
+            },
+            "accessibleTransportPlaces": {
+              "const": 2
+            },
+            "accommodationSite": {
+              "const": "Riverton Government Training Centre"
+            },
+            "areaReference": {
+              "const": "AREA-1001"
+            },
+            "durationHours": {
+              "const": 24
+            },
+            "estimatedCostGbp": {
+              "const": 4050
+            },
+            "packageId": {
+              "const": "PKG-RIV-030"
+            },
+            "rooms": {
+              "const": 30
+            },
+            "transportSeats": {
+              "const": 60
+            },
+            "unmetHouseholds": {
+              "const": 150
+            },
+            "vehicles": {
+              "const": 1
+            }
+          }
+        },
+        {
+          "properties": {
+            "accessibleRooms": {
+              "const": 4
+            },
+            "accessibleTransportPlaces": {
+              "const": 2
+            },
+            "accommodationSite": {
+              "const": "Meadowfield Civic Training Centre"
+            },
+            "areaReference": {
+              "const": "AREA-1002"
+            },
+            "durationHours": {
+              "const": 24
+            },
+            "estimatedCostGbp": {
+              "const": 3100
+            },
+            "packageId": {
+              "const": "PKG-MEA-020"
+            },
+            "rooms": {
+              "const": 20
+            },
+            "transportSeats": {
+              "const": 40
+            },
+            "unmetHouseholds": {
+              "const": 0
+            },
+            "vehicles": {
+              "const": 1
+            }
+          }
+        }
+      ]
+    },
+    "receipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reservationReference",
+        "request",
+        "package",
+        "recordedAt",
+        "status",
+        "approvalBoundary"
+      ],
+      "properties": {
+        "reservationReference": {
+          "type": "string",
+          "pattern": "^SIM-RES-[0-9]+$"
+        },
+        "request": {
+          "$ref": "#/$defs/request"
+        },
+        "package": {
+          "$ref": "#/$defs/package"
+        },
+        "recordedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "status": {
+          "const": "simulated"
+        },
+        "approvalBoundary": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

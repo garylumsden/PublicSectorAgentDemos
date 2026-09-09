@@ -1,0 +1,156 @@
+{
+  "contractVersion": "2.0.0",
+  "dataVersion": "v1",
+  "preview": true,
+  "scenarios": [
+    {
+      "scenarioId": "CASE-BASELINE-GRANTS",
+      "caseType": "baselineWrite",
+      "prompt": "Assess case CG-8101. A grants administration body released supplier payments and the assurance evidence is missing.",
+      "contextId": "CONTEXT-GRANTS-PAYMENT-RELEASE",
+      "expectedMemoryAction": "skip",
+      "expectedMemoryRead": false,
+      "expectedMemoryWrite": true,
+      "expectedOutcome": "completed",
+      "assessmentOutcome": "completed",
+      "reasonCode": "supplier-assurance-evidence-missing-before-payment",
+      "caseReference": "CG-8101",
+      "from": "2026-04-01",
+      "to": "2026-04-30",
+      "pattern": "A national grants administration body released four supplier payments before any supplier assurance evidence existed",
+      "confidence": 0.87,
+      "evidence": [
+        {
+          "evidenceId": "grant-payment-release-8101-a",
+          "sourceId": "grant-payment-control-log",
+          "summary": "Four supplier payments above GBP 120,000 left the release queue with an empty assurance evidence field."
+        },
+        {
+          "evidenceId": "grant-payment-release-8101-b",
+          "sourceId": "grant-assurance-register",
+          "summary": "The assurance register held no certificate for any of the four suppliers on the release date."
+        },
+        {
+          "evidenceId": "grant-payment-release-8101-c",
+          "sourceId": "grant-payment-control-log",
+          "summary": "One bulk update set the release check to 'not required' for all four payments on the same morning."
+        }
+      ]
+    },
+    {
+      "scenarioId": "CASE-RECURRENCE-HOUSING",
+      "caseType": "crossDepartmentRecurrence",
+      "prompt": "Assess case CG-8202. Check whether another public body has already recorded a related control failure.",
+      "contextId": "CONTEXT-HOUSING-PAYMENT-RELEASE",
+      "expectedMemoryAction": "read",
+      "expectedMemoryRead": true,
+      "expectedMemoryWrite": true,
+      "expectedOutcome": "completed",
+      "assessmentOutcome": "completed",
+      "reasonCode": "supplier-assurance-evidence-missing-before-payment",
+      "caseReference": "CG-8202",
+      "from": "2026-05-01",
+      "to": "2026-05-31",
+      "pattern": "A regional housing delivery body repeated the same missing supplier assurance failure on its payment release gate",
+      "confidence": 0.92,
+      "evidence": [
+        {
+          "evidenceId": "housing-payment-release-8202-a",
+          "sourceId": "housing-payment-control-log",
+          "summary": "Three contractor payments cleared the release gate while the assurance evidence field stayed empty."
+        },
+        {
+          "evidenceId": "housing-payment-release-8202-b",
+          "sourceId": "housing-assurance-register",
+          "summary": "One bulk update disabled the same release check for eleven framework supplier records."
+        },
+        {
+          "evidenceId": "housing-payment-release-8202-c",
+          "sourceId": "housing-payment-control-log",
+          "summary": "Two of the three payments used a framework supplier whose certificate had already expired."
+        }
+      ]
+    },
+    {
+      "scenarioId": "CASE-NEAR-MATCH-TRANSPORT",
+      "caseType": "priorContextRuledOut",
+      "prompt": "Assess case CG-8303. Check whether a related control failure elsewhere explains the current evidence.",
+      "contextId": "CONTEXT-TRANSPORT-PAYMENT-RELEASE",
+      "expectedMemoryAction": "read",
+      "expectedMemoryRead": true,
+      "expectedMemoryWrite": true,
+      "expectedOutcome": "completed",
+      "assessmentOutcome": "completed",
+      "reasonCode": "payment-release-control-not-engaged",
+      "caseReference": "CG-8303",
+      "from": "2026-06-01",
+      "to": "2026-06-30",
+      "pattern": "A regional transport authority looks similar, but its payments never reached the release control that failed elsewhere",
+      "confidence": 0.81,
+      "evidence": [
+        {
+          "evidenceId": "transport-payment-release-8303-a",
+          "sourceId": "transport-payment-control-log",
+          "summary": "All nine payments in the window settled through a standing charge route that bypasses the release gate."
+        },
+        {
+          "evidenceId": "transport-payment-release-8303-b",
+          "sourceId": "transport-control-configuration",
+          "summary": "The release check has never been enabled for the standing charge route since the route opened."
+        },
+        {
+          "evidenceId": "transport-payment-release-8303-c",
+          "sourceId": "transport-assurance-register",
+          "summary": "Every settled charge carries a current assurance certificate from the named framework supplier."
+        }
+      ]
+    },
+    {
+      "scenarioId": "CASE-UNRELATED-CONTROL",
+      "caseType": "unrelatedControl",
+      "prompt": "Assess case CG-8404. A public audit body reports an overdue records retention schedule.",
+      "contextId": "CONTEXT-AUDIT-RECORDS-RETENTION",
+      "expectedMemoryAction": "skip",
+      "expectedMemoryRead": false,
+      "expectedMemoryWrite": true,
+      "expectedOutcome": "completed",
+      "assessmentOutcome": "completed",
+      "reasonCode": "records-retention-schedule-overdue",
+      "caseReference": "CG-8404",
+      "from": "2026-07-01",
+      "to": "2026-07-31",
+      "pattern": "A public audit body has left its records retention schedule fourteen months past its own review date",
+      "confidence": 0.84,
+      "evidence": [
+        {
+          "evidenceId": "retention-schedule-8404-a",
+          "sourceId": "retention-schedule-register",
+          "summary": "The published schedule states a twelve-month review cycle and was last reviewed twenty-six months ago."
+        },
+        {
+          "evidenceId": "retention-schedule-8404-b",
+          "sourceId": "retention-disposal-log",
+          "summary": "Six record classes passed their disposal date with no recorded disposal or hold decision."
+        }
+      ]
+    },
+    {
+      "scenarioId": "CASE-UNVERIFIABLE-CLAIM",
+      "caseType": "invalidAssessment",
+      "prompt": "Assess case CG-8505 and report the unverifiable control claim.",
+      "contextId": "CONTEXT-VALIDATION-FRAME",
+      "expectedMemoryAction": "skip",
+      "expectedMemoryRead": false,
+      "expectedMemoryWrite": false,
+      "expectedOutcome": "invalid",
+      "assessmentOutcome": "completed",
+      "reasonCode": "unverifiable-control-claim",
+      "caseReference": "CG-8505",
+      "from": "2026-08-01",
+      "to": "2026-08-31",
+      "pattern": "An unverifiable control claim with no supporting record",
+      "confidence": 0.5,
+      "evidence": []
+    }
+  ]
+}

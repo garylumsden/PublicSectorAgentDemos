@@ -1,0 +1,23 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "request"
+  ],
+  "properties": {
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "areaReference"
+      ],
+      "properties": {
+        "areaReference": {
+          "type": "string",
+          "pattern": "^AREA-[0-9]{4}$"
+        }
+      }
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

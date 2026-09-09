@@ -1,0 +1,89 @@
+{
+  "dataVersion": "v1",
+  "stage": "ground",
+  "fixtures": [
+    {
+      "scenarioId": "MPM-001",
+      "title": "Delegated routine service renewal",
+      "prompt": "A Budget Holder proposes a GBP 180,000 renewal for an existing service. The approved budget covers it, the policy is established, and it is not novel, contentious, or repercussive. The delegation schedule sets a GBP 250,000 limit. Assess the proposal.",
+      "expectedRoute": "delegated",
+      "expectedRouteMarker": "Route: delegated",
+      "expectedResponseKind": "assessment",
+      "requiresGrounding": true,
+      "requiresCitations": true,
+      "expectedSignals": [
+        "delegation-within-limit",
+        "regularity",
+        "propriety",
+        "value-for-money",
+        "feasibility"
+      ]
+    },
+    {
+      "scenarioId": "MPM-002",
+      "title": "Novel grant requiring Treasury consent",
+      "prompt": "A department proposes a GBP 1,500,000 grant mechanism that it has never used. The proposal is novel and could set a precedent across government. Assess whether it can proceed without HM Treasury consent.",
+      "expectedRoute": "treasury-consent",
+      "expectedRouteMarker": "Route: treasury-consent",
+      "expectedResponseKind": "assessment",
+      "requiresGrounding": true,
+      "requiresCitations": true,
+      "expectedSignals": [
+        "novel-contentious-or-repercussive",
+        "treasury-consent-required"
+      ]
+    },
+    {
+      "scenarioId": "MPM-003",
+      "title": "Ambiguous proposal requiring Accounting Officer escalation",
+      "prompt": "A department proposes a GBP 900,000 commitment. The evidence does not establish whether the policy is existing or novel, whether the commitment could be repercussive, or which delegation applies. The finance and policy teams give conflicting interpretations. Assess the proposal without assuming the missing facts.",
+      "expectedRoute": "accounting-officer-escalation",
+      "expectedRouteMarker": "Route: accounting-officer-escalation",
+      "expectedResponseKind": "assessment",
+      "requiresGrounding": true,
+      "requiresCitations": true,
+      "expectedSignals": [
+        "material-ambiguity",
+        "accounting-officer-escalation",
+        "do-not-approve"
+      ]
+    },
+    {
+      "scenarioId": "MPM-004",
+      "title": "Unsupported staff rota request",
+      "prompt": "Create a weekly staff holiday rota for a demonstration team. There is no spending proposal or public-money decision.",
+      "expectedRoute": "refuse-unsupported",
+      "expectedRouteMarker": "Refusal: This request is outside the Managing Public Money assessment domain.",
+      "expectedResponseKind": "refusal",
+      "requiresGrounding": false,
+      "requiresCitations": false,
+      "expectedSignals": [
+        "outside-domain",
+        "no-assessment",
+        "no-citations"
+      ]
+    },
+    {
+      "scenarioId": "MPM-005",
+      "title": "Letter of comfort: three different controls",
+      "prompt": "A department proposes a non-statutory letter of comfort supporting a private provider. Maximum exposure is GBP 240,000, within its GBP 500,000 delegation. The letter is not a type routinely used in commercial business. The team says its non-binding wording and the amount being below GBP 300,000 remove the need for Treasury approval and Parliamentary notification. They also treat the Contingent Liability approval framework checklist as having the same threshold. Under Managing Public Money, is that analysis valid? Distinguish Treasury approval, Parliamentary notification, and the mandatory checklist submission threshold. Apply each rule to these facts.",
+      "expectedRoute": "treasury-consent",
+      "expectedRouteMarker": "Route: treasury-consent",
+      "expectedResponseKind": "assessment",
+      "requiresGrounding": true,
+      "requiresCitations": true,
+      "expectedSignals": [
+        "comfort-letter-treasury-approval",
+        "below-notification-threshold-exception",
+        "checklist-maximum-exposure"
+      ],
+      "reviewRubric": [
+        "A5.4.23: letters of comfort create moral and sometimes legal obligations; Treasury approval is essential despite non-binding wording and the delegation.",
+        "A5.4.26-A5.4.27: the under-GBP-300,000 notification exemption is overridden for this non-routine letter of comfort; Parliament must be notified.",
+        "A5.4.19: mandatory checklist submission applies at maximum exposure of GBP 3 million or more, including remote liabilities. GBP 240,000 does not meet that threshold; this does not waive the separate approval and notification requirements.",
+        "Do not equate non-routine with a proven NCR classification. The express letter-of-comfort and notification provisions suffice.",
+        "Quote decisive retrieved words verbatim in Markdown blockquotes. Explain the fact-to-rule links; a route marker alone is insufficient."
+      ]
+    }
+  ]
+}

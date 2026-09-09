@@ -1,0 +1,14 @@
+{
+  "contractVersion": "1.0.0",
+  "ruleSetId": "demo2-flood-support-rules",
+  "demonstrationOnly": true,
+  "repeatedUnmetNeedsWindowDays": 7,
+  "repeatedUnmetNeedsMinimumCount": 2,
+  "emergencyScoreMinimum": 90,
+  "highPriorityScoreMinimum": 60,
+  "mediumPriorityScoreMinimum": 30,
+
+  "emergencySignals": ["flood-displacement", "accommodation reaches capacity", "immediate-danger", "stranded households"],
+  "humanApprovalRequiredFor": ["reserveSupportPackage"],
+  "allowAutomaticClosure": false
+}

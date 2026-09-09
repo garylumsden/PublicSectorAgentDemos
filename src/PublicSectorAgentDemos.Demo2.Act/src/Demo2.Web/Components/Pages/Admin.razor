@@ -1,0 +1,516 @@
+@page "/admin"
+@rendermode InteractiveServer
+@inject Demo2AdminWorkflowService AdminWorkflow
+@inject IApprovalStore ApprovalStore
+@inject WelfareAssessmentService AssessmentService
+@inject IInspectorDecisionStore InspectorDecisionStore
+@inject ILogger<Admin> Logger
+
+<PageTitle>Incident commander workspace | Flood support</PageTitle>
+
+<div class="service-notice" role="note" aria-label="Audit notice">
+    <strong>Authorised incident commander</strong>
+    <span>Decisions and reservation receipts are audit-recorded without situation report text.</span>
+</div>
+
+<div class="page-shell">
+    <div class="hero hero--compact">
+        <div>
+            <p class="eyebrow">Protected administration</p>
+            <h1>Incident commander workspace</h1>
+            <p class="lede">Review support recommendations, reservation approvals, and incident commander decisions.</p>
+            <p class="hint">Assessment confirmation does not approve a package reservation.</p>
+        </div>
+    </div>
+
+    @if (_loading)
+    {
+        <div class="loading-card" role="status">
+            <span class="spinner" aria-hidden="true"></span>
+            Loading incident commander workspace…
+        </div>
+    }
+    else
+    {
+        @if (!string.IsNullOrWhiteSpace(_notice))
+        {
+            <div class="alert alert--success" role="status" aria-live="polite">
+                <strong>Workflow updated</strong>
+                <span>@_notice</span>
+            </div>
+        }
+        @if (!string.IsNullOrWhiteSpace(_error))
+        {
+            <div class="alert alert--error" role="alert">
+                <strong>Action not completed</strong>
+                <span>@_error</span>
+            </div>
+        }
+
+        <div class="admin-grid">
+            <aside class="case-queue" aria-labelledby="case-queue-heading">
+                <div class="queue-heading">
+                    <div>
+                        <p class="step-label">Queue</p>
+                        <h2 id="case-queue-heading">Cases</h2>
+                    </div>
+                    <span class="count-badge" aria-label="@_cases.Count cases">@_cases.Count</span>
+                </div>
+
+                <div class="queue-filters" aria-label="Case summary">
+                    <span><strong>@_pendingApprovals.Count</strong> incomplete reservation approval records</span>
+                    <button type="button" class="icon-button" @onclick="RefreshAsync" aria-label="Refresh cases" title="Refresh cases">↻</button>
+                </div>
+
+                @if (_cases.Count == 0)
+                {
+                    <div class="empty-state empty-state--small">
+                        <h3>No cases</h3>
+                        <p>Submit a flood situation report to populate the queue.</p>
+                    </div>
+                }
+                else
+                {
+                    <ul class="case-list">
+                        @foreach (WelfareCaseRecord item in _cases)
+                        {
+                            <li>
+                                <button type="button"
+                                        class="case-card @(item.CaseId == _selectedCase?.CaseId ? "case-card--selected" : null)"
+                                        @onclick="() => SelectCaseAsync(item)"
+                                        aria-current="@(item.CaseId == _selectedCase?.CaseId ? "true" : null)">
+                                    <span class="case-card__top">
+                                        <strong>@item.CaseId</strong>
+                                        <span class="urgency urgency--@UrgencyClass(item.Urgency)">@item.Urgency</span>
+                                    </span>
+                                    <span>@FormatEnum(item.Status)</span>
+                                    <small>Updated @item.UpdatedAt.ToLocalTime().ToString("dd MMM, HH:mm")</small>
+                                </button>
+                            </li>
+                        }
+                    </ul>
+                }
+            </aside>
+
+            <section class="case-detail" aria-labelledby="case-detail-heading">
+                @if (_selectedCase is null)
+                {
+                    <div class="panel empty-state">
+                        <h2 id="case-detail-heading">Select a case</h2>
+                        <p>Choose a case from the queue to review its rationale and approval controls.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="case-title">
+                        <div>
+                            <p class="eyebrow">Incident area reference: @(_selectedCase.FarmReference ?? "Not supplied")</p>
+                            <h2 id="case-detail-heading">@_selectedCase.CaseId</h2>
+                        </div>
+                        <span class="urgency urgency--@UrgencyClass(_selectedCase.Urgency)">
+                            @_selectedCase.Urgency urgency
+                        </span>
+                    </div>
+
+                    <div class="detail-grid">
+                        <article class="panel detail-summary">
+                            <div class="panel__header">
+                                <h3>Assessment</h3>
+                                <span class="status-chip">@(_selectedCase.SupportExecutionRequiresReconciliation ? "Reservation outcome unknown" : FormatEnum(_selectedCase.Status))</span>
+                            </div>
+                            <p class="route">@FormatEnum(_selectedCase.Route)</p>
+                            <p>@_selectedCase.Summary</p>
+                            <dl class="key-values">
+                                <div><dt>Received</dt><dd>@_selectedCase.ReceivedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</dd></div>
+                                <div><dt>Agent</dt><dd>@(_selectedCase.AgentBypassed ? "Bypassed by guardrail" : "Structured assessment")</dd></div>
+                                <div><dt>Version</dt><dd>@_selectedCase.Version</dd></div>
+                            </dl>
+                        </article>
+
+                        <article class="panel">
+                            <h3>Guardrail interventions</h3>
+                            <ul class="guardrail-list">
+                                @if (_selectedCase.AgentBypassed)
+                                {
+                                    <li><span aria-hidden="true">!</span> Emergency policy bypassed model execution.</li>
+                                }
+                                @foreach (string reason in _selectedCase.PolicyReasons)
+                                {
+                                    <li><span aria-hidden="true">✓</span> @HumanizeReason(reason)</li>
+                                }
+                                @if (_selectedApproval?.IsPending == true)
+                                {
+                                    <li><span aria-hidden="true">■</span> The assessment ended before the reservation approval decision completed. No completed reservation is confirmed.</li>
+                                }
+                            </ul>
+                        </article>
+                    </div>
+
+                    <article class="panel decision-panel" aria-labelledby="coordination-heading">
+                        <div class="panel__header">
+                            <div>
+                                <p class="step-label">Human control 1</p>
+                                <h3 id="coordination-heading">Incident commander assessment decision</h3>
+                            </div>
+                            @if (_localConfirmations.ContainsKey(_selectedCase.CaseId))
+                            {
+                                <span class="status-chip status-chip--success">Confirmed this session</span>
+                            }
+                        </div>
+                        <p>Confirm the current urgency or override it. The incident commander retains decision authority.</p>
+
+                        <div class="form-group">
+                            <label for="commander-rationale">Rationale code</label>
+                            <input id="commander-rationale"
+                                   class="text-input"
+                                   @bind="_inspectorRationale"
+                                   aria-describedby="rationale-hint" />
+                            <span id="rationale-hint" class="hint">Required audit-safe code: letters, numbers, hyphens, underscores, or dots.</span>
+                        </div>
+
+                        <fieldset class="inline-fieldset">
+                            <legend>Override urgency</legend>
+                            <select id="override-urgency" class="select-input" @bind="_overrideUrgency">
+                                <option value="@WelfareUrgency.High">High</option>
+                                <option value="@WelfareUrgency.Medium">Medium</option>
+                                <option value="@WelfareUrgency.Low">Low</option>
+                            </select>
+                        </fieldset>
+
+                        <div class="button-row">
+                            <button type="button" class="button button--primary" @onclick="ConfirmAssessmentAsync" disabled="@_actionRunning">
+                                Confirm current assessment only
+                            </button>
+                            <button type="button" class="button button--secondary" @onclick="OverrideAssessmentAsync" disabled="@(_actionRunning || _selectedCase.SupportExecutionRequiresReconciliation)">
+                                Apply urgency override
+                            </button>
+                        </div>
+                        <p class="integration-note">
+                            <strong>Integration note:</strong> approval of an unchanged assessment is held in this UI session;
+                            urgency overrides use the persisted admin workflow.
+                        </p>
+                    </article>
+
+                    @if (_selectedApproval is not null)
+                    {
+                        <article class="panel decision-panel" aria-labelledby="reservation-heading">
+                            <div class="panel__header">
+                                <div>
+                                    <p class="step-label">Assessment execution record</p>
+                                    <h3 id="reservation-heading">Reservation approval</h3>
+                                </div>
+                                <span class="status-chip @ApprovalStatusClass(_selectedApproval)">
+                                    @ApprovalStatus(_selectedApproval)
+                                </span>
+                            </div>
+
+                            <div class="approval-summary">
+                                <dl class="key-values">
+                                    <div><dt>Tool</dt><dd><code>@_selectedApproval.Request.ToolName</code></dd></div>
+                                    <div><dt>Reason</dt><dd>@HumanizeReason(_selectedApproval.Request.ReasonCode)</dd></div>
+                                    <div><dt>Approval expiry</dt><dd>@_selectedApproval.Request.ExpiresAt.ToUniversalTime().ToString("dd MMM yyyy HH:mm:ss 'UTC'")</dd></div>
+                                </dl>
+                                <p><strong>Arguments disclosed:</strong> @string.Join(", ", _selectedApproval.Request.ArgumentNames)</p>
+                            </div>
+                            @if (_selectedApproval.Decision is { } decision)
+                            {
+                                <p><strong>Decision rationale:</strong> @decision.DecisionCode</p>
+                            }
+                            @if (_selectedApproval.DispatchReference is not null)
+                            {
+                                <p><strong>Reservation receipt:</strong> <code>@_selectedApproval.DispatchReference</code></p>
+                            }
+                            <RecordedSupportPackage Case="_selectedCase" Approval="_selectedApproval" />
+                            @if (_selectedCase.SupportExecutionRequiresReconciliation)
+                            {
+                                <div class="alert alert--warning" role="status">
+                                    <strong>Reconcile the original reservation</strong>
+                                    <p>The response ended without a confirmed outcome. This retries only the original approved action and package.</p>
+                                    @if (_selectedApproval.Request.ExpiresAt <= DateTimeOffset.UtcNow)
+                                    {
+                                        <p>Approval has expired. Check the original action with the service operator before requesting another package.</p>
+                                    }
+                                    <button type="button" class="button button--primary"
+                                            disabled="@(_actionRunning || _selectedApproval.Request.ExpiresAt <= DateTimeOffset.UtcNow)"
+                                            @onclick="ReconcileReservationAsync">
+                                        Reconcile original reservation
+                                    </button>
+                                </div>
+                            }
+                        </article>
+                    }
+
+                    <div class="detail-grid">
+                        <article class="panel">
+                            <h3>Tool trace</h3>
+                            <ol class="trace-list">
+                                @foreach (WorkflowTraceItem trace in BuildToolTrace())
+                                {
+                                    <li>
+                                        <span class="trace-status trace-status--@trace.Tone">@trace.Status</span>
+                                        <div><strong>@trace.Name</strong><small>@trace.Detail</small></div>
+                                    </li>
+                                }
+                            </ol>
+                        </article>
+
+                        <article class="panel">
+                            <h3>Incident commander decision history</h3>
+                            @if (_inspectorDecisions.Count == 0)
+                            {
+                                <p class="muted">No persisted urgency overrides.</p>
+                            }
+                            else
+                            {
+                                <ol class="decision-history">
+                                    @foreach (InspectorDecisionRecord decision in _inspectorDecisions)
+                                    {
+                                        <li>
+                                            <strong>@decision.PreviousUrgency → @decision.OverrideUrgency</strong>
+                                            <span>@HumanizeReason(decision.ReasonCode)</span>
+                                            <time datetime="@decision.DecidedAt.ToString("O")">@decision.DecidedAt.ToLocalTime().ToString("dd MMM HH:mm")</time>
+                                        </li>
+                                    }
+                                </ol>
+                            }
+                        </article>
+                    </div>
+                }
+            </section>
+        </div>
+    }
+</div>
+
+@code {
+    private readonly Dictionary<string, InspectorConfirmation> _localConfirmations = new(StringComparer.Ordinal);
+    private IReadOnlyList<WelfareCaseRecord> _cases = [];
+    private IReadOnlyList<WelfareApprovalRecord> _pendingApprovals = [];
+    private IReadOnlyList<WelfareApprovalRecord> _caseApprovals = [];
+    private IReadOnlyList<InspectorDecisionRecord> _inspectorDecisions = [];
+    private WelfareCaseRecord? _selectedCase;
+    private WelfareApprovalRecord? _selectedApproval;
+    private WelfareUrgency _overrideUrgency = WelfareUrgency.Medium;
+    private string _inspectorRationale = "commander-confirmed";
+    private string? _notice;
+    private string? _error;
+    private bool _loading = true;
+    private bool _actionRunning;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshAsync();
+        _loading = false;
+    }
+
+    private async Task RefreshAsync()
+    {
+        _notice = null;
+        _error = null;
+        _cases = await AdminWorkflow.ListCasesAsync();
+        _pendingApprovals = await AdminWorkflow.ListPendingApprovalsAsync();
+
+        WelfareCaseRecord? refreshedSelection = _selectedCase is null
+            ? _cases.FirstOrDefault()
+            : _cases.FirstOrDefault(item => item.CaseId == _selectedCase.CaseId) ?? _cases.FirstOrDefault();
+
+        if (refreshedSelection is not null)
+        {
+            await SelectCaseAsync(refreshedSelection);
+        }
+        else
+        {
+            _selectedCase = null;
+            _selectedApproval = null;
+            _caseApprovals = [];
+            _inspectorDecisions = [];
+        }
+    }
+
+    private async Task SelectCaseAsync(WelfareCaseRecord selected)
+    {
+        _selectedCase = selected;
+        _overrideUrgency = selected.Urgency is WelfareUrgency.Unclassified
+            ? WelfareUrgency.Medium
+            : selected.Urgency;
+        _caseApprovals = await ApprovalStore.ListForCaseAsync(selected.CaseId);
+        _selectedApproval = _caseApprovals
+            .Where(item => item.CaseVersion == selected.Version &&
+                item.Request.RequestId == selected.ApprovalRequestId)
+            .OrderByDescending(item => item.UpdatedAt)
+            .FirstOrDefault();
+        _inspectorDecisions = await InspectorDecisionStore.ListDecisionsForCaseAsync(selected.CaseId);
+        _notice = null;
+        _error = null;
+    }
+
+    private Task ConfirmAssessmentAsync()
+    {
+        if (_selectedCase is null)
+        {
+            _error = "Select a case before recording a decision.";
+            return Task.CompletedTask;
+        }
+
+        if (!TryValidateCode(_inspectorRationale, out string error))
+        {
+            _error = error;
+            return Task.CompletedTask;
+        }
+
+        _localConfirmations[_selectedCase.CaseId] = new(_inspectorRationale, DateTimeOffset.UtcNow);
+        _notice = $"Current {_selectedCase.Urgency} assessment confirmed for this UI session.";
+        _error = null;
+        return Task.CompletedTask;
+    }
+
+    private async Task OverrideAssessmentAsync()
+    {
+        if (_selectedCase is null)
+        {
+            _error = "Select a case before recording a decision.";
+            return;
+        }
+
+        if (!TryValidateCode(_inspectorRationale, out string validationError))
+        {
+            _error = validationError;
+            return;
+        }
+
+        await RunActionAsync(async () =>
+        {
+            string caseId = _selectedCase.CaseId;
+            await AdminWorkflow.OverrideUrgencyAsync(caseId, _overrideUrgency, _inspectorRationale);
+            await RefreshAsync();
+            _notice = $"Urgency changed to {_overrideUrgency}; rationale persisted.";
+        });
+    }
+
+    private async Task ReconcileReservationAsync()
+    {
+        if (_selectedCase?.SupportExecutionRequiresReconciliation != true)
+        {
+            _error = "Select a case that requires reservation reconciliation.";
+            return;
+        }
+        string caseId = _selectedCase.CaseId;
+        await RunActionAsync(async () =>
+        {
+            VetDispatchReceipt receipt = await AdminWorkflow.DispatchVetAsync(caseId);
+            await RefreshAsync();
+            _notice = $"Original reservation confirmed: {receipt.DispatchReference}.";
+        });
+    }
+
+    private async Task RunActionAsync(Func<Task> action)
+    {
+        _actionRunning = true;
+        _notice = null;
+        _error = null;
+        try
+        {
+            await action();
+        }
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or KeyNotFoundException or UnauthorizedAccessException)
+        {
+            Logger.LogWarning(
+                exception,
+                "Flood support administration action was rejected. Trace {TraceId}.",
+                TraceReference());
+            _error = "The decision was rejected. Review the rationale code, current assessment version, and approval expiry.";
+        }
+        catch (Exception exception)
+        {
+            string traceId = TraceReference();
+            Logger.LogError(
+                exception,
+                "Flood support administration action failed. Trace {TraceId}.",
+                traceId);
+            _error = $"Action failed. Review approval expiry and service availability, then give reference {traceId} to the service operator.";
+        }
+        finally
+        {
+            _actionRunning = false;
+        }
+    }
+
+    private static string TraceReference() =>
+        System.Diagnostics.Activity.Current?.TraceId.ToString() ?? Guid.NewGuid().ToString("N");
+
+    private IReadOnlyList<WorkflowTraceItem> BuildToolTrace()
+    {
+        if (_selectedCase is null)
+        {
+            return [];
+        }
+
+        bool azure = AssessmentService.ExecutionProvider == AssessmentExecutionProvider.AzureFoundry;
+        string providerName = azure ? "Azure Foundry flood support agent" : "Local deterministic assessment";
+        string completedDetail = azure
+            ? "Structured response accepted and deterministic post-policy applied."
+            : "Typed deterministic result accepted and deterministic post-policy applied.";
+        List<WorkflowTraceItem> trace =
+        [
+            new("Input guard", "Passed", "Situation report screened before assessment; report text not retained.", "success"),
+            _selectedCase.AgentBypassed
+                ? new(providerName, "Bypassed", "Emergency policy forced immediate human escalation.", "warning")
+                : new(providerName, "Completed", completedDetail, "success")
+        ];
+
+        if (_selectedApproval is not null)
+        {
+            string status = ApprovalStatus(_selectedApproval);
+            string tone = _selectedApproval.IsPending
+                ? "warning"
+                : _selectedApproval.Decision?.Outcome == ApprovalOutcome.Denied
+                    ? "danger"
+                    : "success";
+            trace.Add(new(
+                _selectedApproval.Request.ToolName,
+                status,
+                _selectedApproval.DispatchReference is null
+                    ? "Tool access controlled by configured approval policy."
+                    : $"Reservation receipt {_selectedApproval.DispatchReference}.",
+                tone));
+        }
+
+        return trace;
+    }
+
+    private static bool TryValidateCode(string? value, out string error)
+    {
+        bool valid = !string.IsNullOrWhiteSpace(value) &&
+                     value.Length <= 128 &&
+                     value.All(character =>
+                         char.IsAsciiLetterOrDigit(character) ||
+                         character is '-' or '_' or '.');
+        error = valid
+            ? string.Empty
+            : "Enter an audit-safe rationale code using letters, numbers, hyphens, underscores, or dots.";
+        return valid;
+    }
+
+    private static string ApprovalStatus(WelfareApprovalRecord approval) =>
+        approval.IsPending
+            ? "Pending"
+            : approval.DispatchReference is not null
+                ? "Package reserved"
+                : approval.Decision?.Outcome == ApprovalOutcome.Approved
+                    ? "Approved - no completed receipt"
+                    : "Rejected - no reservation";
+
+    private static string ApprovalStatusClass(WelfareApprovalRecord approval) =>
+        approval.IsPending
+            ? "status-chip--warning"
+            : approval.Decision?.Outcome == ApprovalOutcome.Approved
+                ? "status-chip--success"
+                : "status-chip--danger";
+
+    private static string UrgencyClass(WelfareUrgency urgency) => urgency.ToString().ToLowerInvariant();
+
+    private static string FormatEnum<T>(T value) where T : struct, Enum =>
+        FloodSupportCaptions.Format(value);
+
+    private static string HumanizeReason(string reason) =>
+        FloodSupportCaptions.Reason(reason);
+}

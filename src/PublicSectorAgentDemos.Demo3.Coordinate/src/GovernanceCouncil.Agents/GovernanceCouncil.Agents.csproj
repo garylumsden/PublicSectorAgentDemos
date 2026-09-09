@@ -1,0 +1,56 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <EmbeddedResource Include="Prompts\*.md" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GovernanceCouncil.Core\GovernanceCouncil.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      FINAL PACKAGE SET (the build is the oracle; this set restores + builds + lets us fetch a
+      Foundry AIAgent via AsAIAgent):
+        - Microsoft.Agents.AI / .Workflows 1.11.1 (GA core).
+        - Microsoft.Agents.AI.Foundry 1.5.0 (STABLE Foundry bridge). The 1.11.x Foundry bridge is
+          preview-only and force-pins Azure.AI.Projects 2.1.0-beta.3, whose restructured client
+          (AgentAdministrationClient / ProjectOpenAIClient, no Conversations/Responses) breaks the
+          existing Foundry CSDL-workflow path. The stable 1.5.0 bridge instead pins
+          Azure.AI.Projects [2.0.0,), so we stay on the GA 2.0.x client the codebase targets and
+          still get AIProjectClient.AsAIAgent(...) (replaces the obsolete GetAIAgentAsync).
+        - Azure.AI.Projects 2.0.1 (GA) ships the OpenAI bridge namespace Azure.AI.Extensions.OpenAI
+          (ProjectOpenAIClient with GetProjectConversationsClient / GetProjectResponsesClientForAgent
+          for the workflow path, and GetEmbeddingClient for nexus retrieval). The old
+          Azure.AI.Projects.OpenAI 2.0.0-beta.1 package is dropped: its types moved into
+          Azure.AI.Extensions.OpenAI in the GA client.
+    -->
+    <PackageReference Include="Azure.AI.OpenAI" Version="2.1.0" />
+    <!-- Pin OpenAI to 2.10.0: Microsoft.Agents.AI.Foundry 1.5.0 needs OpenAI >= 2.10.0, while
+         Azure.AI.Extensions.OpenAI 2.0.0 (Foundry bridge) calls a ResponsesClient ctor that exists in
+         2.10.0 but was removed in 2.11.0 → runtime MissingMethodException. MEAI.OpenAI 10.6.0 targets
+         2.10.0; 10.7.0 forces 2.11.0, so it is pinned below. -->
+    <PackageReference Include="OpenAI" Version="2.10.0" />
+    <PackageReference Include="Azure.AI.Projects" Version="2.0.1" />
+    <!-- Foundry IQ: Web Knowledge Source + Knowledge Base data-plane provisioning (SDK-first).
+         12.1.0-beta.1 ships the KnowledgeBases models + 2026-05-01-preview service version. -->
+    <PackageReference Include="Azure.Search.Documents" Version="12.1.0-beta.1" />
+    <PackageReference Include="Azure.Identity" Version="1.21.0" />
+    <PackageReference Include="Microsoft.Agents.AI" Version="1.11.1" />
+    <PackageReference Include="Microsoft.Agents.AI.Foundry" Version="1.5.0" />
+    <PackageReference Include="Microsoft.Agents.AI.Workflows" Version="1.11.1" />
+    <PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="10.6.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.8" />
+    <!-- Pin OpenTelemetry.Api to a non-vulnerable version to clear NU1902. -->
+    <PackageReference Include="OpenTelemetry.Api" Version="1.16.0" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <NoWarn>OPENAI001;OPENAI002;AAIP001</NoWarn>
+  </PropertyGroup>
+
+</Project>

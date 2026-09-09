@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title desc">
+  <title id="title">Cross-Government Assurance Board emblem</title>
+  <desc id="desc">An abstract civic mark made from six columns and an open frame.</desc>
+  <g fill="none" stroke="#6ea8fe" stroke-width="6" stroke-linecap="square" stroke-linejoin="miter">
+    <path d="M18 28V16H78V28" />
+    <path d="M14 80H82" />
+    <path d="M22 36V68M32 36V68M43 36V68M53 36V68M64 36V68M74 36V68" />
+  </g>
+  <rect x="42" y="12" width="12" height="8" fill="#6ea8fe" />
+</svg>

@@ -1,0 +1,230 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Cross-government control investigation";
+    string[] validationErrors = ViewData.ModelState.Values
+        .SelectMany(value => value.Errors)
+        .Select(error => error.ErrorMessage)
+        .Where(message => !string.IsNullOrWhiteSpace(message))
+        .ToArray();
+}
+
+<section class="hero">
+    <p class="eyebrow">Public Sector Agent Demo 4</p>
+    <h1>Cross-government control investigation notebook</h1>
+    <p>A deployed Microsoft Foundry Hosted Agent investigates one bounded grants-control case. It chooses whether the shared Foundry Memory notebook adds useful continuity from another public body.</p>
+</section>
+
+@if (validationErrors.Length > 0)
+{
+    <section class="validation panel" role="alert" data-validation-errors>
+        <h2>Request not accepted</h2>
+        <ul>
+            @foreach (string error in validationErrors)
+            {
+                <li>@error</li>
+            }
+        </ul>
+    </section>
+}
+
+<section class="panel">
+    <h2>Canonical scenarios</h2>
+    <p class="hint">Run the four cards in order. Card 1 writes the baseline record that card 2 matches. Card 3 then rules that pattern out, and card 4 shows an unrelated control.</p>
+    <div class="scenario-grid">
+        @foreach (CasePatternScenario scenario in Model.Scenarios)
+        {
+            <button type="button"
+                    class="scenario-button"
+                    data-scenario-id="@scenario.ScenarioId"
+                    data-scenario-prompt="@scenario.Prompt"
+                    aria-controls="Prompt">
+                <span class="run-order">Run @scenario.RunOrder</span>
+                <strong>@scenario.DisplayName</strong>
+                <span>@scenario.RunGuidance</span>
+                <span class="memory-expectation">@scenario.MemoryExpectation</span>
+            </button>
+        }
+    </div>
+    <p class="hint"><a asp-page="/Cases">Browse the canonical case data</a> used by the Hosted Agent tools. <a asp-page="/Memory">Open the shared notebook</a> to read retained results from earlier investigations.</p>
+</section>
+
+<section class="panel">
+    <h2>Investigation prompt</h2>
+    <form method="post" asp-page-handler="Investigate" data-investigation-form>
+        <input type="hidden" asp-for="ScenarioId" />
+        <label asp-for="Prompt">Prompt</label>
+        <textarea asp-for="Prompt" rows="5" maxlength="4000" placeholder="Select a canonical scenario or enter a bounded control investigation request."></textarea>
+        <p class="hint">Do not include personal information, credentials, secrets, or instruction-override text.</p>
+        <button type="submit" class="primary" data-investigation-submit>Run investigation</button>
+    </form>
+    <section class="investigation-progress" data-investigation-progress hidden aria-live="polite">
+        <div class="progress-spinner" aria-hidden="true"></div>
+        <div>
+            <p class="eyebrow">Investigation in progress</p>
+            <h3 data-progress-title>Waiting for the Hosted Agent and tools</h3>
+            <p data-progress-detail>The request is running through the governed cross-government control workflow.</p>
+            <ol class="progress-steps">
+                <li class="is-complete">Request prepared</li>
+                <li class="is-active">Hosted Agent, tools, skills, and Memory</li>
+                <li>Validated result</li>
+            </ol>
+        </div>
+    </section>
+</section>
+
+@if (Model.Result is { } processed)
+{
+    CasePatternAssessment assessment = processed.Investigation.Assessment;
+    MemoryReadOutcome memoryRead = processed.MemoryRead;
+    NotebookRecordEnvelope written = processed.WrittenRecord;
+
+    <section class="panel continuity" role="status" data-investigation-result data-memory-continuity>
+        <p class="eyebrow">What changed because of Memory</p>
+        <p class="continuity-statement">@memoryRead.ContinuityStatement</p>
+    </section>
+
+    <section class="panel memory-status" aria-live="polite" data-investigation-result>
+        <h2>Investigation memory</h2>
+        <div class="memory-grid">
+            <div>
+                <span class="status-label">Read</span>
+                <strong data-memory-searched>@(memoryRead.Searched ? "Memory searched once" : "Memory not consulted")</strong>
+                <p>Prior records are untrusted references. They are not evidence or authority.</p>
+            </div>
+            <div>
+                <span class="status-label">Records returned</span>
+                <strong data-memory-count>@memoryRead.ReturnedCount</strong>
+                <p>The application validated every returned record before it rendered any field.</p>
+            </div>
+            <div>
+                <span class="status-label">Freshest record</span>
+                <strong data-memory-freshest>@(memoryRead.FreshestUpdatedAt is { } freshest ? freshest.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss") + " UTC" : "None")</strong>
+                <p>Shared notebook records expire seven days after they are written.</p>
+            </div>
+            <div>
+                <span class="status-label">Write</span>
+                <strong>@processed.MemoryWriteStatus</strong>
+                <p>The application saved one typed record only after strict result validation.</p>
+            </div>
+        </div>
+
+        @if (memoryRead.Searched && memoryRead.References.Count > 0)
+        {
+            <h3>Validated records returned by the search</h3>
+            <div class="record-list" data-memory-records>
+                @foreach (MemoryReferenceView reference in memoryRead.References)
+                {
+                    <article class="record-card verdict-@reference.Verdict.ToString().ToLowerInvariant()">
+                        <p class="verdict-badge">@MemoryMatchVerdictText.Describe(reference.Verdict)</p>
+                        <dl class="record-grid">
+                            <div><dt>Memory ID</dt><dd>@reference.MemoryId</dd></div>
+                            <div><dt>Record ID</dt><dd>@reference.RecordId</dd></div>
+                            <div><dt>Case</dt><dd>@reference.CaseReference</dd></div>
+                            <div><dt>Public body pattern</dt><dd>@reference.Pattern</dd></div>
+                            <div><dt>Window</dt><dd>@reference.From.ToString("yyyy-MM-dd") to @reference.To.ToString("yyyy-MM-dd")</dd></div>
+                            <div><dt>Reason</dt><dd>@reference.ReasonCode</dd></div>
+                            <div><dt>Confidence</dt><dd>@reference.Confidence.ToString("P0")</dd></div>
+                            <div><dt>Evidence IDs</dt><dd>@string.Join(", ", reference.EvidenceIds)</dd></div>
+                            <div><dt>Created</dt><dd>@reference.CreatedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss") UTC</dd></div>
+                            <div><dt>Updated</dt><dd>@reference.UpdatedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss") UTC</dd></div>
+                        </dl>
+                        <p class="record-follow-up"><strong>Prior recommended follow-up:</strong> @reference.RecommendedFollowUp</p>
+                    </article>
+                }
+            </div>
+        }
+        else if (memoryRead.Searched)
+        {
+            <p class="empty-state" data-memory-records>The search completed and returned no valid prior record.</p>
+        }
+        else
+        {
+            <p class="empty-state" data-memory-records>The agent did not call the read-only Memory function for this case.</p>
+        }
+    </section>
+
+    <section class="panel written-record" data-investigation-result data-written-record>
+        <h2>Record written to the shared notebook</h2>
+        <dl class="record-grid">
+            <div><dt>Record ID</dt><dd>@written.RecordId</dd></div>
+            <div><dt>Kind</dt><dd>@written.Kind</dd></div>
+            <div><dt>Version</dt><dd>@written.Version</dd></div>
+            <div><dt>Investigation</dt><dd>@written.InvestigationReference</dd></div>
+            <div><dt>Scenario</dt><dd>@written.ScenarioId</dd></div>
+            <div><dt>Case</dt><dd>@written.CaseReference</dd></div>
+            <div><dt>Window</dt><dd>@written.From.ToString("yyyy-MM-dd") to @written.To.ToString("yyyy-MM-dd")</dd></div>
+            <div><dt>Reason</dt><dd>@written.ReasonCode</dd></div>
+            <div><dt>Confidence</dt><dd>@written.Confidence.ToString("P0")</dd></div>
+            <div><dt>Evidence IDs</dt><dd>@string.Join(", ", written.EvidenceIds)</dd></div>
+            <div><dt>Created</dt><dd>@written.CreatedAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss") UTC</dd></div>
+        </dl>
+        <p class="record-follow-up"><strong>Recommended follow-up stored with the record:</strong> @written.RecommendedFollowUp</p>
+        <details>
+            <summary>Exact canonical record</summary>
+            <pre class="record-json">@processed.WrittenRecordJson</pre>
+        </details>
+    </section>
+
+    <section class="panel outcome-panel" data-investigation-result>
+        <div>
+            <p class="eyebrow">Structured outcome</p>
+            <h2>@assessment.Pattern</h2>
+        </div>
+        <p class="outcome-badge">@assessment.Outcome</p>
+        <dl class="summary-grid">
+            <div><dt>Case</dt><dd>@assessment.CaseReference</dd></div>
+            <div><dt>Window</dt><dd>@assessment.From.ToString("yyyy-MM-dd") to @assessment.To.ToString("yyyy-MM-dd")</dd></div>
+            <div><dt>Confidence</dt><dd>@assessment.Confidence.ToString("P0")</dd></div>
+            <div><dt>Reason</dt><dd>@assessment.ReasonCode</dd></div>
+        </dl>
+    </section>
+
+    <section class="answer-layout" aria-label="Hosted Agent result" data-investigation-result>
+        <article class="panel answer-block answer-block--evidence">
+            <h2>Canonical evidence</h2>
+            <div class="evidence-list">
+                @foreach (CaseEvidence evidence in assessment.Evidence)
+                {
+                    <section>
+                        <strong>@evidence.EvidenceId</strong>
+                        <span>@evidence.SourceId</span>
+                        <p>@evidence.Summary</p>
+                    </section>
+                }
+            </div>
+        </article>
+        <article class="panel answer-block">
+            <h2>Recommended follow-up</h2>
+            <p>@processed.Investigation.RecommendedFollowUp</p>
+        </article>
+        <article class="panel answer-block boundaries">
+            <h2>Investigation boundaries</h2>
+            <dl>
+                <dt>Evidence</dt><dd>@assessment.Boundaries.EvidenceBoundary</dd>
+                <dt>Context</dt><dd>@assessment.Boundaries.ContextBoundary</dd>
+                <dt>Memory reference</dt><dd>@assessment.Boundaries.ReferenceBoundary</dd>
+                <dt>Skill guidance</dt><dd>@assessment.Boundaries.GuidanceBoundary</dd>
+            </dl>
+        </article>
+        <details class="panel technical-tool-trace">
+            <summary>Tool trace</summary>
+            <div class="tool-list">
+                @foreach (TrustedToolExecution execution in processed.ToolExecutions)
+                {
+                    <section>
+                        <div>
+                            <strong>@execution.ToolName</strong>
+                            <span>@execution.CallId</span>
+                        </div>
+                        <p class="tool-status">@(execution.Succeeded ? "Succeeded" : "Failed")</p>
+                    </section>
+                }
+            </div>
+        </details>
+    </section>
+}
+
+@section Scripts {
+    <script type="module" src="~/js/investigation.js" asp-append-version="true"></script>
+}

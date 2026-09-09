@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Nexus Analyst">
+  <g stroke="#ffffff" stroke-width="3">
+    <line x1="16" y1="20" x2="48" y2="15"/>
+    <line x1="16" y1="20" x2="29" y2="47"/>
+    <line x1="48" y1="15" x2="29" y2="47"/>
+    <line x1="48" y1="15" x2="51" y2="45"/>
+    <line x1="29" y1="47" x2="51" y2="45"/>
+  </g>
+  <g fill="#ffffff">
+    <circle cx="16" cy="20" r="6"/>
+    <circle cx="48" cy="15" r="6"/>
+    <circle cx="29" cy="47" r="6"/>
+    <circle cx="51" cy="45" r="6"/>
+  </g>
+</svg>

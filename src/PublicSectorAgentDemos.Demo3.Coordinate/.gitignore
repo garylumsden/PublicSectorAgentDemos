@@ -1,0 +1,59 @@
+# Build outputs
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+
+# .NET
+*.dll
+*.exe
+*.pdb
+*.cache
+*.nupkg
+*.snupkg
+project.assets.json
+*.nuget.props
+*.nuget.targets
+*.nuget.g.props
+*.nuget.g.targets
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# VS / VS Code
+.vs/
+.vscode/
+*.rsuser
+
+# NuGet
+packages/
+
+# Environment files (contain secrets)
+.env
+*.env.local
+
+# Azure
+.azure/
+
+# Temporary files
+.tmp/
+*.tmp
+*.bak
+*.swp
+*~
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Node (if any)
+node_modules/
+
+# Keep the upstream launch profile despite the parent repository's ignore rule.
+!src/GovernanceCouncil.Web/Properties/launchSettings.json

@@ -1,0 +1,47 @@
+{
+  "policyId": "demo2-tool-access",
+  "version": "1.0.0",
+  "allowedTools": [
+    "getSituationReports",
+    "findAccommodation",
+    "checkTransportCapacity",
+    "reserveSupportPackage"
+  ],
+  "toolApprovals": [
+    {
+      "toolName": "getSituationReports",
+      "requiresApproval": false
+    },
+    {
+      "toolName": "findAccommodation",
+      "requiresApproval": false
+    },
+    {
+      "toolName": "checkTransportCapacity",
+      "requiresApproval": false
+    },
+    {
+      "toolName": "reserveSupportPackage",
+      "requiresApproval": true
+    }
+  ],
+  "inputLimits": {
+    "maxInputCharacters": 6000,
+    "maxToolArguments": 7,
+    "maxToolArgumentCharacters": 2000,
+    "maxToolCallsPerTurn": 6
+  },
+  "injectionPatterns": [
+    "ignore\\s+(all\\s+)?(previous|prior|system)\\s+instructions",
+    "reveal\\s+(the\\s+)?(system|developer)\\s+prompt",
+    "(disable|bypass|override)\\s+(policy|safety|approval)"
+  ],
+  "ruleValues": {
+    "domainRules": "config/domain/flood-support-rules.v1.json",
+    "fixtureRoot": "data/flood-support/v1",
+    "requireHumanApprovalForHighImpactAction": "true",
+    "reserveSupportPackageApprovalOwner": "agent-toolbox-policy",
+    "allowAutomaticEnforcement": "false",
+    "contractVersion": "1.0.0"
+  }
+}

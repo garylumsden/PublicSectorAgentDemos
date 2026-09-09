@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Defra.Contracts\Defra.Contracts.csproj" />
+    <ProjectReference Include="..\Defra.AgentCore\Defra.AgentCore.csproj" />
+    <ProjectReference Include="..\Defra.Policy\Defra.Policy.csproj" />
+    <ProjectReference Include="..\Defra.Observability\Defra.Observability.csproj" />
+    <ProjectReference Include="..\Defra.Audit\Defra.Audit.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Azure.AI.Extensions.OpenAI" />
+    <PackageReference Include="Azure.AI.Projects" />
+    <PackageReference Include="Azure.Identity" />
+    <PackageReference Include="Azure.Monitor.OpenTelemetry.AspNetCore" />
+    <PackageReference Include="Azure.Monitor.OpenTelemetry.Exporter" />
+    <PackageReference Include="Microsoft.Agents.AI.Foundry" />
+    <PackageReference Include="Microsoft.Azure.Cosmos" />
+    <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components" />
+    <PackageReference Include="ModelContextProtocol" />
+    <PackageReference Include="Newtonsoft.Json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\..\config\domain\flood-support-rules.v1.json"
+             Link="config\domain\flood-support-rules.v1.json"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\config\policies\demo2-tools.v1.json"
+             Link="config\policies\demo2-tools.v1.json"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+    <NoWarn>$(NoWarn);OPENAI001</NoWarn>
+    <UserSecretsId>c6bf8947-92c6-41d6-9017-94f3574d8911</UserSecretsId>
+  </PropertyGroup>
+
+</Project>

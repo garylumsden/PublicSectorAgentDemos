@@ -1,0 +1,38 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+name: demo2-welfare
+services:
+  defra-tools:
+    project: src/Defra.Tools.Mcp
+    host: appservice
+    language: dotnet
+    hooks:
+      postdeploy:
+        windows:
+          shell: pwsh
+          run: ../../infra/hooks/initialize-foundry.ps1
+  demo2-web:
+    project: src/Demo2.Web
+    host: appservice
+    language: dotnet
+infra:
+  provider: bicep
+  path: infra
+  module: main
+hooks:
+  preprovision:
+    windows:
+      shell: pwsh
+      run: ./infra/hooks/preprovision.ps1
+  postprovision:
+    windows:
+      shell: pwsh
+      run: ./infra/hooks/configure-easyauth-secrets.ps1
+workflows:
+  up:
+    steps:
+      - azd:
+          args: [provision]
+      - azd:
+          args: [deploy, defra-tools]
+      - azd:
+          args: [deploy, demo2-web]

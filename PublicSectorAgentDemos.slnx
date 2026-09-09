@@ -1,0 +1,59 @@
+<Solution>
+  <Folder Name="/Demos/" />
+  <Folder Name="/Demos/Demo 1 - Foundation and Ground/">
+    <File Path="config/ground/agent-definitions.v1.json" />
+    <File Path="data/ground/v1/fixture-set.json" />
+    <File Path="docs/runbooks/ground.md" />
+    <Project Path="src/PublicSectorAgentDemos.Demo1.FoundationAndGround/PublicSectorAgentDemos.Demo1.FoundationAndGround.csproj" />
+    <Project Path="src/PublicSectorAgentDemos.Demo1.Web/PublicSectorAgentDemos.Demo1.Web.csproj" />
+  </Folder>
+  <Folder Name="/Demos/Demo 2 - Act/">
+    <File Path="src/PublicSectorAgentDemos.Demo2.Act/DEFRA-AI-Demos.slnx" />
+    <File Path="src/PublicSectorAgentDemos.Demo2.Act/README.md" />
+    <File Path="src/PublicSectorAgentDemos.Demo2.Act/azure.yaml" />
+  </Folder>
+  <Folder Name="/Demos/Demo 3 - Coordinate/">
+    <File Path="src/PublicSectorAgentDemos.Demo3.Coordinate/src/GovernanceCouncil.slnx" />
+    <File Path="src/PublicSectorAgentDemos.Demo3.Coordinate/README.md" />
+    <File Path="src/PublicSectorAgentDemos.Demo3.Coordinate/azure.yaml" />
+  </Folder>
+  <Folder Name="/Demos/Demo 4 - Hosted agents/">
+    <File Path="data/hosted/v2/context-fixture-set.json" />
+    <File Path="data/hosted/v2/fixture-set.json" />
+    <File Path="docs/hosted/RUNBOOK.md" />
+    <File Path="docs/runbooks/hosted.md" />
+    <Project Path="src/PublicSectorAgentDemos.Demo4.Application/PublicSectorAgentDemos.Demo4.Application.csproj" />
+    <Project Path="src/PublicSectorAgentDemos.Demo4.HostedAgents/PublicSectorAgentDemos.Demo4.HostedAgents.csproj" />
+  </Folder>
+  <Folder Name="/Presenter/">
+    <File Path="config/presenter/sessions.v1.json" />
+    <File Path="docs/presenter/RUNBOOK.md" />
+    <Project Path="src/PublicSectorAgentDemos.Presenter/PublicSectorAgentDemos.Presenter.csproj" />
+  </Folder>
+  <Folder Name="/Documentation/">
+    <File Path="docs/CONVENTIONS.md" />
+    <File Path="docs/README.md" />
+  </Folder>
+  <Folder Name="/Platform/" />
+  <Folder Name="/Platform/Shared/">
+    <Project Path="src/Shared/PublicSectorAgentDemos.Contracts/PublicSectorAgentDemos.Contracts.csproj" />
+    <Project Path="src/Shared/PublicSectorAgentDemos.Identity/PublicSectorAgentDemos.Identity.csproj" />
+    <Project Path="src/Shared/PublicSectorAgentDemos.Observability/PublicSectorAgentDemos.Observability.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="NuGet.config" />
+    <File Path="README.md" />
+    <File Path="global.json" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="tests/PublicSectorAgentDemos.ArchitectureTests/PublicSectorAgentDemos.ArchitectureTests.csproj" />
+    <Project Path="tests/PublicSectorAgentDemos.ContractTests/PublicSectorAgentDemos.ContractTests.csproj" />
+    <Project Path="tests/PublicSectorAgentDemos.Demo1.CloudIntegrationTests/PublicSectorAgentDemos.Demo1.CloudIntegrationTests.csproj" />
+    <Project Path="tests/PublicSectorAgentDemos.Demo1.Web.Tests/PublicSectorAgentDemos.Demo1.Web.Tests.csproj" />
+    <Project Path="tests/PublicSectorAgentDemos.Demo4.Tests/PublicSectorAgentDemos.Demo4.Tests.csproj" />
+    <Project Path="tests/PublicSectorAgentDemos.Presenter.Tests/PublicSectorAgentDemos.Presenter.Tests.csproj" />
+  </Folder>
+</Solution>

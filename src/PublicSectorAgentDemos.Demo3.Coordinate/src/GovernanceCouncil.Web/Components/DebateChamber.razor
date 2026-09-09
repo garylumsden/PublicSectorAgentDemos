@@ -1,0 +1,361 @@
+@using GovernanceCouncil.Core.Models
+@using Markdig
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
+
+@* Parliament-style debating chamber. Pure presentation: all state is supplied by the
+   parent (LiveDeliberation.razor), which owns the SignalR connection. *@
+
+<div class="debate-stage">
+    <div class="debate-phasebar">
+        <span class="debate-onair" aria-label="Live debate in progress">
+            <span class="dot" aria-hidden="true"></span> On Air
+        </span>
+        <span class="debate-phase-pill" role="status" aria-live="polite">
+            @(string.IsNullOrWhiteSpace(Phase) ? "Convening" : Phase)
+        </span>
+        @if (MaxRounds > 0)
+        {
+            <span class="debate-round-pill" aria-label="@($"Round {Round} of {MaxRounds}")">
+                Round @Round of @MaxRounds
+            </span>
+        }
+    </div>
+
+    <div class="hemicycle">
+        @{
+            var members = Seats.Where(s => !s.IsChair).ToList();
+            var n = members.Count;
+        }
+        @for (var i = 0; i < n; i++)
+        {
+            var seat = members[i];
+            var (left, top, scale) = ArcPosition(i, n);
+            <div class="seat @(seat.Speaking ? "speaking" : "") @(seat.HandRaised ? "hand-up" : "") @(seat.MicLive ? "mic-live" : "") @(seat.Assessing ? "assessing" : "")"
+                 style="left:@(left.ToString(Ci))%; top:@(top.ToString(Ci))%; --seat-scale:@(scale.ToString(Ci));">
+                <span class="hand" aria-hidden="@( !seat.HandRaised )"
+                      aria-label="@(seat.HandRaised ? $"{seat.DisplayName} has raised a hand to speak: {seat.HandReason}" : null)">✋</span>
+                @if (seat.HandRaised && !string.IsNullOrWhiteSpace(seat.HandReason))
+                {
+                    <span class="hand-popover" role="tooltip">@seat.HandReason</span>
+                }
+                <div class="avatar" style="background:@seat.Colour;" aria-hidden="true">@AvatarInner(seat.Avatar, seat.Initials)</div>
+                <div class="plaque">
+                    <span class="name">@seat.DisplayName</span>
+                    <span class="role">@seat.Role</span>
+                </div>
+                <span class="mic"
+                      aria-label="@(seat.MicLive ? $"{seat.DisplayName} push-to-talk microphone is live" : $"{seat.DisplayName} microphone is off")">
+                    @(seat.MicLive ? "🎙️" : "🎤")
+                </span>
+            </div>
+        }
+
+        @{
+            var chair = Seats.FirstOrDefault(s => s.IsChair);
+        }
+        @if (chair is not null)
+        {
+            <div class="podium @(chair.Speaking ? "speaking" : "") @(chair.MicLive ? "mic-live" : "")">
+                <div class="seat @(chair.Speaking ? "speaking" : "") @(chair.MicLive ? "mic-live" : "")"
+                     style="position:static; transform:none; width:auto;">
+                    <div class="avatar" style="background:@chair.Colour;" aria-hidden="true">@AvatarInner(chair.Avatar, chair.Initials)</div>
+                    <div class="plaque">
+                        <span class="name">@chair.DisplayName</span>
+                        <span class="role">@chair.Role</span>
+                    </div>
+                    <span class="mic"
+                          aria-label="@(chair.MicLive ? "Chair push-to-talk microphone is live" : "Chair microphone is off")">
+                        @(chair.MicLive ? "🎙️" : "🎤")
+                    </span>
+                </div>
+                <div class="podium-base" aria-hidden="true"></div>
+            </div>
+        }
+    </div>
+
+    @{
+        var memberSeats = Seats.Where(s => !s.IsChair).ToList();
+        var anySettled = memberSeats.Any(s => !string.IsNullOrWhiteSpace(s.PositionSummary));
+    }
+    @if (AssessmentMode || anySettled)
+    {
+        <div class="assessment-rollcall" role="region" aria-label="Independent assessment — initial positions">
+            @foreach (var seat in Seats.Where(s => !s.IsChair))
+            {
+                var done = !string.IsNullOrWhiteSpace(seat.PositionSummary);
+                var blocked = !done && seat.Blocked;
+                var failed = !done && !blocked && AssessmentConfirmed;
+                <div class="rc-card @(done ? "done" : blocked ? "blocked" : failed ? "failed" : seat.Assessing ? "assessing" : "")">
+                    <div class="rc-head">
+                        <span class="avatar" style="width:26px;height:26px;font-size:0.72rem;background:@seat.Colour;border-width:1px;" aria-hidden="true">@AvatarInner(seat.Avatar, seat.Initials)</span>
+                        <span class="rc-name">@seat.DisplayName</span>
+                        @if (done)
+                        {
+                            <span class="rc-tick" aria-label="position tabled">✓</span>
+                        }
+                        else if (blocked)
+                        {
+                            <span class="rc-warn" aria-label="blocked by content safety" title="Blocked by the content-safety policy">🛡️</span>
+                        }
+                        else if (failed)
+                        {
+                            <span class="rc-warn" aria-label="no position recorded">⚠️</span>
+                        }
+                        else if (seat.Assessing)
+                        {
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        }
+                    </div>
+                    <div class="rc-body">
+                        @if (done)
+                        {
+                            @ModelText.StripSourceAnnotations(seat.PositionSummary)
+                        }
+                        else if (blocked)
+                        {
+                            <em class="rc-preview">Blocked by the content-safety policy</em>
+                        }
+                        else if (failed)
+                        {
+                            <em class="rc-preview">No position recorded</em>
+                        }
+                        else
+                        {
+                            <em class="rc-preview">forming initial position…</em>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    @if (Transcript is { Count: > 0 })
+    {
+        <div class="transcript" id="gc-transcript" role="log" aria-live="polite" aria-label="Debate transcript">
+            @foreach (var turn in Transcript)
+            {
+                <div class="turn @(turn.Speaking ? "speaking" : "")">
+                    <div class="turn-head">
+                        <span class="avatar" style="width:26px;height:26px;font-size:0.72rem;background:@turn.Colour;border-width:1px;" aria-hidden="true">@AvatarInner(turn.Avatar, turn.Initials)</span>
+                        <span class="turn-name">@turn.DisplayName</span>
+                        <span class="turn-role text-muted">· @turn.Role</span>
+                    </div>
+                    <div class="turn-body">
+                        @if (turn.IsSynthesis)
+                        {
+                            @if (turn.Blocked)
+                            {
+                                <span class="text-danger">🛡️ The Chair's synthesis was blocked by the content-safety policy.</span>
+                                @if (Completed && !string.IsNullOrEmpty(AssessmentHref))
+                                {
+                                    <a href="@AssessmentHref" class="btn btn-sm btn-outline-secondary ms-2">View details →</a>
+                                }
+                            }
+                            else if (Completed && !string.IsNullOrEmpty(AssessmentHref))
+                            {
+                                <span class="chair-done">✅ The Chair has delivered the Assessment.</span>
+                                <a href="@AssessmentHref" class="btn btn-sm btn-success ms-2">View Assessment →</a>
+                            }
+                            else
+                            {
+                                <em class="text-muted">⚖️ The Chair is finalising the Assessment…</em>
+                            }
+                        }
+                        else if (turn.IsNexus)
+                        {
+                            @if (turn.NexusCount is null)
+                            {
+                                <em class="text-muted">🔗 @turn.DisplayName is connecting this assessment to prior decisions…</em>
+                            }
+                            else if (turn.NexusCount == 0)
+                            {
+                                <span class="chair-done">🔗 @turn.DisplayName found no connections to prior decisions.</span>
+                            }
+                            else
+                            {
+                                <span class="chair-done">🔗 @turn.DisplayName found @turn.NexusCount connection@(turn.NexusCount == 1 ? "" : "s") to prior decisions.</span>
+                            }
+                        }
+                        else if (turn.Blocked)
+                        {
+                            <span class="text-danger">🛡️ This contribution was blocked by the content-safety policy.</span>
+                        }
+                        else if (string.IsNullOrWhiteSpace(turn.Text))
+                        {
+                            <em class="text-muted">@(turn.IsAssessment ? "forming initial position…" : "Taking the floor…")</em>
+                        }
+                        else
+                        {
+                            @((MarkupString)Markdown.ToHtml(ModelText.StripSourceAnnotations(turn.Text), _mdPipeline))
+                        }
+                        @if (turn.Speaking && !turn.IsSynthesis && !turn.IsNexus && !turn.Blocked)
+                        {
+                            <span class="caret" aria-hidden="true"></span>
+                        }
+                    </div>
+
+                    @if (turn.Citations is { Count: > 0 })
+                    {
+                        <div class="citations" aria-label="Citations">
+                            @foreach (var c in turn.Citations)
+                            {
+                                <a class="citation-chip" href="@c.Url" target="_blank" rel="noopener" title="@c.Title">🔗 @c.Title</a>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(ConclusionReason))
+    {
+        <div class="conclusion-banner" role="status">
+            🏛️ Debate concluded — @ConclusionReason
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public IReadOnlyList<SeatVm> Seats { get; set; } = Array.Empty<SeatVm>();
+    [Parameter] public string? Phase { get; set; }
+    [Parameter] public int Round { get; set; }
+    [Parameter] public int MaxRounds { get; set; }
+    [Parameter] public IReadOnlyList<TurnVm> Transcript { get; set; } = Array.Empty<TurnVm>();
+    [Parameter] public string? ConclusionReason { get; set; }
+    [Parameter] public bool AssessmentMode { get; set; }
+    [Parameter] public bool AssessmentConfirmed { get; set; }
+    [Parameter] public bool Completed { get; set; }
+    [Parameter] public string? AssessmentHref { get; set; }
+
+    private static readonly System.Globalization.CultureInfo Ci = System.Globalization.CultureInfo.InvariantCulture;
+
+    private static readonly MarkdownPipeline _mdPipeline = new MarkdownPipelineBuilder()
+        .UseAdvancedExtensions().Build();
+
+    // Renders the persona avatar image inside the coloured circle, falling back to the initials text
+    // if no avatar URL is present (every persona resolves to a role default, so this is a safety net).
+    private static RenderFragment AvatarInner(string? avatar, string initials) => builder =>
+    {
+        if (!string.IsNullOrEmpty(avatar))
+        {
+            builder.OpenElement(0, "img");
+            builder.AddAttribute(1, "class", "avatar-img");
+            builder.AddAttribute(2, "src", avatar);
+            builder.AddAttribute(3, "alt", "");
+            builder.CloseElement();
+        }
+        else
+        {
+            builder.AddContent(4, initials);
+        }
+    };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Auto-scroll the transcript to the newest turn as content streams in.
+        // Skip first render and prerender; guard interop so it never throws.
+        if (firstRender || Transcript is not { Count: > 0 }) return;
+        try { await JS.InvokeVoidAsync("debateScroll.toBottom", "gc-transcript"); }
+        catch (InvalidOperationException) { /* JS interop not available during prerender */ }
+        catch (JSDisconnectedException) { /* circuit disconnected */ }
+    }
+
+    // Position member i of n along a parliamentary hemicycle (percent of the chamber box), adapting
+    // to the member count: a single arc reads cleanly up to ~9 seats (the supported maximum), and
+    // beyond that seats wrap into concentric arcs so they never overlap or clip. The angular sweep and
+    // a per-seat scale also tighten as density grows, while small N stays centred and intentional.
+    // Returns (left%, top%, scale) — scale feeds the --seat-scale CSS variable.
+    private static (double left, double top, double scale) ArcPosition(int i, int n)
+    {
+        var rows = n <= 9 ? 1 : n <= 16 ? 2 : 3;
+        var perRow = DistributeRows(n, rows);
+
+        // Locate this seat's row (outer/back row first) and its index within that row.
+        int row = 0, idxInRow = i, seen = 0;
+        for (var r = 0; r < rows; r++)
+        {
+            if (i < seen + perRow[r]) { row = r; idxInRow = i - seen; break; }
+            seen += perRow[r];
+        }
+        var countInRow = perRow[row];
+
+        // Outer row is the largest, highest arc; inner rows step inward and slightly down toward the Chair.
+        var rx = 44.0 - row * 13.0;
+        var ry = 58.0 - row * 14.0;
+        var baseTop = 72.0 - row * 3.0;
+
+        // ~30° between adjacent seats, capped so a full row fans across the chamber. Tiny rows cluster
+        // centrally (sweep ≈ 0 for one seat) rather than pinning to the extremes.
+        var sweep = Math.Min(150.0, 30.0 * (countInRow - 1));
+        const double centre = 90.0;
+        var startDeg = centre + sweep / 2.0;   // left
+        var endDeg = centre - sweep / 2.0;     // right
+        var frac = countInRow <= 1 ? 0.5 : (double)idxInRow / (countInRow - 1);
+        var deg = startDeg + (endDeg - startDeg) * frac;
+        var rad = deg * Math.PI / 180.0;
+
+        var left = 50 + rx * Math.Cos(rad);
+        var top = baseTop - ry * Math.Sin(rad);
+
+        var scale = n <= 5 ? 1.0 : n <= 8 ? 0.9 : n <= 12 ? 0.82 : 0.72;
+        return (Math.Round(left, 2), Math.Round(top, 2), Math.Round(scale, 3));
+    }
+
+    // Split n members across the given number of arcs, weighting each row by its arc width so the
+    // larger back rows hold proportionally more seats (a hemicycle fans wider at the back). Any
+    // remainder goes to the outer rows first. e.g. 12 over 2 rows ⇒ [7, 5].
+    private static int[] DistributeRows(int n, int rows)
+    {
+        var weights = new double[rows];
+        double total = 0;
+        for (var r = 0; r < rows; r++) { weights[r] = 44.0 - r * 13.0; total += weights[r]; }
+
+        var result = new int[rows];
+        var assigned = 0;
+        for (var r = 0; r < rows; r++)
+        {
+            result[r] = (int)Math.Floor(n * weights[r] / total);
+            assigned += result[r];
+        }
+        for (var r = 0; assigned < n; r = (r + 1) % rows) { result[r]++; assigned++; }
+        return result;
+    }
+
+    public sealed class SeatVm
+    {
+        public required string Key { get; init; }
+        public required string DisplayName { get; init; }
+        public required string Role { get; init; }
+        public required string Initials { get; init; }
+        public required string Colour { get; init; }
+        public string? Avatar { get; init; }
+        public bool IsChair { get; init; }
+        public bool HandRaised { get; set; }
+        public string? HandReason { get; set; }
+        public bool MicLive { get; set; }
+        public bool Speaking { get; set; }
+        public bool Assessing { get; set; }
+        public bool Blocked { get; set; }
+        public string? PositionSummary { get; set; }
+        public string? Detail { get; set; }
+    }
+
+    public sealed class TurnVm
+    {
+        public required string DisplayName { get; init; }
+        public required string Role { get; init; }
+        public required string Initials { get; init; }
+        public required string Colour { get; init; }
+        public string? Avatar { get; init; }
+        public string? Text { get; set; }
+        public bool Speaking { get; set; }
+        public bool IsSynthesis { get; set; }
+        public bool IsAssessment { get; set; }
+        public bool IsNexus { get; set; }
+        public int? NexusCount { get; set; }
+        public bool Blocked { get; set; }
+        public IReadOnlyList<Citation>? Citations { get; set; }
+    }
+}

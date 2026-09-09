@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <NoWarn>$(NoWarn);OPENAI001</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Azure.AI.Projects" />
+    <PackageReference Include="Azure.AI.Projects.Agents" />
+    <PackageReference Include="Azure.Identity" />
+    <ProjectReference Include="..\..\src\Defra.AgentCore\Defra.AgentCore.csproj" />
+  </ItemGroup>
+</Project>
