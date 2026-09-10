@@ -509,7 +509,7 @@ function Start-DemoReadyProcess {
     )
 
     if ($Name -in @('patriots', 'patriots-coordinate')) {
-        throw 'Patriots is link-only and cannot be started by this repository.'
+        throw 'Legacy Patriots process names are not managed. Use the dedicated external-patriots path.'
     }
     if (-not [string]::IsNullOrEmpty($OptionalExternalOwner) -and $Name -cne 'tokens-and-credits') {
         throw 'Only Tokens and Credits can be an explicitly managed external application.'

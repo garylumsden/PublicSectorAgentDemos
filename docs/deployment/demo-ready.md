@@ -42,12 +42,27 @@ The existing helper reads the signed-in principal instead of requiring a stored 
 | Demo 2 | `src\PublicSectorAgentDemos.Demo2.Act` | `-demo2` | Run the isolated azd workflow and its authentication and flood support bootstrap hooks. |
 | Demo 3 | `src\PublicSectorAgentDemos.Demo3.Coordinate` | `-demo3` | Provision, generate `.env`, build and start the local Council application. |
 | Demo 4 | `deploy\demo4` | `-demo4` | Prepare Entra identity, run existing azd hooks, configure browser reply URI. |
+| Patriots, when no local environment exists | External `azure-ai-mgs-patriots` | `-patriots` | Create an environment with Foundry IQ defaults, run `azd up`, then build and start the local application. |
+| Tokens and Credits, when no local environment exists | External `tokens-and-credits` | `-tokens` | Run its existing `azd up` workflow and postprovision hook, then build and start the local application. |
 
 The command reads `azd env list --output json` before selecting or creating an environment.
 It creates an environment only after a successful list proves that the name is absent.
 Authentication, CLI, parsing, and selection failures stop setup.
 Normal reruns preserve environment names and contain no teardown operation.
 Use the same location and subscription for a rerun of an existing deployment.
+
+For each selected optional checkout, startup applies a stricter rule.
+It inspects `azd env list --output json` in that checkout.
+If one or more environments exist, startup assumes that checkout is already deployed.
+It selects `-PatriotsEnvironmentName`, `-TokensAndCreditsEnvironmentName`, or the configured setup-file name.
+Without a configured name, it requires and selects the single default environment.
+It runs no `azd up`, `azd provision`, or `azd deploy` command for an existing optional environment.
+
+If no local environment exists, startup creates a deterministic name.
+The defaults are `<EnvironmentName>-patriots` and `<EnvironmentName>-tokens`.
+A configured optional environment name replaces the default.
+New environments use the confirmed subscription, selected optional location, and signed-in principal.
+The optional location parameters default to `swedencentral`.
 
 For a new council environment without Web IQ credentials, setup selects `foundryiq`.
 Supply `COUNCIL_GROUNDING_PROVIDER=webiq` and `WEBIQ_API_KEY` to request Web IQ explicitly.
@@ -80,20 +95,38 @@ Legacy setup-file environment names are ignored with a warning.
 
 ## Optional Patriots
 
-Patriots has no owned deployment context.
-The default startup neither discovers its checkout nor reads its environment.
-It does not reserve ports 5081 or 7081.
-It preserves existing Patriots processes and registry records.
+Patriots remains external and is selected only through `-Patriots` or `-IncludePatriots`.
+The default startup does not discover its checkout, inspect its environment, or reserve its ports.
 
-Use `-PatriotsRepoPath <absolute-path>` to enable an external link explicitly.
+Use `-Patriots -PatriotsRepoPath <absolute-path>` to select its checkout explicitly.
 Alternatively, use `-IncludePatriots`.
-That switch resolves an existing path from `PSAD_PATRIOTS_REPO_PATH`, the setup file, or the named `azure-ai-mgs-patriots` sibling folder.
-No Patriots build, deployment, configuration, or process operation follows discovery.
+Startup resolves the path from the parameter, `PSAD_PATRIOTS_REPO_PATH`, the setup file, or the named sibling folder.
+It clones the approved repository only when the selected setup-file or sibling path is absent.
+
+Startup then inspects the checkout's local azd environments.
+If any environment exists, it selects the configured environment or single default.
+It performs no Azure deployment command.
+If no environment exists, it creates `<EnvironmentName>-patriots`, unless an optional name is configured.
+Use `-PatriotsLocation` to select the new environment's location.
+Use `-PatriotsEnvironmentName` or `repositories.patriots.azdEnvironment` to select or name the environment.
+
+For a new Patriots environment, startup sets:
+
+| azd value | Value |
+|---|---|
+| `AZURE_SUBSCRIPTION_ID` | Confirmed subscription |
+| `AZURE_LOCATION` | Selected Patriots location |
+| `AZURE_PRINCIPAL_ID` | Signed-in principal |
+| `COUNCIL_GROUNDING_PROVIDER` | `foundryiq` |
+| `WEBIQ_CONNECTION_NAME` | Empty |
+| `WEBIQ_API_KEY` | Empty |
+
+It then runs `azd up`, builds the local web project, starts ports 5081 and 7081, and checks both endpoints.
 
 The optional setup file defaults to `.demo-ready\repositories.local.json`; `-SetupPath` selects another file.
 Its schema is `scripts\DemoReady\repositories.v1.schema.json`.
-The checked-in example includes a placeholder Tokens and Credits path.
-Replace that placeholder or remove the optional entry before copying the example.
+The checked-in example includes placeholder paths and optional environment names.
+Replace or remove each optional entry before copying the example.
 Bundled-only setup can omit the file or use:
 
 ```json
@@ -103,24 +136,25 @@ Bundled-only setup can omit the file or use:
 }
 ```
 
-Store only paths and optional legacy environment names for keys that permit them.
-The `tokensAndCredits` entry permits only `path`, not an azd environment or cloud settings.
+Store only paths and optional azd environment names.
+Both optional entries permit `azdEnvironment`.
+If environments exist, the configured name must match one of them.
+If none exist, startup creates the configured name.
 Never store credentials, tokens, connection strings, tenant IDs, or subscription IDs.
 The setup agent `.github\agents\demo-setup.agent.md` validates bundled defaults and optional external paths without deployment.
 
-An absent Patriots link appears as **Not configured**, not **Ready**.
-A configured link remains independently managed.
-Manual Presenter warm-up can report its endpoint status separately.
-Patriots failure never blocks the owned deployment readiness report.
+An unselected Patriots integration appears as **Not configured**, not **Ready**.
+When selected, checkout, environment, deployment, build, process, health, or Git-preservation failures stop startup.
 
 ## Optional Tokens and Credits extra
 
 Tokens and Credits remains in its external `tokens-and-credits` checkout.
-The repository manages its local process, not its source or Azure deployment.
+The repository manages its optional Azure environment and local process, not its tracked source.
 It appears in Presenter's **Optional extras** section, separate from the six main sessions.
 
 ```powershell
 .\scripts\Invoke-DemoReady.ps1 -EnvironmentName psad-demo `
+  -TokensAndCredits `
   -TokensAndCreditsRepoPath <absolute-path-to-tokens-and-credits>
 ```
 
@@ -131,19 +165,28 @@ Resolve the checkout in this order:
 3. `repositories.tokensAndCredits.path` in the file selected by `-SetupPath`, defaulting to `.demo-ready\repositories.local.json`.
 4. The sibling folder named `tokens-and-credits`.
 
-A valid discovered checkout is included automatically.
-There is no `IncludeTokens` switch.
-Empty optional settings do not disable discovery of the named sibling checkout.
-Existing Patriots-only setup files need no migration or Tokens entry when sibling discovery resolves the checkout.
+A selected checkout can use `-TokensAndCreditsEnvironmentName` or `repositories.tokensAndCredits.azdEnvironment`.
+Empty optional settings use the deterministic name only when the checkout has no local environment.
+Existing setup files need no migration.
 The committed extra has `configured=false` and `startupStatus=not-configured` before startup resolves its checkout.
+
+Startup first inspects the checkout's local azd environments.
+If any environment exists, it selects the configured environment or single default.
+It performs no Azure deployment command.
+If no environment exists, it creates `<EnvironmentName>-tokens`, unless an optional name is configured.
+Use `-TokensAndCreditsLocation` to select the new environment's location.
+Startup sets the confirmed subscription, selected location, and signed-in principal.
+It then runs the checkout's existing `azd up` workflow.
+The existing postprovision hook writes the endpoint and tenant into the ignored local application configuration.
 
 Startup builds and runs only `src\TokensAndCredits.Web\TokensAndCredits.Web.csproj` from that checkout.
 It first restores that project's packages through the Microsoft NuGet proxy, then builds the project.
 It installs no SDK or tools and does not build an external solution.
 Runtime uses `dotnet run --no-build --no-restore --no-launch-profile`.
 The only process override is `ASPNETCORE_URLS=http://localhost:5041`.
-It preserves the existing configuration and credential choices without importing Demo 1 environment settings.
-The integration does not mutate external source, configuration files, azd state, or Azure resources.
+It preserves existing choices without importing Demo 1 settings.
+An existing optional environment receives no azd value write and no deployment command.
+For a new environment, normal azd and postprovision files remain ignored in the external checkout.
 Build outputs remain in the checkout's normal ignored `bin` and `obj` directories.
 Startup compares external Git status with its baseline.
 Masked logs, process records, generated catalog data, and readiness state remain under the main repository's `.demo-ready` directory.
@@ -153,18 +196,38 @@ The application does not expose `/health`.
 The response must have HTTP 200, `origin=local-static-embedding`, and positive integer `dimensions` and `vocabularyCount` values.
 This request reads local manifest metadata.
 It requests no Azure token.
-It makes no model discovery, chat, image, or live embedding call and requires no azd environment.
+It makes no model discovery, chat, image, or live embedding call.
+
+## Optional model capacity
+
+The plan includes optional model quota only when that optional environment is new.
+Reused optional environments add zero model deployments and zero capacity units to the plan.
+
+| Optional deployment | Type | Model | SKU | Capacity |
+|---|---|---|---|---:|
+| Patriots | Embedding | `text-embedding-3-small` | `GlobalStandard` | 30 |
+| Patriots | Chat | `gpt-5.4` | `GlobalStandard` | 100 |
+| Patriots | Chat | `gpt-5-mini` | `GlobalStandard` | 1000 |
+| Patriots | Chat | `gpt-5-nano` | `GlobalStandard` | 1000 |
+| Patriots | Chat | `grok-4.3` | `GlobalStandard` | 500 |
+| Tokens and Credits | Chat | `gpt-5.6-sol` | `GlobalStandard` | 3 |
+| Tokens and Credits | Chat | `gpt-5.4` | `GlobalStandard` | 3 |
+| Tokens and Credits | Chat | `gpt-5.4-mini` | `GlobalStandard` | 3 |
+| Tokens and Credits | Image | `gpt-image-1.5` | `GlobalStandard` | 1 |
+| Tokens and Credits | Embedding | `text-embedding-3-small` | `GlobalStandard` | 10 |
+
+Patriots requests 5 deployments and 2630 capacity units.
+Tokens and Credits requests 5 deployments and 20 capacity units.
 
 The readiness report records the result in `external.tokensAndCredits.status`:
 
 | Status | Meaning |
 |---|---|
-| `not-configured` | No checkout exists at the resolved location, including an absent explicit path. Startup warns and skips build, start, and health work. |
-| `failed` | Checkout validation, build, port, process, health, or Git-preservation checks failed. Startup emits an explicit warning. |
+| `not-configured` | Tokens and Credits was not selected. Startup skips environment, build, start, and health work. |
+| `failed` | A prior optional attempt failed. The current selected run writes the root readiness report as failed. |
 | `ready` | The managed process started and the manifest response met the readiness contract. |
 
-Tokens and Credits failure never blocks main readiness or appears as a successful extra.
-Independent main-demo failures still fail the root command normally.
+A selected Tokens and Credits failure stops startup and cannot appear as a successful extra.
 A busy port produces failure; startup never adopts an unknown listener.
 Default stop includes only recorded `tokens-and-credits` processes that still pass the ownership and process identity checks.
 The record must identify this repository through `optionalExternalOwner` and the exact external project and working directory.
@@ -178,7 +241,7 @@ This local process ownership does not extend to Patriots.
 | Presenter | `http://localhost:5088/` | Not used |
 | Foundation/Ground UI | `http://localhost:5090/` | Not used |
 | Optional managed Tokens and Credits extra | `http://localhost:5041/` | Not used |
-| Optional external Patriots link | `http://localhost:5081/` | `https://localhost:7081/` |
+| Optional managed Patriots application | `http://localhost:5081/` | `https://localhost:7081/` |
 
 Act and Hosted endpoints come from the current owned environments.
 The root command starts the Foundation/Ground UI, council, and Presenter.
@@ -211,14 +274,15 @@ The command checks that tracked and untracked repository status has not changed.
 Every startup replaces stale readiness with `in-progress`.
 Errors replace it with `failed` and the current phase, without old endpoints.
 Only the current environment outputs populate a successful report and generated catalog.
-The report distinguishes four owned deployments, five owned sessions, and optional external Patriots.
-Tokens and Credits has separate extra status; it does not change the owned deployment or session counts.
+The report distinguishes four owned deployments, five owned sessions, and the optional external applications.
+Each optional entry records the azd environment name and whether it existed before startup.
+It also records whether this run created and deployed the environment.
 
 The existing Demo 1 and Demo 4 telemetry and Entra preparation remain in place.
 Demo 2 and council keep their bundle-specific telemetry and authentication hooks.
 The local Presenter and Foundation/Ground UI use Demo 1 Application Insights.
-Tokens and Credits retains its existing configuration; startup does not inject Demo 1 settings into it.
-No telemetry setting is copied from Patriots.
+Tokens and Credits retains its own azd and application configuration.
+No telemetry setting is copied between demonstrations.
 
 ## Stop or restart
 
@@ -247,7 +311,7 @@ An unrelated process occupying an owned port blocks startup instead of being ter
 
 Default checks run the existing automation harness, root solution tests, bundle builds, and Bicep compilation.
 `-SkipBundledBuild` omits the two bundle builds; `-SkipExternalBuild` remains a deprecated alias.
-Patriots is never built or required.
+The validation command never builds or requires Patriots.
 An owned running application can lock build outputs; stop owned applications before full validation.
 
 Use `-RunAzurePreview` to preview all four existing environments.
@@ -279,16 +343,22 @@ The interactive command uses the same four-step console experience as startup:
 
 No removal starts before the final confirmation.
 The command stops the local applications and runs `azd down --purge` for the selected `demo1` through `demo4` environments.
+It also removes an optional environment when the matching readiness report records `azdEnvironmentCreatedByThisRun=true`.
+It never removes an optional environment that existed before startup.
 It then explicitly purges matching soft-deleted Azure AI accounts and Key Vaults, including when the resource group is already absent.
 It also removes the owned Demo 4 app registration.
 It also removes generated readiness and Presenter state. It removes process state only when no protected records remain.
 
+Optional Azure teardown occurs before optional checkout deletion.
 If startup cloned Patriots or Tokens and Credits, teardown removes those checkouts only after Git is clean and synchronized with its upstream.
 Keep both optional checkouts on disk with:
 
 ```powershell
 .\scripts\Remove-DemoReadyAzure.ps1 -EnvironmentName psad-demo -KeepPatriotsAndTokensAndCredits
 ```
+
+`-KeepPatriotsAndTokensAndCredits` controls disk retention only.
+It does not retain an optional Azure environment created by startup.
 
 Use `-Demo1`, `-Demo2`, `-Demo3`, `-Demo4`, or `-All` to override the selection recorded in the readiness report.
 Use `-NonInteractive` for automation. Without matching readiness state, non-interactive teardown requires an explicit demo selection.

@@ -1,4 +1,4 @@
-# Optional external runtime. No azd commands or external configuration writes.
+# Optional external runtime.
 
 function Resolve-DemoReadyTokensAndCredits {
     [CmdletBinding()]
@@ -6,6 +6,7 @@ function Resolve-DemoReadyTokensAndCredits {
         [Parameter(Mandatory)][string]$RepositoryRoot,
         [AllowEmptyString()][string]$ParameterPath,
         [Parameter(Mandatory)][hashtable]$SetupRepositories,
+        [AllowEmptyString()][string]$ParameterAzdEnvironmentName,
         [switch]$Selected
     )
 
@@ -23,6 +24,7 @@ function Resolve-DemoReadyTokensAndCredits {
             -Definition (Get-DemoReadyExternalRepositoryDefinition).tokensAndCredits `
             -RepositoryRoot $RepositoryRoot -ParameterPath $ParameterPath `
             -SetupRepositories $SetupRepositories `
+            -ParameterAzdEnvironmentName $ParameterAzdEnvironmentName `
             -CloneIfMissing:$Selected `
             -AllowAbsent:(-not $Selected)
         if ($null -eq $repository) {

@@ -1,8 +1,13 @@
 {
   "version": 1,
   "repositories": {
+    "patriots": {
+      "path": "C:\\repos\\azure-ai-mgs-patriots",
+      "azdEnvironment": "existing-patriots"
+    },
     "tokensAndCredits": {
-      "path": "C:\\repos\\tokens-and-credits"
+      "path": "C:\\repos\\tokens-and-credits",
+      "azdEnvironment": "existing-tokens"
     }
   }
 }

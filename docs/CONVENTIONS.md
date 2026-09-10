@@ -19,30 +19,32 @@ The root `PublicSectorAgentDemos.slnx` groups the shared projects under `Platfor
 
 Patriots Coordinate remains optional and external in `azure-ai-mgs-patriots`.
 Do not copy its source, configuration, or data into this repository.
-Use the resolution contract in `scripts\DemoReady\External.ps1` only for an explicitly enabled external link.
+Use the resolution and azd ownership contract in `scripts\DemoReady\External.ps1`.
 
 Tokens and Credits remains in the external `tokens-and-credits` repository.
-It is an optional managed local application, separate from the six main Presenter sessions.
+It is an optional Azure-backed local application, separate from the six main Presenter sessions.
 Its local process can be started and stopped through recorded process ownership.
-Do not copy its source or change its azd state or Azure configuration.
+Do not copy or edit its tracked source.
 
 ## External repositories
 
 After explicit Patriots opt-in, resolve its path in this order: parameter, environment variable, the ignored
 setup file `.demo-ready\repositories.local.json`, then a sibling folder.
 Do not use external checkout overrides for the bundled Act or council applications.
-Patriots opt-in adds a link only. Do not build, deploy, start, stop, or reconfigure Patriots.
+Patriots opt-in reuses or clones its checkout and starts its local application.
+Reuse an existing local azd environment without deployment.
+Create and deploy a deterministic optional environment only when no local environment exists.
 Tokens and Credits resolves its path from the parameter, environment variable, setup-file entry, then the named sibling folder.
-Include a valid discovered checkout automatically; do not require a separate opt-in switch.
 Keep Tokens and Credits failures separate from main presentation readiness.
-Its local manifest readiness request makes no model call and needs no azd environment.
-Preserve its existing configuration and credential choices; do not inject Demo 1 settings.
+Its local manifest readiness request makes no model call.
+Use its existing `azd up` and postprovision workflow only for a new optional environment.
 
 Never commit a workstation-specific absolute path. Never write a credential, a connection string,
 a tenant identifier, or a subscription identifier to the setup file.
 
-Never deploy, provision, remove, or edit an external repository from this repository. Preserve the
-exact Git status of every external working tree. Treat a change of that status as a failure.
+Never edit or commit tracked source in an external repository from this repository.
+For selected optional applications, manage only the azd environment lifecycle and ignored local configuration described above.
+Preserve the exact Git status of every external working tree. Treat a change of that status as a failure.
 
 ## Authentication
 

@@ -38,6 +38,12 @@ param(
 
     [string]$TokensAndCreditsRepoPath,
 
+    [ValidatePattern('^[a-z][a-z0-9-]{0,62}[a-z0-9]$')]
+    [string]$PatriotsEnvironmentName,
+
+    [ValidatePattern('^[a-z][a-z0-9-]{0,62}[a-z0-9]$')]
+    [string]$TokensAndCreditsEnvironmentName,
+
     # Legacy Patriots selection alias.
     [switch]$IncludePatriots,
 
@@ -64,6 +70,12 @@ param(
 
     [ValidatePattern('^[a-z0-9]+$')]
     [string]$CouncilLocation = 'swedencentral',
+
+    [ValidatePattern('^[a-z0-9]+$')]
+    [string]$PatriotsLocation = 'swedencentral',
+
+    [ValidatePattern('^[a-z0-9]+$')]
+    [string]$TokensAndCreditsLocation = 'swedencentral',
 
     [string]$SetupPath,
 
@@ -152,27 +164,39 @@ $locations = [ordered]@{
     Demo2 = $Demo2Location
     Demo3 = $CouncilLocation
     Demo4 = $HostedLocation
+    Patriots = $PatriotsLocation
+    TokensAndCredits = $TokensAndCreditsLocation
 }
 $demoReadyPhase = 'initializing'
 $environmentNames = Get-DemoReadyEnvironmentNames -BaseName $EnvironmentName
 $optionalCheckoutCreated = @{}
 $optionalCheckoutPaths = @{}
+$optionalAzdState = @{
+    patriots = New-DemoReadyOptionalAzdState
+    tokensAndCredits = New-DemoReadyOptionalAzdState
+}
 $processes = [Collections.Generic.List[object]]::new()
 $preservedProcesses = @()
 $processStateManaged = $false
 $sensitiveValues = [Collections.Generic.List[string]]::new()
+$previousReadiness = (Test-Path -LiteralPath $ReportPath -PathType Leaf) `
+    ? (Get-Content -LiteralPath $ReportPath -Raw | ConvertFrom-Json) `
+    : $null
 
-Write-DemoReadyJsonAtomic `
-    -Path $ReportPath `
-    -Value ([ordered]@{
-        version = 1
-        generatedAt = [DateTimeOffset]::UtcNow.ToString('O')
-        status = 'in-progress'
-        phase = $demoReadyPhase
-        environmentName = $EnvironmentName
-        environments = $environmentNames
-        selections = $selection
-    })
+if ($null -eq $previousReadiness) {
+    Write-DemoReadyJsonAtomic `
+        -Path $ReportPath `
+        -Value ([ordered]@{
+            version = 1
+            generatedAt = [DateTimeOffset]::UtcNow.ToString('O')
+            status = 'in-progress'
+            phase = $demoReadyPhase
+            environmentName = $EnvironmentName
+            subscriptionId = $SubscriptionId
+            environments = $environmentNames
+            selections = $selection
+        })
+}
 
 try {
     $demoReadyPhase = 'prerequisites'
@@ -185,6 +209,37 @@ try {
     $repositoryBaseline = Get-DemoReadyGitStatus -RepositoryPath $repositoryRoot
     $setupRepositories = Read-DemoReadySetupFile -Path $setupFilePath -SchemaPath $schemaPath
     $definitions = Get-DemoReadyExternalRepositoryDefinition
+    $guidedEnvironmentNames = [ordered]@{}
+    foreach ($entry in $environmentNames.GetEnumerator()) {
+        $guidedEnvironmentNames[$entry.Key] = $entry.Value
+    }
+    foreach ($optional in @(
+        [pscustomobject]@{
+            Key = 'Patriots'
+            Identity = 'patriots'
+            ParameterName = $PatriotsEnvironmentName
+        },
+        [pscustomobject]@{
+            Key = 'TokensAndCredits'
+            Identity = 'tokensAndCredits'
+            ParameterName = $TokensAndCreditsEnvironmentName
+        }
+    )) {
+        if (-not [string]::IsNullOrWhiteSpace([string]$optional.ParameterName)) {
+            $guidedEnvironmentNames[$optional.Key] = [string]$optional.ParameterName
+            continue
+        }
+        if ($setupRepositories.ContainsKey($optional.Identity) -and
+            -not [string]::IsNullOrWhiteSpace(
+                [string]$setupRepositories[$optional.Identity].AzdEnvironmentName)) {
+            $guidedEnvironmentNames[$optional.Key] =
+                [string]$setupRepositories[$optional.Identity].AzdEnvironmentName
+        }
+    }
+    $optionalAzdState['patriots']['azdEnvironmentName'] =
+        [string]$guidedEnvironmentNames.Patriots
+    $optionalAzdState['tokensAndCredits']['azdEnvironmentName'] =
+        [string]$guidedEnvironmentNames.TokensAndCredits
     if ((-not [string]::IsNullOrWhiteSpace($DefraEnvironmentName) -and
             $DefraEnvironmentName -cne $environmentNames.Demo2) -or
         (-not [string]::IsNullOrWhiteSpace($AssuranceBoardEnvironmentName) -and
@@ -225,10 +280,12 @@ try {
     $sensitiveValues.Add($principalId)
 
     if ($selectionResult.Guided) {
-        $selection = Read-DemoReadyGuidedSelection
+        $selection = Read-DemoReadyGuidedSelection `
+            -EnvironmentNames $guidedEnvironmentNames
         $locations = Read-DemoReadyGuidedLocations `
             -Selection $selection `
-            -Defaults $locations
+            -Defaults $locations `
+            -EnvironmentNames $guidedEnvironmentNames
     }
 
     Assert-DemoReadyAzdEnvironmentAccess `
@@ -238,21 +295,52 @@ try {
 
     $externalPlan = @(
         @(
-            [pscustomobject]@{ Key = 'Patriots'; Definition = $definitions.patriots; Path = $PatriotsRepoPath },
-            [pscustomobject]@{ Key = 'TokensAndCredits'; Definition = $definitions.tokensAndCredits; Path = $TokensAndCreditsRepoPath }
+            [pscustomobject]@{
+                Key = 'Patriots'
+                Definition = $definitions.patriots
+                Path = $PatriotsRepoPath
+                EnvironmentName = $PatriotsEnvironmentName
+                DefaultEnvironmentName = $environmentNames.Patriots
+            },
+            [pscustomobject]@{
+                Key = 'TokensAndCredits'
+                Definition = $definitions.tokensAndCredits
+                Path = $TokensAndCreditsRepoPath
+                EnvironmentName = $TokensAndCreditsEnvironmentName
+                DefaultEnvironmentName = $environmentNames.TokensAndCredits
+            }
         ) | Where-Object { $selection[$_.Key] } | ForEach-Object {
             Get-DemoReadyExternalPlanEntry `
                 -Definition $_.Definition `
                 -RepositoryRoot $repositoryRoot `
                 -ParameterPath $_.Path `
-                -SetupRepositories $setupRepositories
+                -SetupRepositories $setupRepositories `
+                -ParameterAzdEnvironmentName $_.EnvironmentName `
+                -DefaultAzdEnvironmentName $_.DefaultEnvironmentName `
+                -Location $locations[$_.Key] `
+                -SensitiveValues $sensitiveValues
         }
     )
     foreach ($entry in $externalPlan) {
         $identity = [string]$entry.Identity
         $optionalCheckoutCreated[$identity] = $false
         $optionalCheckoutPaths[$identity] = [string]$entry.Path
+        $optionalAzdState[$identity]['repositoryPath'] = [string]$entry.Path
+        $optionalAzdState[$identity]['azdEnvironmentName'] = [string]$entry.EnvironmentName
+        $optionalAzdState[$identity]['azdEnvironmentExisted'] = [bool]$entry.EnvironmentExists
     }
+    Restore-DemoReadyOptionalAzdOwnership `
+        -PreviousReport $previousReadiness `
+        -EnvironmentBaseName $EnvironmentName `
+        -SubscriptionId $SubscriptionId `
+        -ExternalPlan $externalPlan `
+        -State $optionalAzdState `
+        -CheckoutPaths $optionalCheckoutPaths `
+        -CheckoutCreated $optionalCheckoutCreated
+    Assert-DemoReadyEnvironmentNamesUnique `
+        -Selection $selection `
+        -EnvironmentNames $environmentNames `
+        -ExternalPlan $externalPlan
     $capacityPlan = Show-DemoReadyDeploymentPlan `
         -Selection $selection `
         -Locations $locations `
@@ -276,6 +364,7 @@ try {
             status = 'in-progress'
             phase = 'plan-confirmed'
             environmentName = $EnvironmentName
+            subscriptionId = $SubscriptionId
             environments = $environmentNames
             selections = $selection
             locations = $locations
@@ -283,10 +372,20 @@ try {
                 patriots = [ordered]@{
                     repositoryPath = $optionalCheckoutPaths['patriots']
                     clonedByThisRun = [bool]$optionalCheckoutCreated['patriots']
+                    azdEnvironmentName = $optionalAzdState['patriots']['azdEnvironmentName']
+                    azdEnvironmentExisted = $optionalAzdState['patriots']['azdEnvironmentExisted']
+                    azdEnvironmentManagedByThisRepository = [bool]$optionalAzdState['patriots']['azdEnvironmentManagedByThisRepository']
+                    azdEnvironmentCreatedByThisRun = [bool]$optionalAzdState['patriots']['azdEnvironmentCreatedByThisRun']
+                    azdEnvironmentDeployedByThisRun = [bool]$optionalAzdState['patriots']['azdEnvironmentDeployedByThisRun']
                 }
                 tokensAndCredits = [ordered]@{
                     repositoryPath = $optionalCheckoutPaths['tokensAndCredits']
                     clonedByThisRun = [bool]$optionalCheckoutCreated['tokensAndCredits']
+                    azdEnvironmentName = $optionalAzdState['tokensAndCredits']['azdEnvironmentName']
+                    azdEnvironmentExisted = $optionalAzdState['tokensAndCredits']['azdEnvironmentExisted']
+                    azdEnvironmentManagedByThisRepository = [bool]$optionalAzdState['tokensAndCredits']['azdEnvironmentManagedByThisRepository']
+                    azdEnvironmentCreatedByThisRun = [bool]$optionalAzdState['tokensAndCredits']['azdEnvironmentCreatedByThisRun']
+                    azdEnvironmentDeployedByThisRun = [bool]$optionalAzdState['tokensAndCredits']['azdEnvironmentDeployedByThisRun']
                 }
             }
         })
@@ -358,9 +457,11 @@ try {
         -RepositoryRoot $repositoryRoot `
         -ParameterPath $PatriotsRepoPath `
         -SetupRepositories $setupRepositories `
+        -ParameterAzdEnvironmentName $PatriotsEnvironmentName `
         -Selected:$selection.Patriots
     if ($null -ne $patriotsIntegration.Repository) {
         $optionalCheckoutPaths['patriots'] = $patriotsIntegration.Repository.Path
+        $optionalAzdState['patriots']['repositoryPath'] = $patriotsIntegration.Repository.Path
         $createdProperty = $patriotsIntegration.Repository.PSObject.Properties['CreatedByThisRun']
         $optionalCheckoutCreated['patriots'] =
             $null -ne $createdProperty -and [bool]$createdProperty.Value
@@ -369,9 +470,11 @@ try {
         -RepositoryRoot $repositoryRoot `
         -ParameterPath $TokensAndCreditsRepoPath `
         -SetupRepositories $setupRepositories `
+        -ParameterAzdEnvironmentName $TokensAndCreditsEnvironmentName `
         -Selected:$selection.TokensAndCredits
     if ($null -ne $tokensIntegration.Repository) {
         $optionalCheckoutPaths['tokensAndCredits'] = $tokensIntegration.Repository.Path
+        $optionalAzdState['tokensAndCredits']['repositoryPath'] = $tokensIntegration.Repository.Path
         $createdProperty = $tokensIntegration.Repository.PSObject.Properties['CreatedByThisRun']
         $optionalCheckoutCreated['tokensAndCredits'] =
             $null -ne $createdProperty -and [bool]$createdProperty.Value
@@ -411,6 +514,41 @@ try {
         $null = Initialize-DemoReadyAzdEnvironment `
             $contexts.Demo4 $environmentNames.Demo4 $locations.Demo4 $SubscriptionId $principalId
     }
+    if ($selection.Patriots) {
+        $demoReadyPhase = 'patriots-environment'
+        Initialize-DemoReadyExternalAzdEnvironment `
+            -Integration $patriotsIntegration `
+            -DefaultEnvironmentName $environmentNames.Patriots `
+            -Location $locations.Patriots `
+            -SubscriptionId $SubscriptionId `
+            -PrincipalId $principalId `
+            -State $optionalAzdState['patriots'] `
+            -SensitiveValues $sensitiveValues `
+            -UsePatriotsFoundryIqDefaults `
+            -LogPath (Join-Path $logRoot 'patriots-up.log')
+    }
+    if ($selection.TokensAndCredits) {
+        $demoReadyPhase = 'tokens-environment'
+        Initialize-DemoReadyExternalAzdEnvironment `
+            -Integration $tokensIntegration `
+            -DefaultEnvironmentName $environmentNames.TokensAndCredits `
+            -Location $locations.TokensAndCredits `
+            -SubscriptionId $SubscriptionId `
+            -PrincipalId $principalId `
+            -State $optionalAzdState['tokensAndCredits'] `
+            -SensitiveValues $sensitiveValues `
+            -LogPath (Join-Path $logRoot 'tokens-up.log')
+    }
+    foreach ($entry in $externalPlan) {
+        $state = $optionalAzdState[[string]$entry.Identity]
+        $entry.EnvironmentName = $state['azdEnvironmentName']
+        $entry.EnvironmentExists = [bool]$state['azdEnvironmentExisted']
+        $locationKey = [string]$entry.Identity -ceq 'patriots' ? 'Patriots' : 'TokensAndCredits'
+        $locations[$locationKey] = [string]$entry.Location
+    }
+    $capacityPlan = Get-DemoReadyModelCapacityPlan `
+        -Selection $selection `
+        -ExternalPlan $externalPlan
 
     $demo1Values = @{}
     $demo4Values = @{}
@@ -710,6 +848,7 @@ try {
         generatedAt = [DateTimeOffset]::UtcNow.ToString('O')
         status = 'ready'
         environmentName = $EnvironmentName
+        subscriptionId = $SubscriptionId
         environments = $environmentNames
         selections = $selection
         locations = $locations
@@ -721,22 +860,26 @@ try {
         external = [ordered]@{
             patriots = [ordered]@{
                 status = $patriotsIntegration.Status
-                repositoryPath = $null -eq $patriotsIntegration.Repository `
-                    ? $null `
-                    : $patriotsIntegration.Repository.Path
+                repositoryPath = $optionalAzdState['patriots']['repositoryPath']
                 managedByThisRepository = $selection.Patriots
                 clonedByThisRun = [bool]$optionalCheckoutCreated['patriots']
-                deployedByThisRepository = $false
+                azdEnvironmentName = $optionalAzdState['patriots']['azdEnvironmentName']
+                azdEnvironmentExisted = $optionalAzdState['patriots']['azdEnvironmentExisted']
+                azdEnvironmentManagedByThisRepository = [bool]$optionalAzdState['patriots']['azdEnvironmentManagedByThisRepository']
+                azdEnvironmentCreatedByThisRun = [bool]$optionalAzdState['patriots']['azdEnvironmentCreatedByThisRun']
+                azdEnvironmentDeployedByThisRun = [bool]$optionalAzdState['patriots']['azdEnvironmentDeployedByThisRun']
                 gitStatusPreserved = $patriotsIntegration.GitStatusPreserved
             }
             tokensAndCredits = [ordered]@{
                 status = $tokensIntegration.Status
-                repositoryPath = $null -eq $tokensIntegration.Repository `
-                    ? $null `
-                    : $tokensIntegration.Repository.Path
+                repositoryPath = $optionalAzdState['tokensAndCredits']['repositoryPath']
                 managedByThisRepository = $selection.TokensAndCredits
                 clonedByThisRun = [bool]$optionalCheckoutCreated['tokensAndCredits']
-                deployedByThisRepository = $false
+                azdEnvironmentName = $optionalAzdState['tokensAndCredits']['azdEnvironmentName']
+                azdEnvironmentExisted = $optionalAzdState['tokensAndCredits']['azdEnvironmentExisted']
+                azdEnvironmentManagedByThisRepository = [bool]$optionalAzdState['tokensAndCredits']['azdEnvironmentManagedByThisRepository']
+                azdEnvironmentCreatedByThisRun = [bool]$optionalAzdState['tokensAndCredits']['azdEnvironmentCreatedByThisRun']
+                azdEnvironmentDeployedByThisRun = [bool]$optionalAzdState['tokensAndCredits']['azdEnvironmentDeployedByThisRun']
                 gitStatusPreserved = $tokensIntegration.GitStatusPreserved
             }
         }
@@ -805,6 +948,45 @@ try {
     Write-Host ''
 }
 catch {
+    $preservePreviousReport = $false
+    if ($null -ne $previousReadiness) {
+        $previousEnvironment = $previousReadiness.PSObject.Properties['environmentName']
+        $previousSubscription = $previousReadiness.PSObject.Properties['subscriptionId']
+        $previousExternal = $previousReadiness.PSObject.Properties['external']
+        $subscriptionResolved = -not [string]::IsNullOrWhiteSpace($SubscriptionId)
+        $subscriptionMatches = $subscriptionResolved -and
+            $null -ne $previousSubscription -and
+            [string]$previousSubscription.Value -ceq $SubscriptionId
+        $preservePreviousReport = -not $subscriptionResolved
+        if ($null -ne $previousEnvironment -and
+            [string]$previousEnvironment.Value -ceq $EnvironmentName -and
+            $subscriptionMatches -and
+            $null -ne $previousExternal -and $null -ne $previousExternal.Value) {
+            foreach ($identity in @('patriots', 'tokensAndCredits')) {
+                $previousProperty = $previousExternal.Value.PSObject.Properties[$identity]
+                if ($null -eq $previousProperty) {
+                    continue
+                }
+                $previous = $previousProperty.Value
+                $createdProperty = $previous.PSObject.Properties['azdEnvironmentCreatedByThisRun']
+                if ($null -ne $createdProperty -and [bool]$createdProperty.Value) {
+                    $optionalAzdState[$identity]['repositoryPath'] = [string]$previous.repositoryPath
+                    $optionalAzdState[$identity]['azdEnvironmentName'] = [string]$previous.azdEnvironmentName
+                    $optionalAzdState[$identity]['azdEnvironmentExisted'] = $true
+                    $optionalAzdState[$identity]['azdEnvironmentManagedByThisRepository'] = $true
+                    $optionalAzdState[$identity]['azdEnvironmentCreatedByThisRun'] = $true
+                    $deployedProperty = $previous.PSObject.Properties['azdEnvironmentDeployedByThisRun']
+                    $optionalAzdState[$identity]['azdEnvironmentDeployedByThisRun'] =
+                        $null -ne $deployedProperty -and [bool]$deployedProperty.Value
+                }
+                $cloneProperty = $previous.PSObject.Properties['clonedByThisRun']
+                if ($null -ne $cloneProperty -and [bool]$cloneProperty.Value) {
+                    $optionalCheckoutPaths[$identity] = [string]$previous.repositoryPath
+                    $optionalCheckoutCreated[$identity] = $true
+                }
+            }
+        }
+    }
     if ($processStateManaged) {
         Write-DemoReadyJsonAtomic `
             -Path $processPath `
@@ -812,29 +994,42 @@ catch {
                 -Processes $processes `
                 -PreservedProcesses $preservedProcesses)
     }
-    Write-DemoReadyJsonAtomic `
-        -Path $ReportPath `
-        -Value ([ordered]@{
-            version = 1
-            generatedAt = [DateTimeOffset]::UtcNow.ToString('O')
-            status = 'failed'
-            phase = $demoReadyPhase
-            environmentName = $EnvironmentName
-            environments = $environmentNames
-            selections = $selection
-            locations = $locations
-            external = [ordered]@{
-                patriots = [ordered]@{
-                    repositoryPath = $optionalCheckoutPaths['patriots']
-                    clonedByThisRun = [bool]$optionalCheckoutCreated['patriots']
+    if (-not $preservePreviousReport) {
+        Write-DemoReadyJsonAtomic `
+            -Path $ReportPath `
+            -Value ([ordered]@{
+                version = 1
+                generatedAt = [DateTimeOffset]::UtcNow.ToString('O')
+                status = 'failed'
+                phase = $demoReadyPhase
+                environmentName = $EnvironmentName
+                subscriptionId = $SubscriptionId
+                environments = $environmentNames
+                selections = $selection
+                locations = $locations
+                external = [ordered]@{
+                    patriots = [ordered]@{
+                        repositoryPath = $optionalCheckoutPaths['patriots']
+                        clonedByThisRun = [bool]$optionalCheckoutCreated['patriots']
+                        azdEnvironmentName = $optionalAzdState['patriots']['azdEnvironmentName']
+                        azdEnvironmentExisted = $optionalAzdState['patriots']['azdEnvironmentExisted']
+                        azdEnvironmentManagedByThisRepository = [bool]$optionalAzdState['patriots']['azdEnvironmentManagedByThisRepository']
+                        azdEnvironmentCreatedByThisRun = [bool]$optionalAzdState['patriots']['azdEnvironmentCreatedByThisRun']
+                        azdEnvironmentDeployedByThisRun = [bool]$optionalAzdState['patriots']['azdEnvironmentDeployedByThisRun']
+                    }
+                    tokensAndCredits = [ordered]@{
+                        repositoryPath = $optionalCheckoutPaths['tokensAndCredits']
+                        clonedByThisRun = [bool]$optionalCheckoutCreated['tokensAndCredits']
+                        azdEnvironmentName = $optionalAzdState['tokensAndCredits']['azdEnvironmentName']
+                        azdEnvironmentExisted = $optionalAzdState['tokensAndCredits']['azdEnvironmentExisted']
+                        azdEnvironmentManagedByThisRepository = [bool]$optionalAzdState['tokensAndCredits']['azdEnvironmentManagedByThisRepository']
+                        azdEnvironmentCreatedByThisRun = [bool]$optionalAzdState['tokensAndCredits']['azdEnvironmentCreatedByThisRun']
+                        azdEnvironmentDeployedByThisRun = [bool]$optionalAzdState['tokensAndCredits']['azdEnvironmentDeployedByThisRun']
+                    }
                 }
-                tokensAndCredits = [ordered]@{
-                    repositoryPath = $optionalCheckoutPaths['tokensAndCredits']
-                    clonedByThisRun = [bool]$optionalCheckoutCreated['tokensAndCredits']
-                }
-            }
-            error = 'The demo-ready phase failed. Review the masked logs.'
-        })
+                error = 'The demo-ready phase failed. Review the masked logs.'
+            })
+    }
     Write-Host ''
     Write-DemoReadyStatus -Status 'no' -Message "The '$demoReadyPhase' phase failed." -MessageColor 'Red'
     Write-DemoReadyStatus -Status 'info' -Message "Masked logs: $logRoot"

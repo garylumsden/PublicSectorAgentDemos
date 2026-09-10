@@ -87,7 +87,7 @@ dotnet run --project .\src\PublicSectorAgentDemos.Demo3.Coordinate\src\Governanc
 
 Act and Demo 4 run in Azure.
 Start Patriots independently through its own repository if you need the optional comparison.
-Use `-IncludePatriots` or `-PatriotsRepoPath` with root startup to enable its link.
+Use `-Patriots` with `-PatriotsRepoPath`, or use `-IncludePatriots` with a stored path.
 The default catalog marks Patriots **Not configured** and disables its launch and warm-up.
 The five owned sessions represent four deployments; Foundation and Ground share Demo 1.
 
@@ -100,8 +100,9 @@ Startup discovers the external `tokens-and-credits` repository using this preced
 3. `repositories.tokensAndCredits.path` in the secret-free setup file
 4. A sibling folder named `tokens-and-credits`
 
-Use `scripts\DemoReady\repositories.example.json` as an example. Replace its placeholder path before use.
-No azd environment is required. Startup does not provision, deploy, or write external configuration.
+Use `scripts\DemoReady\repositories.example.json` as an example. Replace its placeholder paths and environment names before use.
+Startup reuses an existing optional azd environment without deployment.
+If no environment exists, startup creates one and runs the checkout's `azd up` workflow.
 Startup builds only `src\TokensAndCredits.Web\TokensAndCredits.Web.csproj`.
 It binds HTTP to `localhost:5041` without a launch profile.
 Existing configuration and environment values remain unchanged.
@@ -122,7 +123,8 @@ Startup never stops an unrecorded listener to free a port.
 The stop script manages Tokens and Credits only when its process record explicitly identifies this checkout as the owner.
 It retains the existing PID, creation-time, executable, command, and process-tree identity checks.
 It also recognizes exact council process records from before relocation without widening the permitted paths.
-Patriots remains link-only, even when an explicit stop name is supplied.
+Legacy unowned Patriots records remain protected.
+The current `external-patriots` record can stop only after exact optional ownership checks.
 
 ## Warm-up boundary
 

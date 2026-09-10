@@ -3,7 +3,7 @@
     Deterministic automation tests for the bundled demo orchestration contract.
 
 .DESCRIPTION
-    This repository owns four deployments and the Presenter. Patriots is external.
+    This repository owns four deployments and can manage two optional external deployments.
     These tests never deploy Azure resources and never modify an
     external repository. They mock every external command and write only under
     .demo-ready\tests.
@@ -135,7 +135,19 @@ function New-FakeExternalRepository {
 
     $null = New-Item -ItemType Directory -Path $Path -Force
     if (-not $OmitGit) {
-        $null = New-Item -ItemType Directory -Path (Join-Path $Path '.git') -Force
+        & git -C $Path init --quiet
+        if ($LASTEXITCODE -ne 0) {
+            throw "Git could not initialize the test repository '$Path'."
+        }
+    }
+    $repositoryUrlProperty = $Definition.PSObject.Properties['RepositoryUrl']
+    if ($null -ne $repositoryUrlProperty -and
+        (Test-Path -LiteralPath (Join-Path $Path '.git'))) {
+        & git -C $Path remote remove origin 2>$null
+        & git -C $Path remote add origin ([string]$repositoryUrlProperty.Value)
+        if ($LASTEXITCODE -ne 0) {
+            throw "Git could not set the test repository origin '$Path'."
+        }
     }
     foreach ($relativePath in $Definition.RequiredPaths) {
         if ($OmitPaths -contains $relativePath) {
@@ -297,6 +309,8 @@ Test-Case 'Startup exposes the external orchestration parameters' {
         '[string]$AssuranceBoardRepoPath',
         '[string]$PatriotsRepoPath',
         '[string]$TokensAndCreditsRepoPath',
+        '[string]$PatriotsEnvironmentName',
+        '[string]$TokensAndCreditsEnvironmentName',
         '[string]$DefraEnvironmentName',
         '[string]$AssuranceBoardEnvironmentName',
         '[string]$SetupPath'
@@ -320,6 +334,8 @@ Test-Case 'Startup exposes no validation-only parameter' {
         '[string]$SubscriptionId',
         '[string]$Demo1Location',
         '[string]$HostedLocation',
+        '[string]$PatriotsLocation',
+        '[string]$TokensAndCreditsLocation',
         '[string]$ReportPath'
     )) {
         Assert-True ($invokeSource.Contains($kept, [StringComparison]::Ordinal)) `
@@ -384,7 +400,7 @@ Test-Case 'Literal all parsing selects every supported demo and rejects other re
 
 Test-Case 'The centralized model plan reports exact deployment and capacity totals' {
         $catalog = Get-DemoReadyModelCapacityCatalog
-        Assert-Equal @($catalog.Keys).Count 4 'The capacity catalog must contain four Azure demos.'
+        Assert-Equal @($catalog.Keys).Count 6 'The capacity catalog must contain all Azure deployments.'
         $all = Get-DemoReadyModelCapacityPlan -Selection @{
             Demo1 = $true
             Demo2 = $true
@@ -408,14 +424,75 @@ Test-Case 'The centralized model plan reports exact deployment and capacity tota
         }
         Assert-Equal $subset.DeploymentCount 4 'The subset model deployment count is incorrect.'
         Assert-Equal $subset.AggregateCapacity 200 'The subset aggregate capacity is incorrect.'
+
+        $newOptional = Get-DemoReadyModelCapacityPlan `
+            -Selection @{
+                Demo1 = $false
+                Demo2 = $false
+                Demo3 = $false
+                Demo4 = $false
+                Patriots = $true
+                TokensAndCredits = $true
+            } `
+            -ExternalPlan @(
+                [pscustomobject]@{ Identity = 'patriots'; EnvironmentExists = $false },
+                [pscustomobject]@{ Identity = 'tokensAndCredits'; EnvironmentExists = $false }
+            )
+        Assert-Equal $newOptional.DeploymentCount 10 `
+            'The optional model deployment count is incorrect.'
+        Assert-Equal $newOptional.AggregateCapacity 2650 `
+            'The optional aggregate capacity is incorrect.'
+        Assert-Equal ($newOptional.Deployments | Where-Object {
+            $_.Demo -ceq 'Patriots' -and $_.Model -ceq 'grok-4.3'
+        }).Capacity 500 'The Patriots Grok capacity is incorrect.'
+        Assert-Equal ($newOptional.Deployments | Where-Object {
+            $_.Demo -ceq 'TokensAndCredits' -and $_.Model -ceq 'gpt-image-1.5'
+        }).Type 'Image' 'The Tokens image deployment type is incorrect.'
+
+        $reusedOptional = Get-DemoReadyModelCapacityPlan `
+            -Selection @{
+                Patriots = $true
+                TokensAndCredits = $true
+            } `
+            -ExternalPlan @(
+                [pscustomobject]@{ Identity = 'patriots'; EnvironmentExists = $true },
+                [pscustomobject]@{ Identity = 'tokensAndCredits'; EnvironmentExists = $true }
+            )
+        Assert-Equal $reusedOptional.DeploymentCount 0 `
+            'Reused optional environments added model quota to the plan.'
         foreach ($requiredText in @(
             'Capacity is requested deployment capacity',
+            'The unit depends on the model type',
             'Availability depends on the region and subscription quota',
             'Aggregate capacity/quota units'
         )) {
             Assert-True ($guidedSource.Contains($requiredText, [StringComparison]::Ordinal)) `
                 "The guided warning is missing '$requiredText'."
         }
+}
+
+Test-Case 'Selected deployment environment names cannot collide' {
+    $selection = [ordered]@{
+        Demo1 = $true
+        Demo2 = $false
+        Demo3 = $false
+        Demo4 = $false
+        Patriots = $true
+        TokensAndCredits = $false
+    }
+    $names = Get-DemoReadyEnvironmentNames -BaseName 'psad-demos'
+    Assert-Throws `
+        -Action {
+            Assert-DemoReadyEnvironmentNamesUnique `
+                -Selection $selection `
+                -EnvironmentNames $names `
+                -ExternalPlan @([pscustomobject]@{
+                    EnvironmentName = $names.Demo1
+                    DisplayName = 'Patriots'
+                })
+        } `
+        -ExpectedFragment 'assigned to more than one deployment' `
+        -Message 'A duplicate optional environment name was accepted.'
 }
 
 Test-Case 'The console renderer keeps every glyph and table cell aligned' {
@@ -475,14 +552,21 @@ Test-Case 'The plan summary reports environments, resource groups, actions, and 
         Demo2 = 'swedencentral'
         Demo3 = 'swedencentral'
         Demo4 = 'swedencentral'
+        Patriots = 'swedencentral'
+        TokensAndCredits = 'swedencentral'
     }
     $environmentNames = Get-DemoReadyEnvironmentNames -BaseName 'psad-demos'
     $external = @([pscustomobject]@{
+        Identity = 'patriots'
         DisplayName = 'Patriots council (azure-ai-mgs-patriots)'
         Path = 'C:\repos\azure-ai-mgs-patriots'
         PathSource = 'sibling folder'
         Present = $false
         Action = 'Clone https://github.com/garylumsden/azure-ai-mgs-patriots.git'
+        EnvironmentName = 'psad-demos-patriots'
+        EnvironmentExists = $false
+        Location = 'swedencentral'
+        AzureAction = 'Create the azd environment and deploy it with azd up.'
     })
 
     $plan = $null
@@ -501,7 +585,7 @@ Test-Case 'The plan summary reports environments, resource groups, actions, and 
     $plan = $script:planResult
     $text = $rendered -join "`n"
 
-    Assert-Equal $plan.DeploymentCount 8 'The plan capacity count is incorrect for the selection.'
+    Assert-Equal $plan.DeploymentCount 13 'The plan capacity count is incorrect for the selection.'
     foreach ($required in @(
         'Demo subscription',
         '********-1234',
@@ -514,6 +598,9 @@ Test-Case 'The plan summary reports environments, resource groups, actions, and 
         'http://localhost:5081/',
         'http://localhost:5088/',
         'Clone https://github.com/garylumsden/azure-ai-mgs-patriots.git',
+        'psad-demos-patriots',
+        'Create the azd environment and deploy it with azd up.',
+        'grok-4.3',
         'No Azure resource is deleted',
         'scripts\Test-DemoReady.ps1'
     )) {
@@ -556,33 +643,86 @@ Test-Case 'External plan entries report reuse and clone intent without changing 
     $workspace = New-TestDirectory -Name 'external-plan-entry'
     $repositoryRoot = Join-Path $workspace 'PublicSectorAgentDemos'
     $null = New-Item -ItemType Directory -Path $repositoryRoot -Force
-    $existing = Join-Path $workspace 'tokens-and-credits'
-    $null = New-Item -ItemType Directory -Path $existing -Force
+    $existing = New-FakeExternalRepository `
+        -Path (Join-Path $workspace 'tokens-and-credits') `
+        -Definition $definitions.tokensAndCredits
+    $existingPatriots = New-FakeExternalRepository `
+        -Path (Join-Path $workspace 'configured-patriots') `
+        -Definition $definitions.patriots
 
-    $reuse = Get-DemoReadyExternalPlanEntry `
-        -Definition $definitions.tokensAndCredits `
-        -RepositoryRoot $repositoryRoot `
-        -SetupRepositories @{}
-    Assert-True $reuse.Present 'An existing sibling checkout was not detected.'
-    Assert-Equal $reuse.Action 'Use the existing checkout' 'An existing checkout was not reused.'
-    Assert-Equal $reuse.PathSource 'sibling folder' 'The reuse path source is incorrect.'
+    Invoke-WithMockedFunction `
+        -Functions @{
+            'Get-DemoReadyAzdEnvironments' = {
+                return @([pscustomobject]@{ Name = 'existing-tokens'; IsDefault = $true })
+            }
+            'Get-DemoReadyAzdValues' = {
+                return @{ AZURE_LOCATION = 'switzerlandnorth' }
+            }
+        } `
+        -Action {
+            $reuse = Get-DemoReadyExternalPlanEntry `
+                -Definition $definitions.tokensAndCredits `
+                -RepositoryRoot $repositoryRoot `
+                -SetupRepositories @{} `
+                -DefaultAzdEnvironmentName 'psad-demos-tokens' `
+                -Location 'swedencentral'
+            Assert-True $reuse.Present 'An existing sibling checkout was not detected.'
+            Assert-Equal $reuse.Action 'Use the existing checkout' 'An existing checkout was not reused.'
+            Assert-Equal $reuse.PathSource 'sibling folder' 'The reuse path source is incorrect.'
+            Assert-Equal $reuse.EnvironmentName 'existing-tokens' `
+                'The existing default environment was not selected.'
+            Assert-True $reuse.EnvironmentExists 'An existing environment was reported as new.'
+            Assert-Equal $reuse.Location 'switzerlandnorth' `
+                'The existing environment plan reported the requested location instead of its azd location.'
 
-    $clone = Get-DemoReadyExternalPlanEntry `
-        -Definition $definitions.patriots `
-        -RepositoryRoot $repositoryRoot `
-        -SetupRepositories @{}
-    Assert-True (-not $clone.Present) 'An absent checkout was reported as present.'
-    Assert-True ($clone.Action.StartsWith('Clone ', [StringComparison]::Ordinal)) `
-        'An absent sibling checkout is not planned for cloning.'
-    Assert-True (-not (Test-Path -LiteralPath $clone.Path)) `
-        'The plan created the external checkout.'
+            $clone = Get-DemoReadyExternalPlanEntry `
+                -Definition $definitions.patriots `
+                -RepositoryRoot $repositoryRoot `
+                -SetupRepositories @{} `
+                -DefaultAzdEnvironmentName 'psad-demos-patriots' `
+                -Location 'swedencentral'
+            Assert-True (-not $clone.Present) 'An absent checkout was reported as present.'
+            Assert-True ($clone.Action.StartsWith('Clone ', [StringComparison]::Ordinal)) `
+                'An absent sibling checkout is not planned for cloning.'
+            Assert-Equal $clone.EnvironmentName 'psad-demos-patriots' `
+                'The absent checkout did not receive its deterministic environment name.'
+            Assert-True (-not $clone.EnvironmentExists) `
+                'The absent checkout was reported with an existing environment.'
+            Assert-True (-not (Test-Path -LiteralPath $clone.Path)) `
+                'The plan created the external checkout.'
 
-    $configured = Get-DemoReadyExternalPlanEntry `
-        -Definition $definitions.patriots `
-        -RepositoryRoot $repositoryRoot `
-        -SetupRepositories @{ patriots = [pscustomobject]@{ Path = $existing } }
-    Assert-Equal $configured.PathSource 'setup file' 'The setup file did not take precedence.'
-    Assert-Equal $configured.Path $existing 'The configured path was not used.'
+            $configured = Get-DemoReadyExternalPlanEntry `
+                -Definition $definitions.patriots `
+                -RepositoryRoot $repositoryRoot `
+                -SetupRepositories @{
+                    patriots = [pscustomobject]@{
+                        Path = $existingPatriots
+                        AzdEnvironmentName = 'existing-tokens'
+                    }
+                } `
+                -DefaultAzdEnvironmentName 'psad-demos-patriots' `
+                -Location 'swedencentral'
+            Assert-Equal $configured.PathSource 'setup file' 'The setup file did not take precedence.'
+            Assert-Equal $configured.Path $existingPatriots 'The configured path was not used.'
+            Assert-Equal $configured.EnvironmentName 'existing-tokens' `
+                'The configured environment was not selected.'
+
+            $staleSetup = Get-DemoReadyExternalPlanEntry `
+                -Definition $definitions.patriots `
+                -RepositoryRoot $repositoryRoot `
+                -SetupRepositories @{
+                    patriots = [pscustomobject]@{
+                        Path = (Join-Path $workspace 'removed-patriots')
+                        AzdEnvironmentName = ''
+                    }
+                } `
+                -DefaultAzdEnvironmentName 'psad-demos-patriots' `
+                -Location 'swedencentral'
+            Assert-Equal $staleSetup.Path (Join-Path $workspace 'azure-ai-mgs-patriots') `
+                'The stale setup plan did not use the clone destination.'
+            Assert-True ($staleSetup.Action.StartsWith('Clone ', [StringComparison]::Ordinal)) `
+                'The stale setup plan did not report the clone action.'
+        }
 }
 
 Test-Case 'Interactive helpers apply defaults, validate input, and mask subscription identifiers' {
@@ -625,6 +765,62 @@ Test-Case 'Interactive helpers apply defaults, validate input, and mask subscrip
                     '11111111-1111-1111-1111-111111111234',
                     [StringComparison]::Ordinal)) 'The displayed subscription identifier was not masked.'
             }
+}
+
+Test-Case 'Guided optional location prompts show the configured azd environment name' {
+    $script:selectionPrompts = [Collections.Generic.List[string]]::new()
+    $answers = [Collections.Generic.Queue[string]]::new()
+    foreach ($answer in @('n', 'n', 'n', 'n', 'y', 'n')) {
+        $answers.Enqueue($answer)
+    }
+    $selection = Read-DemoReadyGuidedSelection `
+        -EnvironmentNames ([ordered]@{
+            Patriots = 'configured-patriots'
+            TokensAndCredits = 'configured-tokens'
+        }) `
+        -InputProvider {
+            param($Prompt)
+            $script:selectionPrompts.Add($Prompt)
+            return $answers.Dequeue()
+        }
+    Assert-True $selection.Patriots 'The guided fixture did not select Patriots.'
+    Assert-True (@($script:selectionPrompts | Where-Object {
+                $_.Contains('configured-patriots', [StringComparison]::Ordinal)
+            }).Count -eq 1) `
+        'The guided optional selection prompt omitted the configured environment name.'
+
+    $script:guidedPrompt = ''
+    $locations = Read-DemoReadyGuidedLocations `
+        -Selection ([ordered]@{
+            Demo1 = $false
+            Demo2 = $false
+            Demo3 = $false
+            Demo4 = $false
+            Patriots = $true
+            TokensAndCredits = $false
+        }) `
+        -Defaults ([ordered]@{
+            Demo1 = 'swedencentral'
+            Demo2 = 'swedencentral'
+            Demo3 = 'swedencentral'
+            Demo4 = 'swedencentral'
+            Patriots = 'switzerlandnorth'
+            TokensAndCredits = 'swedencentral'
+        }) `
+        -EnvironmentNames ([ordered]@{
+            Patriots = 'configured-patriots'
+        }) `
+        -InputProvider {
+            param($Prompt)
+            $script:guidedPrompt = $Prompt
+            return ''
+        }
+    Assert-Equal $locations.Patriots 'switzerlandnorth' `
+        'The guided optional location default changed.'
+    Assert-True ($script:guidedPrompt.Contains(
+            'configured-patriots',
+            [StringComparison]::Ordinal)) `
+        'The guided optional location prompt omitted the configured environment name.'
 }
 
 Test-Case 'Guided step numbers match the exact order that startup performs them' {
@@ -910,19 +1106,19 @@ Test-Case 'Parameter validation rejects an unsafe environment name' {
     Assert-True ($LASTEXITCODE -ne 0) 'The unsafe environment name was accepted.'
 }
 
-Test-Case 'Owned environment names cover four isolated deployments' {
+Test-Case 'Environment names cover owned and deterministic optional deployments' {
     $names = Get-DemoReadyEnvironmentNames -BaseName 'conference-demo'
-    Assert-Equal @($names.Keys).Count 4 'The owned environment set must contain four demos.'
+    Assert-Equal @($names.Keys).Count 6 'The environment set must contain six demos.'
     Assert-Equal $names.Demo1 'conference-demo-demo1' 'The Demo 1 environment name is incorrect.'
     Assert-Equal $names.Demo4 'conference-demo-demo4' 'The Demo 4 environment name is incorrect.'
     Assert-Equal $names.Demo2 'conference-demo-demo2' 'The Demo 2 environment name is incorrect.'
     Assert-Equal $names.Demo3 'conference-demo-demo3' 'The Demo 3 environment name is incorrect.'
+    Assert-Equal $names.Patriots 'conference-demo-patriots' `
+        'The Patriots environment name is incorrect.'
+    Assert-Equal $names.TokensAndCredits 'conference-demo-tokens' `
+        'The Tokens and Credits environment name is incorrect.'
     foreach ($name in $names.Values) {
         Assert-True ($name.Length -le 32) 'An azd environment name exceeds 32 characters.'
-        foreach ($forbidden in @('coordinate', 'act', 'patriots', 'defra')) {
-            Assert-True (-not $name.Contains($forbidden, [StringComparison]::OrdinalIgnoreCase)) `
-                "The owned environment name '$name' claims an external demo."
-        }
     }
 }
 
@@ -954,6 +1150,10 @@ Test-Case 'Definitions retain legacy keys and identify bundled defaults' {
     Assert-Equal $definitions.tokensAndCredits.RepositoryUrl `
         'https://github.com/garylumsden/tokens-and-credits.git' `
         'The Tokens and Credits clone URL is not the approved repository.'
+    Assert-True ($definitions.patriots.RequiredPaths -contains 'azure.yaml') `
+        'Patriots validation does not require its azd project.'
+    Assert-True ($definitions.tokensAndCredits.RequiredPaths -contains 'azure.yaml') `
+        'Tokens and Credits validation does not require its azd project.'
 }
 
 Test-Case 'Optional repositories are never resolved or cloned when unselected' {
@@ -1078,6 +1278,61 @@ Test-Case 'Selected optional repositories fall back from a stale setup path to t
     }
 }
 
+Test-Case 'Optional repository origin must match the approved GitHub repository' {
+    $workspace = New-TestDirectory -Name 'external-origin'
+    $definition = $definitions.patriots
+    $repositoryPath = New-FakeExternalRepository `
+        -Path (Join-Path $workspace $definition.FolderName) `
+        -Definition $definition
+    Assert-DemoReadyExternalRepositoryOrigin `
+        -RepositoryPath $repositoryPath `
+        -ExpectedRepositoryUrl $definition.RepositoryUrl `
+        -DisplayName $definition.DisplayName
+
+    & git -C $repositoryPath remote set-url origin 'https://github.com/example/untrusted.git'
+    Assert-Throws `
+        -Action {
+            Assert-DemoReadyExternalRepositoryOrigin `
+                -RepositoryPath $repositoryPath `
+                -ExpectedRepositoryUrl $definition.RepositoryUrl `
+                -DisplayName $definition.DisplayName
+        } `
+        -ExpectedFragment 'does not match the approved repository' `
+        -Message 'An untrusted optional checkout origin was accepted.'
+}
+
+Test-Case 'Optional plan rejects an unapproved origin before azd inspection' {
+    $workspace = New-TestDirectory -Name 'plan-origin-order'
+    $definition = $definitions.patriots
+    $repositoryRoot = New-GitRepository -Path (Join-Path $workspace 'main')
+    $repositoryPath = New-FakeExternalRepository `
+        -Path (Join-Path $workspace $definition.FolderName) `
+        -Definition $definition
+    & git -C $repositoryPath remote set-url origin 'https://github.com/example/untrusted.git'
+    $script:azdInspections = 0
+    Invoke-WithMockedFunction `
+        -Functions @{
+            'Get-DemoReadyAzdEnvironments' = {
+                $script:azdInspections++
+                return @()
+            }
+        } `
+        -Action {
+            Assert-Throws `
+                -Action {
+                    Get-DemoReadyExternalPlanEntry `
+                        -Definition $definition `
+                        -RepositoryRoot $repositoryRoot `
+                        -DefaultAzdEnvironmentName 'psad-demos-patriots' `
+                        -Location 'swedencentral'
+                } `
+                -ExpectedFragment 'does not match the approved repository' `
+                -Message 'The plan accepted an unapproved optional checkout.'
+        }
+    Assert-Equal $script:azdInspections 0 `
+        'The plan ran azd inside an unapproved optional checkout.'
+}
+
 Test-Case 'External clone validation rejects existing and incomplete destinations' {
     $workspace = New-TestDirectory -Name 'clone-validation'
     $repositoryRoot = Join-Path $workspace 'PublicSectorAgentDemos'
@@ -1112,7 +1367,7 @@ Test-Case 'External clone validation rejects existing and incomplete destination
                         -Definition $definition `
                         -RepositoryRoot $repositoryRoot
                 } `
-                -ExpectedFragment "is missing 'src\GovernanceCouncil.Web\GovernanceCouncil.Web.csproj'" `
+                -ExpectedFragment "is missing 'azure.yaml'" `
                 -Message 'An incomplete cloned repository was accepted.'
         }
 }
@@ -1327,18 +1582,24 @@ Test-Case 'The setup file supplies paths and an azd environment name' {
     "assuranceBoard": {
       "path": "C:\\demo\\cross-gov-assurance-board-demo",
       "azdEnvironment": "assurance-demo"
-    }
+  },
+  "tokensAndCredits": {
+    "path": "C:\\demo\\tokens-and-credits",
+    "azdEnvironment": "tokens-demo"
+  }
   }
 }
 '@
     $path = New-TestFile -Path (Join-Path $workspace 'repositories.local.json') -Content $content
     $repositories = Read-DemoReadySetupFile -Path $path -SchemaPath $schemaPath
-    Assert-Equal @($repositories.Keys).Count 2 'The setup file did not resolve both repositories.'
+    Assert-Equal @($repositories.Keys).Count 3 'The setup file did not resolve all repositories.'
     Assert-Equal $repositories['defra'].Path 'C:\demo\DEFRA-AI-Demos' 'The Act path is incorrect.'
     Assert-Equal $repositories['defra'].AzdEnvironmentName '' `
         'An omitted azd environment did not stay empty.'
     Assert-Equal $repositories['assuranceBoard'].AzdEnvironmentName 'assurance-demo' `
         'The setup-file azd environment name is incorrect.'
+    Assert-Equal $repositories['tokensAndCredits'].AzdEnvironmentName 'tokens-demo' `
+        'The Tokens and Credits azd environment name is incorrect.'
 }
 
 Test-Case 'A parameter overrides the setup-file azd environment' {
@@ -1430,6 +1691,331 @@ Test-Case 'External azd environment resolution handles missing, default, and amb
         }
 }
 
+Test-Case 'Existing optional environments are selected without deployment or environment writes' {
+    foreach ($fixture in @(
+        [pscustomobject]@{
+            Identity = 'patriots'
+            DisplayName = 'Patriots'
+            ConfiguredName = ''
+            Environments = @([pscustomobject]@{ Name = 'patriots-existing'; IsDefault = $true })
+            ExpectedName = 'patriots-existing'
+        },
+        [pscustomobject]@{
+            Identity = 'tokensAndCredits'
+            DisplayName = 'Tokens and Credits'
+            ConfiguredName = 'tokens-selected'
+            Environments = @(
+                [pscustomobject]@{ Name = 'tokens-default'; IsDefault = $true },
+                [pscustomobject]@{ Name = 'tokens-selected'; IsDefault = $false }
+            )
+            ExpectedName = 'tokens-selected'
+        }
+    )) {
+        $script:optionalAzdCalls = [Collections.Generic.List[object]]::new()
+        $script:optionalAzdWrites = [Collections.Generic.List[object]]::new()
+        $state = New-DemoReadyOptionalAzdState
+        $integration = [pscustomobject]@{
+            Status = 'discovered'
+            Repository = [pscustomobject]@{
+                Identity = $fixture.Identity
+                DisplayName = $fixture.DisplayName
+                Path = $root
+                AzdEnvironmentName = $fixture.ConfiguredName
+            }
+        }
+        Invoke-WithMockedFunction `
+            -Functions @{
+                'Get-DemoReadyAzdEnvironments' = {
+                    param($ContextPath, $SensitiveValues)
+                    return $fixture.Environments
+                }
+                'Get-DemoReadyAzdValues' = {
+                    param($ContextPath, $EnvironmentName, $SensitiveValues)
+                    return @{ AZURE_LOCATION = 'switzerlandnorth' }
+                }
+                'Invoke-DemoReadyAzd' = {
+                    param(
+                        $Arguments, $WorkingDirectory, $LogPath, $SensitiveValues,
+                        [switch]$CaptureOutput, [switch]$PreserveCapturedOutput, [switch]$Quiet
+                    )
+                    $script:optionalAzdCalls.Add([pscustomobject]@{
+                        Arguments = @($Arguments)
+                        WorkingDirectory = $WorkingDirectory
+                    })
+                }
+                'Set-DemoReadyAzdValue' = {
+                    param($ContextPath, $EnvironmentName, $Name, $Value, $SensitiveValues)
+                    $script:optionalAzdWrites.Add([pscustomobject]@{ Name = $Name; Value = $Value })
+                }
+            } `
+            -Action {
+                Initialize-DemoReadyExternalAzdEnvironment `
+                    -Integration $integration `
+                    -DefaultEnvironmentName "psad-demos-$($fixture.Identity)" `
+                    -Location 'swedencentral' `
+                    -SubscriptionId '11111111-1111-1111-1111-111111111111' `
+                    -PrincipalId '22222222-2222-2222-2222-222222222222' `
+                    -State $state
+            }
+        Assert-Equal $state.azdEnvironmentName $fixture.ExpectedName `
+            'The existing optional environment name is incorrect.'
+        Assert-True $state.azdEnvironmentExisted `
+            'The existing optional environment lost its provenance.'
+        Assert-True (-not $state.azdEnvironmentCreatedByThisRun) `
+            'The existing optional environment was marked as created.'
+        Assert-True (-not $state.azdEnvironmentDeployedByThisRun) `
+            'The existing optional environment was marked as deployed.'
+        Assert-Equal $script:optionalAzdCalls.Count 1 `
+            'Existing optional environment handling ran more than one azd command.'
+        Assert-Equal ($script:optionalAzdCalls[0].Arguments -join '|') `
+            "env|select|$($fixture.ExpectedName)|--no-prompt" `
+            'Existing optional environment handling did not only select the environment.'
+        Assert-Equal $script:optionalAzdWrites.Count 0 `
+            'Existing optional environment handling changed azd values.'
+    }
+}
+
+Test-Case 'Any existing optional environment prevents blind creation and deployment' {
+    $integration = [pscustomobject]@{
+        Status = 'discovered'
+        Repository = [pscustomobject]@{
+            Identity = 'patriots'
+            DisplayName = 'Patriots'
+            Path = $root
+            AzdEnvironmentName = 'configured-missing'
+        }
+    }
+    $script:optionalAzdCalls = [Collections.Generic.List[object]]::new()
+    Invoke-WithMockedFunction `
+        -Functions @{
+            'Get-DemoReadyAzdEnvironments' = {
+                return @([pscustomobject]@{ Name = 'some-existing'; IsDefault = $true })
+            }
+            'Invoke-DemoReadyAzd' = {
+                param($Arguments)
+                $script:optionalAzdCalls.Add(@($Arguments))
+            }
+        } `
+        -Action {
+            Assert-Throws `
+                -Action {
+                    Initialize-DemoReadyExternalAzdEnvironment `
+                        -Integration $integration `
+                        -DefaultEnvironmentName 'psad-demos-patriots' `
+                        -Location 'swedencentral' `
+                        -SubscriptionId '11111111-1111-1111-1111-111111111111' `
+                        -PrincipalId '22222222-2222-2222-2222-222222222222' `
+                        -State (New-DemoReadyOptionalAzdState)
+                } `
+                -ExpectedFragment "has no azd environment named 'configured-missing'" `
+                -Message 'A missing configured environment triggered blind creation.'
+        }
+    Assert-Equal $script:optionalAzdCalls.Count 0 `
+        'An existing environment still allowed an azd write or deployment command.'
+}
+
+Test-Case 'New optional environments use deterministic targets and deploy through azd up' {
+    foreach ($fixture in @(
+        [pscustomobject]@{
+            Identity = 'patriots'
+            DisplayName = 'Patriots'
+            DefaultName = 'psad-demos-patriots'
+            ConfiguredName = ''
+            Location = 'switzerlandnorth'
+            PatriotsDefaults = $true
+        },
+        [pscustomobject]@{
+            Identity = 'tokensAndCredits'
+            DisplayName = 'Tokens and Credits'
+            DefaultName = 'psad-demos-tokens'
+            ConfiguredName = 'configured-tokens'
+            Location = 'swedencentral'
+            PatriotsDefaults = $false
+        }
+    )) {
+        $script:optionalAzdCalls = [Collections.Generic.List[object]]::new()
+        $script:optionalAzdWrites = @{}
+        $state = New-DemoReadyOptionalAzdState
+        $integration = [pscustomobject]@{
+            Status = 'discovered'
+            Repository = [pscustomobject]@{
+                Identity = $fixture.Identity
+                DisplayName = $fixture.DisplayName
+                Path = $root
+                AzdEnvironmentName = $fixture.ConfiguredName
+            }
+        }
+        Invoke-WithMockedFunction `
+            -Functions @{
+                'Get-DemoReadyAzdEnvironments' = { return @() }
+                'Invoke-DemoReadyAzd' = {
+                    param(
+                        $Arguments, $WorkingDirectory, $LogPath, $SensitiveValues,
+                        [switch]$CaptureOutput, [switch]$PreserveCapturedOutput, [switch]$Quiet
+                    )
+                    $script:optionalAzdCalls.Add([pscustomobject]@{
+                        Arguments = @($Arguments)
+                        WorkingDirectory = $WorkingDirectory
+                    })
+                }
+                'Set-DemoReadyAzdValue' = {
+                    param($ContextPath, $EnvironmentName, $Name, $Value, $SensitiveValues)
+                    $script:optionalAzdWrites[$Name] = $Value
+                }
+            } `
+            -Action {
+                Initialize-DemoReadyExternalAzdEnvironment `
+                    -Integration $integration `
+                    -DefaultEnvironmentName $fixture.DefaultName `
+                    -Location $fixture.Location `
+                    -SubscriptionId '11111111-1111-1111-1111-111111111111' `
+                    -PrincipalId '22222222-2222-2222-2222-222222222222' `
+                    -State $state `
+                    -UsePatriotsFoundryIqDefaults:$fixture.PatriotsDefaults
+            }
+        $expectedName = [string]::IsNullOrWhiteSpace($fixture.ConfiguredName) `
+            ? $fixture.DefaultName `
+            : $fixture.ConfiguredName
+        Assert-Equal $state.azdEnvironmentName $expectedName `
+            'The new optional environment name is incorrect.'
+        Assert-True (-not $state.azdEnvironmentExisted) `
+            'The new optional environment was reported as existing.'
+        Assert-True $state.azdEnvironmentManagedByThisRepository `
+            'The new optional environment ownership was not recorded.'
+        Assert-True $state.azdEnvironmentCreatedByThisRun `
+            'The new optional environment creation was not recorded.'
+        Assert-True $state.azdEnvironmentDeployedByThisRun `
+            'The new optional environment deployment was not recorded.'
+
+        $newCall = @($script:optionalAzdCalls | Where-Object { $_.Arguments[1] -ceq 'new' })
+        $upCall = @($script:optionalAzdCalls | Where-Object { $_.Arguments[0] -ceq 'up' })
+        Assert-Equal $newCall.Count 1 'The optional environment was not created exactly once.'
+        Assert-Equal $upCall.Count 1 'The optional environment did not run azd up exactly once.'
+        Assert-Equal ($upCall[0].Arguments -join '|') "up|--environment|$expectedName|--no-prompt" `
+            'The optional deployment did not target the created environment.'
+        foreach ($expectedArgument in @(
+            $expectedName,
+            '--subscription',
+            '11111111-1111-1111-1111-111111111111',
+            '--location',
+            $fixture.Location
+        )) {
+            Assert-True ($newCall[0].Arguments -contains $expectedArgument) `
+                "The environment creation omits '$expectedArgument'."
+        }
+        Assert-Equal $script:optionalAzdWrites.AZURE_SUBSCRIPTION_ID `
+            '11111111-1111-1111-1111-111111111111' `
+            'The optional environment did not retain the confirmed subscription.'
+        Assert-Equal $script:optionalAzdWrites.AZURE_LOCATION $fixture.Location `
+            'The optional environment did not retain the selected location.'
+        Assert-Equal $script:optionalAzdWrites.AZURE_PRINCIPAL_ID `
+            '22222222-2222-2222-2222-222222222222' `
+            'The optional environment did not retain the confirmed principal.'
+        if ($fixture.PatriotsDefaults) {
+            Assert-Equal $script:optionalAzdWrites.COUNCIL_GROUNDING_PROVIDER 'foundryiq' `
+                'A new Patriots environment did not use Foundry IQ.'
+            Assert-Equal $script:optionalAzdWrites.WEBIQ_CONNECTION_NAME '' `
+                'A new Patriots environment retained a Web IQ connection.'
+            Assert-Equal $script:optionalAzdWrites.WEBIQ_API_KEY '' `
+                'A new Patriots environment retained a Web IQ key.'
+        }
+    }
+}
+
+Test-Case 'Optional Azure ownership survives a later environment reuse' {
+    $path = 'C:\fixtures\azure-ai-mgs-patriots'
+    $previous = [pscustomobject]@{
+        environmentName = 'psad-demos'
+        subscriptionId = '11111111-1111-1111-1111-111111111111'
+        external = [pscustomobject]@{
+            patriots = [pscustomobject]@{
+                repositoryPath = $path
+                azdEnvironmentName = 'psad-demos-patriots'
+                azdEnvironmentManagedByThisRepository = $true
+                azdEnvironmentCreatedByThisRun = $true
+                azdEnvironmentDeployedByThisRun = $true
+            }
+        }
+    }
+    $state = @{
+        patriots = New-DemoReadyOptionalAzdState
+        tokensAndCredits = New-DemoReadyOptionalAzdState
+    }
+    Restore-DemoReadyOptionalAzdOwnership `
+        -PreviousReport $previous `
+        -EnvironmentBaseName 'psad-demos' `
+        -SubscriptionId '11111111-1111-1111-1111-111111111111' `
+        -ExternalPlan @([pscustomobject]@{
+            Identity = 'patriots'
+            EnvironmentName = 'psad-demos-patriots'
+            EnvironmentExists = $true
+            Path = $path
+        }) `
+        -State $state `
+        -CheckoutPaths @{} `
+        -CheckoutCreated @{}
+    Assert-True $state.patriots.azdEnvironmentManagedByThisRepository `
+        'A later reuse lost repository ownership of the optional Azure environment.'
+    Assert-True $state.patriots.azdEnvironmentCreatedByThisRun `
+        'A later reuse lost the teardown eligibility of the optional Azure environment.'
+}
+
+Test-Case 'Optional Azure ownership survives a later unselected startup' {
+    $path = 'C:\fixtures\tokens-and-credits'
+    $previous = [pscustomobject]@{
+        environmentName = 'psad-demos'
+        subscriptionId = '11111111-1111-1111-1111-111111111111'
+        external = [pscustomobject]@{
+            tokensAndCredits = [pscustomobject]@{
+                repositoryPath = $path
+                clonedByThisRun = $true
+                azdEnvironmentName = 'psad-demos-tokens'
+                azdEnvironmentManagedByThisRepository = $true
+                azdEnvironmentCreatedByThisRun = $true
+                azdEnvironmentDeployedByThisRun = $true
+            }
+        }
+    }
+    $state = @{
+        patriots = New-DemoReadyOptionalAzdState
+        tokensAndCredits = New-DemoReadyOptionalAzdState
+    }
+    $paths = @{}
+    $created = @{}
+    Restore-DemoReadyOptionalAzdOwnership `
+        -PreviousReport $previous `
+        -EnvironmentBaseName 'psad-demos' `
+        -SubscriptionId '11111111-1111-1111-1111-111111111111' `
+        -ExternalPlan @() `
+        -State $state `
+        -CheckoutPaths $paths `
+        -CheckoutCreated $created
+    Assert-True $state.tokensAndCredits.azdEnvironmentManagedByThisRepository `
+        'An unselected startup lost optional Azure teardown ownership.'
+    Assert-Equal $state.tokensAndCredits.repositoryPath $path `
+        'An unselected startup lost the optional repository path.'
+    Assert-True $created.tokensAndCredits `
+        'An unselected startup lost optional checkout ownership.'
+    Assert-Equal $paths.tokensAndCredits $path `
+        'An unselected startup lost the optional checkout path.'
+}
+
+Test-Case 'Failed startup preserves prior optional ownership state' {
+    foreach ($required in @(
+        "foreach (`$identity in @('patriots', 'tokensAndCredits'))",
+        "`$optionalAzdState[`$identity]['azdEnvironmentCreatedByThisRun'] = `$true",
+        "`$optionalCheckoutCreated[`$identity] = `$true",
+        '$subscriptionMatches',
+        '$preservePreviousReport = -not $subscriptionResolved',
+        'if (-not $preservePreviousReport)'
+    )) {
+        $catchIndex = $invokeSource.LastIndexOf('catch {', [StringComparison]::Ordinal)
+        $catchSource = $invokeSource.Substring($catchIndex)
+        Assert-True ($catchSource.Contains($required, [StringComparison]::Ordinal)) `
+            "The startup catch path does not preserve '$required'."
+    }
+}
+
 Test-Case 'Azd environment values ignore the CLI update notice only' {
     Invoke-WithMockedFunction `
         -Functions @{ 'Invoke-DemoReadyAzd' = $MockInvokeDemoReadyAzd } `
@@ -1469,6 +2055,18 @@ Test-Case 'A dirty external repository keeps its exact Git baseline' {
         -RepositoryPath $repositoryPath `
         -Baseline $baseline `
         -DisplayName 'Synthetic external demo'
+
+    Set-Content -LiteralPath (Join-Path $repositoryPath 'work-in-progress.md') -Value '# changed content' -Encoding utf8NoBOM
+    Assert-Throws `
+        -Action {
+            Assert-DemoReadyGitStatusPreserved `
+                -RepositoryPath $repositoryPath `
+                -Baseline $baseline `
+                -DisplayName 'Synthetic external demo'
+        } `
+        -ExpectedFragment 'repository Git status changed' `
+        -Message 'A content change to an already dirty file was not detected.'
+    Set-Content -LiteralPath (Join-Path $repositoryPath 'work-in-progress.md') -Value '# dirty' -Encoding utf8NoBOM
 
     $null = New-TestFile -Path (Join-Path $repositoryPath 'orchestrator-wrote-this.md') -Content '# drift'
     Assert-Throws `
@@ -1591,33 +2189,29 @@ Test-Case 'Act uses the endpoint published by the bundled Demo 2 deployment' {
     }
 }
 
-Test-Case 'Startup never deploys or provisions an external repository' {
-    foreach ($repositoryVariable in @('$patriots', '$patriotsLink.Repository', '$tokensIntegration.Repository')) {
-        foreach ($command in @("'up'", "'provision'", "'deploy'", "'down'")) {
-            $forbidden = "-Arguments @($command"
-            $index = 0
-            while ($true) {
-                $index = $invokeSource.IndexOf($forbidden, $index, [StringComparison]::Ordinal)
-                if ($index -lt 0) {
-                    break
-                }
-                $window = $invokeSource.Substring(
-                    $index,
-                    [Math]::Min(400, $invokeSource.Length - $index))
-                Assert-True (-not $window.Contains(
-                        "-WorkingDirectory $repositoryVariable.Path",
-                        [StringComparison]::Ordinal)) `
-                    "The startup script runs azd $command inside $repositoryVariable."
-                $index += $forbidden.Length
-            }
-        }
+Test-Case 'Startup deploys optional repositories only through the guarded environment helper' {
+    Assert-Equal ([regex]::Matches(
+            $externalSource,
+            '@\(''up'', ''--environment'', \$environmentName, ''--no-prompt''\)')).Count 1 `
+        'Optional deployment does not use one guarded azd up path.'
+    Assert-True ($externalSource.Contains('if ($environmentPlan.EnvironmentExists)', [StringComparison]::Ordinal)) `
+        'Optional environment reuse has no explicit deployment guard.'
+    Assert-True ($externalSource.IndexOf(
+            'if ($environmentPlan.EnvironmentExists)',
+            [StringComparison]::Ordinal) -lt
+        $externalSource.IndexOf(
+            "@('up', '--environment', `$environmentName, '--no-prompt')",
+            [StringComparison]::Ordinal)) `
+        'The optional deployment command occurs before the existing-environment guard.'
+    foreach ($required in @(
+        '-Integration $patriotsIntegration',
+        '-Integration $tokensIntegration',
+        '-UsePatriotsFoundryIqDefaults',
+        "Get-DemoReadyModelCapacityPlan ``"
+    )) {
+        Assert-True ($invokeSource.Contains($required, [StringComparison]::Ordinal)) `
+            "The startup script omits '$required'."
     }
-    Assert-True ($invokeSource.Contains('deployedByThisRepository = $false', [StringComparison]::Ordinal)) `
-        'The readiness report does not state external deployment ownership.'
-    Assert-Equal `
-        ([regex]::Matches($invokeSource, 'deployedByThisRepository = \$false')).Count `
-        2 `
-        'Patriots and Tokens and Credits must never be deployed by this repository.'
 }
 
 # ------------------------------------------------------- local council processes
@@ -2289,7 +2883,9 @@ Test-Case 'Teardown reverses selected startup work and can retain optional check
         'Demo3EnvironmentName',
         'Demo4EnvironmentName',
         'KeepPatriotsAndTokensAndCredits',
+        'Get-DemoReadyOptionalAzureTeardownContexts',
         'No matching readiness selection exists',
+        '$reportSubscriptionId -ceq $subscriptionSummary.Id',
         'clonedByThisRun',
         'remainingRequested',
         'RequireManagedIdentity',
@@ -2299,7 +2895,7 @@ Test-Case 'Teardown reverses selected startup work and can retain optional check
         'tokens-and-credits',
         'az ad app delete',
         'status --porcelain',
-        "rev-list --left-right --count '@{upstream}...HEAD'",
+        "ls-remote --heads --tags origin",
         "Join-Path `$runtimeRoot 'sessions.generated.json'",
         "Join-Path `$runtimeRoot 'processes.json'",
         'Retained unrelated or protected process state'
@@ -2317,12 +2913,83 @@ Test-Case 'Teardown reverses selected startup work and can retain optional check
         'Startup infers clone ownership from plan intent instead of completed clone provenance.'
     Assert-True ($externalSource.Contains('CreatedByThisRun', [StringComparison]::Ordinal)) `
         'Repository resolution does not report a completed optional clone.'
+    Assert-True ($removeAzureSource.IndexOf(
+            'foreach ($context in $contexts)',
+            [StringComparison]::Ordinal) -lt
+        $removeAzureSource.LastIndexOf(
+            'Remove-DemoReadyClonedOptionalRepository',
+            [StringComparison]::Ordinal)) `
+        'Optional Azure teardown does not occur before optional checkout deletion.'
+    Assert-True (-not $removeAzureSource.Contains(
+            '$keepOptionalCheckouts ? @() : Get-DemoReadyOptionalAzureTeardownContexts',
+            [StringComparison]::Ordinal)) `
+        'Disk retention incorrectly controls optional Azure teardown.'
     foreach ($forbidden in @(
         'group delete'
     )) {
         Assert-True (-not $removeAzureSource.Contains($forbidden, [StringComparison]::OrdinalIgnoreCase)) `
             "The teardown script contains the forbidden direct deletion '$forbidden'."
     }
+}
+
+Test-Case 'Optional teardown includes only environments created by the recorded startup run' {
+    $report = [pscustomobject]@{
+        external = [pscustomobject]@{
+            patriots = [pscustomobject]@{
+                repositoryPath = 'C:\repos\azure-ai-mgs-patriots'
+                azdEnvironmentName = 'existing-patriots'
+                azdEnvironmentExisted = $true
+                azdEnvironmentCreatedByThisRun = $false
+                azdEnvironmentDeployedByThisRun = $false
+            }
+            tokensAndCredits = [pscustomobject]@{
+                repositoryPath = 'C:\repos\tokens-and-credits'
+                azdEnvironmentName = 'psad-demos-tokens'
+                azdEnvironmentExisted = $false
+                azdEnvironmentManagedByThisRepository = $true
+                azdEnvironmentCreatedByThisRun = $true
+                azdEnvironmentDeployedByThisRun = $false
+            }
+        }
+    }
+
+    $contexts = Get-DemoReadyOptionalAzureTeardownContexts `
+        -Report $report `
+        -ReportMatchesEnvironment $true
+    Assert-Equal $contexts.Count 1 `
+        'Teardown did not restrict optional Azure scope to startup-created environments.'
+    Assert-Equal $contexts[0].Key 'tokensAndCredits' `
+        'Teardown selected an existing optional environment.'
+    Assert-Equal $contexts[0].Environment 'psad-demos-tokens' `
+        'Teardown selected the wrong optional environment.'
+    Assert-True $contexts[0].Optional `
+        'The optional teardown context lost its scope marker.'
+
+    $inconsistent = [pscustomobject]@{
+        external = [pscustomobject]@{
+            patriots = [pscustomobject]@{
+                repositoryPath = 'C:\repos\azure-ai-mgs-patriots'
+                azdEnvironmentName = 'existing-patriots'
+                azdEnvironmentManagedByThisRepository = $true
+                azdEnvironmentCreatedByThisRun = $false
+                azdEnvironmentExisted = $true
+                azdEnvironmentDeployedByThisRun = $false
+            }
+        }
+    }
+    Assert-Throws `
+        -Action {
+            Get-DemoReadyOptionalAzureTeardownContexts `
+                -Report $inconsistent `
+                -ReportMatchesEnvironment $true
+        } `
+        -ExpectedFragment 'lacks creation proof' `
+        -Message 'Managed-only optional Azure state authorized teardown.'
+
+    Assert-Equal @(Get-DemoReadyOptionalAzureTeardownContexts `
+            -Report $report `
+            -ReportMatchesEnvironment $false).Count 0 `
+        'A nonmatching readiness report supplied optional teardown ownership.'
 }
 
 Test-Case 'Startup and stop scripts contain no destructive Azure call' {
@@ -2842,8 +3509,15 @@ Test-Case 'Startup no longer provisions, seeds, or measures Coordinate' {
         Assert-True (-not $invokeSource.Contains($forbidden, [StringComparison]::Ordinal)) `
             "The startup script still owns Coordinate work for '$forbidden'."
     }
-    Assert-Equal ([regex]::Matches($invokeSource, 'deployedByThisRepository = \$false')).Count 2 `
-        'The readiness report must distinguish both external applications from the owned demos.'
+    foreach ($metadata in @(
+        'azdEnvironmentName',
+        'azdEnvironmentExisted',
+        'azdEnvironmentCreatedByThisRun',
+        'azdEnvironmentDeployedByThisRun'
+    )) {
+        Assert-True ($invokeSource.Contains($metadata, [StringComparison]::Ordinal)) `
+            "The readiness report omits '$metadata'."
+    }
 }
 
 Test-Case 'Unused validation and telemetry helpers are removed' {
@@ -2995,9 +3669,19 @@ Test-Case 'Readiness replaces stale state atomically and validates report paths'
         'Stale readiness is not replaced before the ready result.'
     Assert-True ($invokeSource.Contains("status = 'failed'", [StringComparison]::Ordinal)) `
         'The startup catch path does not write failed readiness.'
+    Assert-True ($invokeSource.Contains('subscriptionId = $SubscriptionId', [StringComparison]::Ordinal)) `
+        'Readiness metadata does not record the deployment subscription.'
     $catchSource = $invokeSource.Substring($invokeSource.LastIndexOf('catch {', [StringComparison]::Ordinal))
-    foreach ($metadata in @('environmentName = $EnvironmentName', 'environments = $environmentNames',
-        'selections = $selection', 'clonedByThisRun')) {
+    foreach ($metadata in @(
+        'environmentName = $EnvironmentName',
+        'environments = $environmentNames',
+        'selections = $selection',
+        'clonedByThisRun',
+        'azdEnvironmentName',
+        'azdEnvironmentExisted',
+        'azdEnvironmentCreatedByThisRun',
+        'azdEnvironmentDeployedByThisRun'
+    )) {
         Assert-True ($catchSource.Contains($metadata, [StringComparison]::Ordinal)) `
             "The failed readiness report omits '$metadata'."
     }

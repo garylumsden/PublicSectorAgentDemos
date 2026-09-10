@@ -27,8 +27,11 @@ This repository owns four independent demo deployments, the Presenter, and the o
 The repository has two commands. `scripts\Invoke-DemoReady.ps1` makes the demonstration ready.
 `scripts\Test-DemoReady.ps1` runs the tests, builds, and deep checks.
 
-The startup script never deploys an external repository. Guided teardown confirms the Azure target, selections, optional checkout handling, and complete plan.
-It removes only selected owned Azure environments. It can remove startup-created optional checkouts or keep them with `-KeepPatriotsAndTokensAndCredits`.
+The startup script deploys an optional external checkout only when that checkout has no local azd environment.
+It reuses an existing optional environment without a deployment command.
+Guided teardown confirms the Azure target, selections, optional checkout handling, and complete plan.
+It removes selected owned environments and optional environments created by the recorded startup run.
+It can remove startup-created optional checkouts or keep them with `-KeepPatriotsAndTokensAndCredits`.
 
 Act lives in `src\PublicSectorAgentDemos.Demo2.Act`.
 Cross-Government Coordinate lives in `src\PublicSectorAgentDemos.Demo3.Coordinate`.

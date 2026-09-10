@@ -14,8 +14,8 @@ function Get-DemoReadyDemoLabel {
         Demo2 = 'Demo 2 - Act'
         Demo3 = 'Demo 3 - Cross-Government Council'
         Demo4 = 'Demo 4 - Hosted'
-        Patriots = 'Patriots local application'
-        TokensAndCredits = 'Tokens and Credits local application'
+        Patriots = 'Patriots'
+        TokensAndCredits = 'Tokens and Credits'
     }
 }
 
@@ -232,7 +232,10 @@ function Confirm-DemoReadyAzureSubscription {
 
 function Read-DemoReadyGuidedSelection {
     [CmdletBinding()]
-    param([scriptblock]$InputProvider)
+    param(
+        [Collections.IDictionary]$EnvironmentNames,
+        [scriptblock]$InputProvider
+    )
 
     Write-DemoReadyGuidedSection -Key 'Selection'
     Write-DemoReadyStatus `
@@ -245,12 +248,17 @@ function Read-DemoReadyGuidedSelection {
         [pscustomobject]@{ Key = 'Demo2'; Note = 'Azure deployment'; Default = $true },
         [pscustomobject]@{ Key = 'Demo3'; Note = 'Azure deployment and local application'; Default = $true },
         [pscustomobject]@{ Key = 'Demo4'; Note = 'Azure deployment'; Default = $true },
-        [pscustomobject]@{ Key = 'Patriots'; Note = 'optional, cloned when absent'; Default = $false },
-        [pscustomobject]@{ Key = 'TokensAndCredits'; Note = 'optional, cloned when absent'; Default = $false }
+        [pscustomobject]@{ Key = 'Patriots'; Note = 'optional Azure environment and local application'; Default = $false },
+        [pscustomobject]@{ Key = 'TokensAndCredits'; Note = 'optional Azure environment and local application'; Default = $false }
     )) {
         $label = (Get-DemoReadyDemoLabel)[$item.Key]
+        $environmentDetail = ($item.Key -in @('Patriots', 'TokensAndCredits') -and
+            $null -ne $EnvironmentNames -and
+            $EnvironmentNames.Contains($item.Key)) `
+            ? "; azd environment: $([string]$EnvironmentNames[$item.Key])" `
+            : ''
         $selection[$item.Key] = Read-DemoReadyYesNo `
-            -Prompt "Include $label ($($item.Note))?" `
+            -Prompt "Include $label ($($item.Note)$environmentDetail)?" `
             -Default $item.Default `
             -InputProvider $InputProvider
     }
@@ -265,6 +273,7 @@ function Read-DemoReadyGuidedLocations {
     param(
         [Parameter(Mandatory)][Collections.IDictionary]$Selection,
         [Parameter(Mandatory)][Collections.IDictionary]$Defaults,
+        [Collections.IDictionary]$EnvironmentNames,
         [scriptblock]$InputProvider
     )
 
@@ -273,7 +282,9 @@ function Read-DemoReadyGuidedLocations {
         [pscustomobject]@{ Key = 'Demo1'; Label = 'Demo 1' },
         [pscustomobject]@{ Key = 'Demo2'; Label = 'Demo 2 / Act' },
         [pscustomobject]@{ Key = 'Demo3'; Label = 'Demo 3 / Council' },
-        [pscustomobject]@{ Key = 'Demo4'; Label = 'Demo 4 / Hosted' }
+        [pscustomobject]@{ Key = 'Demo4'; Label = 'Demo 4 / Hosted' },
+        [pscustomobject]@{ Key = 'Patriots'; Label = 'Patriots' },
+        [pscustomobject]@{ Key = 'TokensAndCredits'; Label = 'Tokens and Credits' }
     )
     if (@($prompts | Where-Object { $Selection[$_.Key] }).Count -gt 0) {
         Write-DemoReadyGuidedSection -Key 'Locations'
@@ -285,8 +296,12 @@ function Read-DemoReadyGuidedLocations {
     foreach ($item in $prompts) {
         $locations[$item.Key] = [string]$Defaults[$item.Key]
         if ($Selection[$item.Key]) {
+            $environmentDetail = ($null -ne $EnvironmentNames -and
+                $EnvironmentNames.Contains($item.Key)) `
+                ? " (new azd environment $([string]$EnvironmentNames[$item.Key]))" `
+                : ''
             $locations[$item.Key] = Read-DemoReadyValue `
-                -Prompt "Azure location for $($item.Label)" `
+                -Prompt "Azure location for $($item.Label)$environmentDetail" `
                 -Default ([string]$Defaults[$item.Key]) `
                 -ValidationPattern '^[a-z0-9]+$' `
                 -InputProvider $InputProvider
@@ -317,19 +332,48 @@ function Get-DemoReadyModelCapacityCatalog {
             [pscustomobject]@{ Type = 'Chat'; Model = 'gpt-5.4-mini'; Sku = 'GlobalStandard'; Capacity = 50 },
             [pscustomobject]@{ Type = 'Embedding'; Model = 'text-embedding-3-small'; Sku = 'GlobalStandard'; Capacity = 20 }
         )
+        Patriots = @(
+            [pscustomobject]@{ Type = 'Embedding'; Model = 'text-embedding-3-small'; Sku = 'GlobalStandard'; Capacity = 30 },
+            [pscustomobject]@{ Type = 'Chat'; Model = 'gpt-5.4'; Sku = 'GlobalStandard'; Capacity = 100 },
+            [pscustomobject]@{ Type = 'Chat'; Model = 'gpt-5-mini'; Sku = 'GlobalStandard'; Capacity = 1000 },
+            [pscustomobject]@{ Type = 'Chat'; Model = 'gpt-5-nano'; Sku = 'GlobalStandard'; Capacity = 1000 },
+            [pscustomobject]@{ Type = 'Chat'; Model = 'grok-4.3'; Sku = 'GlobalStandard'; Capacity = 500 }
+        )
+        TokensAndCredits = @(
+            [pscustomobject]@{ Type = 'Chat'; Model = 'gpt-5.6-sol'; Sku = 'GlobalStandard'; Capacity = 3 },
+            [pscustomobject]@{ Type = 'Chat'; Model = 'gpt-5.4'; Sku = 'GlobalStandard'; Capacity = 3 },
+            [pscustomobject]@{ Type = 'Chat'; Model = 'gpt-5.4-mini'; Sku = 'GlobalStandard'; Capacity = 3 },
+            [pscustomobject]@{ Type = 'Image'; Model = 'gpt-image-1.5'; Sku = 'GlobalStandard'; Capacity = 1 },
+            [pscustomobject]@{ Type = 'Embedding'; Model = 'text-embedding-3-small'; Sku = 'GlobalStandard'; Capacity = 10 }
+        )
     }
 }
 
 function Get-DemoReadyModelCapacityPlan {
     [CmdletBinding()]
-    param([Parameter(Mandatory)][Collections.IDictionary]$Selection)
+    param(
+        [Parameter(Mandatory)][Collections.IDictionary]$Selection,
+        [object[]]$ExternalPlan = @()
+    )
 
     $catalog = Get-DemoReadyModelCapacityCatalog
+    $newOptionalDeployments = @{}
+    foreach ($entry in @($ExternalPlan)) {
+        $newOptionalDeployments[[string]$entry.Identity] =
+            -not [bool]$entry.EnvironmentExists
+    }
     $rows = [Collections.Generic.List[object]]::new()
     $number = 0
-    foreach ($demo in @('Demo1', 'Demo2', 'Demo3', 'Demo4')) {
+    foreach ($demo in @('Demo1', 'Demo2', 'Demo3', 'Demo4', 'Patriots', 'TokensAndCredits')) {
         if (-not $Selection[$demo]) {
             continue
+        }
+        if ($demo -in @('Patriots', 'TokensAndCredits')) {
+            $identity = $demo -ceq 'Patriots' ? 'patriots' : 'tokensAndCredits'
+            if (-not $newOptionalDeployments.ContainsKey($identity) -or
+                -not $newOptionalDeployments[$identity]) {
+                continue
+            }
         }
         foreach ($model in @($catalog[$demo])) {
             $number++
@@ -343,10 +387,13 @@ function Get-DemoReadyModelCapacityPlan {
             })
         }
     }
+    $aggregateCapacity = $rows.Count -eq 0 `
+        ? 0 `
+        : [int](($rows | Measure-Object -Property Capacity -Sum).Sum)
     return [pscustomobject]@{
         Deployments = @($rows)
         DeploymentCount = $rows.Count
-        AggregateCapacity = [int](($rows | Measure-Object -Property Capacity -Sum).Sum ?? 0)
+        AggregateCapacity = $aggregateCapacity
     }
 }
 
@@ -404,7 +451,11 @@ function Get-DemoReadyExternalPlanEntry {
         [Parameter(Mandatory)][pscustomobject]$Definition,
         [Parameter(Mandatory)][string]$RepositoryRoot,
         [AllowEmptyString()][string]$ParameterPath = '',
-        [Collections.IDictionary]$SetupRepositories = @{}
+        [Collections.IDictionary]$SetupRepositories = @{},
+        [AllowEmptyString()][string]$ParameterAzdEnvironmentName = '',
+        [Parameter(Mandatory)][string]$DefaultAzdEnvironmentName,
+        [Parameter(Mandatory)][string]$Location,
+        [string[]]$SensitiveValues = @()
     )
 
     $setupEntry = $SetupRepositories.Contains($Definition.Identity) `
@@ -430,11 +481,60 @@ function Get-DemoReadyExternalPlanEntry {
         Select-Object -First 1
     $path = [string]$selected.Path
     $present = Test-Path -LiteralPath $path -PathType Container
+    if (-not $present -and $selected.Source -ceq 'setup file') {
+        $path = Join-Path (Split-Path -Parent $RepositoryRoot) $Definition.FolderName
+        $selected = [pscustomobject]@{
+            Source = 'sibling folder fallback'
+            Path = $path
+        }
+        $present = Test-Path -LiteralPath $path -PathType Container
+    }
+    if ($present) {
+        $path = Assert-DemoReadyExternalRepositoryCheckout `
+            -Path $path `
+            -Definition $Definition
+    }
     $action = $present `
         ? 'Use the existing checkout' `
-        : ($selected.Source -ceq 'sibling folder' `
+        : ($selected.Source -in @('sibling folder', 'sibling folder fallback') `
             ? "Clone $($Definition.RepositoryUrl)" `
             : 'Missing. Startup fails until this path exists')
+    $configuredEnvironmentName = $ParameterAzdEnvironmentName
+    $configuredEnvironmentSource = 'presentation base'
+    if ([string]::IsNullOrWhiteSpace($configuredEnvironmentName) -and
+        $null -ne $setupEntry) {
+        $setupEnvironmentProperty = $setupEntry.PSObject.Properties['AzdEnvironmentName']
+        if ($null -ne $setupEnvironmentProperty -and
+            -not [string]::IsNullOrWhiteSpace([string]$setupEnvironmentProperty.Value)) {
+            $configuredEnvironmentName = [string]$setupEnvironmentProperty.Value
+            $configuredEnvironmentSource = 'setup file'
+        }
+    }
+    elseif (-not [string]::IsNullOrWhiteSpace($configuredEnvironmentName)) {
+        $configuredEnvironmentSource = 'command parameter'
+    }
+    $environmentPlan = if ($present) {
+        Get-DemoReadyExternalAzdEnvironmentPlan `
+            -Repository ([pscustomobject]@{
+                Identity = $Definition.Identity
+                DisplayName = $Definition.DisplayName
+                Path = $path
+                AzdEnvironmentName = $configuredEnvironmentName
+            }) `
+            -DefaultEnvironmentName $DefaultAzdEnvironmentName `
+            -Location $Location `
+            -SensitiveValues $SensitiveValues
+    }
+    else {
+        [pscustomobject]@{
+            EnvironmentName = [string]::IsNullOrWhiteSpace($configuredEnvironmentName) `
+                ? $DefaultAzdEnvironmentName `
+                : $configuredEnvironmentName
+            EnvironmentExists = $false
+            Location = $Location
+            Action = 'Create the azd environment and deploy it with azd up.'
+        }
+    }
     return [pscustomobject]@{
         Identity = $Definition.Identity
         DisplayName = $Definition.DisplayName
@@ -442,6 +542,39 @@ function Get-DemoReadyExternalPlanEntry {
         PathSource = $selected.Source
         Present = $present
         Action = $action
+        EnvironmentName = $environmentPlan.EnvironmentName
+        EnvironmentNameSource = $configuredEnvironmentSource
+        EnvironmentExists = [bool]$environmentPlan.EnvironmentExists
+        Location = $environmentPlan.Location
+        AzureAction = $environmentPlan.Action
+    }
+}
+
+function Assert-DemoReadyEnvironmentNamesUnique {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][Collections.IDictionary]$Selection,
+        [Parameter(Mandatory)][Collections.IDictionary]$EnvironmentNames,
+        [object[]]$ExternalPlan = @()
+    )
+
+    $planned = [Collections.Generic.List[object]]::new()
+    foreach ($key in @('Demo1', 'Demo2', 'Demo3', 'Demo4')) {
+        if ($Selection[$key]) {
+            $planned.Add([pscustomobject]@{ Name = [string]$EnvironmentNames[$key]; Owner = $key })
+        }
+    }
+    foreach ($entry in @($ExternalPlan)) {
+        $planned.Add([pscustomobject]@{
+            Name = [string]$entry.EnvironmentName
+            Owner = [string]$entry.DisplayName
+        })
+    }
+    foreach ($group in @($planned | Group-Object { $_.Name.ToLowerInvariant() })) {
+        if ($group.Count -gt 1) {
+            $owners = @($group.Group | ForEach-Object { $_.Owner }) -join ', '
+            throw "The azd environment '$($group.Group[0].Name)' is assigned to more than one deployment: $owners."
+        }
     }
 }
 
@@ -463,7 +596,18 @@ function Get-DemoReadyPlannedAction {
             $actions.Add("Clone $($entry.DisplayName) into $($entry.Path).")
         }
     }
-    $actions.Add('Create or reuse the azd environment of every selected demonstration.')
+    $selectedOwned = @(@('Demo1', 'Demo2', 'Demo3', 'Demo4') | Where-Object {
+        $Selection[$_]
+    })
+    if ($selectedOwned.Count -gt 0) {
+        $actions.Add('Create or reuse the azd environment of every selected owned demonstration.')
+    }
+    foreach ($entry in @($ExternalPlan)) {
+        $actions.Add(
+            $entry.EnvironmentExists `
+                ? "Select existing optional environment '$($entry.EnvironmentName)'. Run no deployment command." `
+                : "Create optional environment '$($entry.EnvironmentName)', then deploy it with azd up.")
+    }
     if ($Selection['Demo4']) {
         $actions.Add('Create or reuse the Demo 4 Microsoft Entra application registration.')
     }
@@ -501,7 +645,7 @@ function Show-DemoReadyDeploymentPlan {
     )
 
     $labels = Get-DemoReadyDemoLabel
-    $azureDemos = @('Demo1', 'Demo2', 'Demo3', 'Demo4')
+    $azureDemos = @('Demo1', 'Demo2', 'Demo3', 'Demo4', 'Patriots', 'TokensAndCredits')
 
     Write-DemoReadyGuidedSection -Key 'Plan'
 
@@ -529,6 +673,9 @@ function Show-DemoReadyDeploymentPlan {
 
     $azureRows = [Collections.Generic.List[object]]::new()
     foreach ($key in $azureDemos) {
+        if ($key -in @('Patriots', 'TokensAndCredits')) {
+            continue
+        }
         if (-not $Selection[$key]) {
             continue
         }
@@ -550,7 +697,25 @@ function Show-DemoReadyDeploymentPlan {
             -Rows @($azureRows)
     }
 
-    $capacityPlan = Get-DemoReadyModelCapacityPlan -Selection $Selection
+    if (@($ExternalPlan).Count -gt 0) {
+        Write-Host ''
+        Write-Host '  Optional Azure environments' -ForegroundColor White
+        Write-DemoReadyTable `
+            -Headers @('Demonstration', 'Location', 'azd environment', 'State', 'Azure action') `
+            -Rows @($ExternalPlan | ForEach-Object {
+                , @(
+                    [string]$_.DisplayName,
+                    [string]$_.Location,
+                    [string]$_.EnvironmentName,
+                    ($_.EnvironmentExists ? 'Existing' : 'New'),
+                    [string]$_.AzureAction
+                )
+            })
+    }
+
+    $capacityPlan = Get-DemoReadyModelCapacityPlan `
+        -Selection $Selection `
+        -ExternalPlan $ExternalPlan
     if ($capacityPlan.DeploymentCount -gt 0) {
         Write-Host ''
         Write-Host '  Azure AI model deployments' -ForegroundColor White
@@ -576,7 +741,7 @@ function Show-DemoReadyDeploymentPlan {
             -Message "Aggregate capacity/quota units: $($capacityPlan.AggregateCapacity)"
         Write-DemoReadyStatus `
             -Status 'warn' `
-            -Message 'Capacity is requested deployment capacity, in thousands of tokens per minute.'
+            -Message 'Capacity is requested deployment capacity. The unit depends on the model type.'
         Write-DemoReadyStatus `
             -Status 'warn' `
             -Message 'Availability depends on the region and subscription quota.'
@@ -600,12 +765,23 @@ function Show-DemoReadyDeploymentPlan {
                 -Message "$($entry.DisplayName): $($entry.Action)"
             Write-DemoReadyField -Label 'Path' -Value $entry.Path -LabelWidth 8 -Indent 6
             Write-DemoReadyField -Label 'Source' -Value $entry.PathSource -LabelWidth 8 -Indent 6
+            Write-DemoReadyField -Label 'azd env' -Value $entry.EnvironmentName -LabelWidth 8 -Indent 6
+            Write-DemoReadyField `
+                -Label 'Azure' `
+                -Value ($entry.EnvironmentExists ? 'Reuse existing; no deployment' : 'Create and deploy') `
+                -LabelWidth 8 `
+                -Indent 6
         }
     }
 
     Write-Host ''
     Write-Host '  Totals' -ForegroundColor White
-    Write-DemoReadyField -Label 'Azure deployments' -Value ([string]$azureRows.Count)
+    $newOptionalDeploymentCount = @($ExternalPlan | Where-Object {
+        -not $_.EnvironmentExists
+    }).Count
+    Write-DemoReadyField `
+        -Label 'Azure deployments' `
+        -Value ([string]($azureRows.Count + $newOptionalDeploymentCount))
     Write-DemoReadyField -Label 'Model deployments' -Value ([string]$capacityPlan.DeploymentCount)
     Write-DemoReadyField -Label 'Capacity/quota units' -Value ([string]$capacityPlan.AggregateCapacity)
     Write-DemoReadyField -Label 'Local applications' -Value ([string]@($localApplications).Count)
@@ -697,10 +873,13 @@ function Show-DemoReadyTeardownPlan {
 
     Write-Host '  Azure deployments removed' -ForegroundColor White
     $rows = @($Contexts | ForEach-Object {
-        , @($_.Name, $_.Environment, "rg-$($_.Environment)")
+        $scope = ($null -ne $_.PSObject.Properties['Optional'] -and $_.Optional) `
+            ? 'Optional, startup-created' `
+            : 'Owned'
+        , @($_.Name, $_.Environment, "rg-$($_.Environment)", $scope)
     })
     Write-DemoReadyTable `
-        -Headers @('Demonstration', 'azd environment', 'Resource group') `
+        -Headers @('Demonstration', 'azd environment', 'Resource group', 'Scope') `
         -Rows $rows
     Write-Host ''
 
@@ -759,7 +938,12 @@ function Show-DemoReadyTeardownPlan {
     }) -join ', '
     $actions.Add("Verify and stop these managed local applications: $listedProcesses.")
     foreach ($context in $Contexts) {
-        $actions.Add("Remove $($context.Environment), then purge its soft-deleted AI accounts and Key Vaults.")
+        $optional = $null -ne $context.PSObject.Properties['Optional'] -and
+            [bool]$context.Optional
+        $actions.Add(
+            $optional `
+                ? "Remove startup-created optional environment '$($context.Environment)', then purge its soft-deleted resources." `
+                : "Remove $($context.Environment), then purge its soft-deleted AI accounts and Key Vaults.")
     }
     if ($Selection.Demo4) {
         $actions.Add('Verify and remove the owned Demo 4 Microsoft Entra application.')
@@ -777,6 +961,7 @@ function Show-DemoReadyTeardownPlan {
 
     Write-Host '  Not removed' -ForegroundColor White
     Write-DemoReadyStatus -Status 'no' -Message 'No unrelated Azure environment, resource, identity, repository, or process.'
+    Write-DemoReadyStatus -Status 'no' -Message 'No optional Azure environment that existed before the recorded startup run.'
     Write-DemoReadyStatus -Status 'no' -Message 'No optional checkout without exact startup ownership and Git synchronization proof.'
     Write-DemoReadyRule
 }

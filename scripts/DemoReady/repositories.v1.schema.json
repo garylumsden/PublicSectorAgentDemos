@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/microsoft/PublicSectorAgentDemos/scripts/DemoReady/repositories.v1.schema.json",
   "title": "Demo-ready optional external application setup, version 1",
-  "description": "No setup file is required for the four owned demos. Tokens and Credits is an optional managed local application without an azd requirement. Patriots remains an explicit link-only integration. Never add credentials, connection strings, or tokens.",
+  "description": "No setup file is required for the four owned demos. Patriots and Tokens and Credits are optional external applications with optional azd environment names. Never add credentials, connection strings, or tokens.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -32,19 +32,11 @@
         },
         "patriots": {
           "$ref": "#/definitions/repository",
-          "description": "Optional external azure-ai-mgs-patriots checkout. IncludePatriots enables a link only, not deployment or process ownership."
+          "description": "Optional external azure-ai-mgs-patriots checkout. Startup reuses any existing local azd environment. It creates and deploys an environment only when none exists."
         },
         "tokensAndCredits": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": ["path"],
-          "properties": {
-            "path": {
-              "type": "string",
-              "minLength": 3,
-              "description": "Absolute path to the optional tokens-and-credits Git checkout. Startup builds and starts only its local web project. No azd environment or cloud settings belong here."
-            }
-          }
+          "$ref": "#/definitions/repository",
+          "description": "Optional external tokens-and-credits checkout. Startup reuses any existing local azd environment. It creates and deploys an environment only when none exists."
         }
       }
     }
@@ -65,7 +57,7 @@
         "azdEnvironment": {
           "type": "string",
           "pattern": "^[a-z][a-z0-9-]{0,62}[a-z0-9]$",
-          "description": "Optional azd environment name. Omit it to use the single default environment."
+          "description": "Optional azd environment name. If local environments exist, this name must select one. If none exist, startup creates this name instead of the presentation-base default."
         }
       }
     }

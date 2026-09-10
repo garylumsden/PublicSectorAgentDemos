@@ -7,6 +7,7 @@ function Resolve-DemoReadyPatriots {
         [Parameter(Mandatory)][string]$RepositoryRoot,
         [AllowEmptyString()][string]$ParameterPath,
         [Parameter(Mandatory)][hashtable]$SetupRepositories,
+        [AllowEmptyString()][string]$ParameterAzdEnvironmentName,
         [switch]$Selected
     )
 
@@ -23,7 +24,7 @@ function Resolve-DemoReadyPatriots {
         -RepositoryRoot $RepositoryRoot `
         -ParameterPath $ParameterPath `
         -SetupRepositories $SetupRepositories `
-        -ParameterAzdEnvironmentName '' `
+        -ParameterAzdEnvironmentName $ParameterAzdEnvironmentName `
         -CloneIfMissing
     try {
         $baseline = Get-DemoReadyGitStatus -RepositoryPath $repository.Path

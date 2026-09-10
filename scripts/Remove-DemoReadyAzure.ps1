@@ -34,6 +34,7 @@ Set-StrictMode -Version Latest
 
 . (Join-Path $PSScriptRoot 'DemoReady\Common.ps1')
 . (Join-Path $PSScriptRoot 'DemoReady\Console.ps1')
+. (Join-Path $PSScriptRoot 'DemoReady\External.ps1')
 . (Join-Path $PSScriptRoot 'DemoReady\Guided.ps1')
 . (Join-Path $PSScriptRoot 'DemoReady\Owned.ps1')
 
@@ -66,9 +67,18 @@ if (-not $PSBoundParameters.ContainsKey('EnvironmentName') -and
     -not [string]::IsNullOrWhiteSpace($reportEnvironment)) {
     $EnvironmentName = $reportEnvironment
 }
-$reportMatchesEnvironment = -not [string]::IsNullOrWhiteSpace($reportEnvironment) -and
-    $reportEnvironment -ceq $EnvironmentName
 $environmentNames = Get-DemoReadyEnvironmentNames -BaseName $EnvironmentName
+$subscriptionSummary = Get-DemoReadyAzureSubscriptionSummary -RepositoryRoot $repositoryRoot
+$reportSubscriptionProperty = $null -eq $report `
+    ? $null `
+    : $report.PSObject.Properties['subscriptionId']
+$reportSubscriptionId = $null -eq $reportSubscriptionProperty `
+    ? '' `
+    : [string]$reportSubscriptionProperty.Value
+$reportMatchesEnvironment = -not [string]::IsNullOrWhiteSpace($reportEnvironment) -and
+    $reportEnvironment -ceq $EnvironmentName -and
+    -not [string]::IsNullOrWhiteSpace($reportSubscriptionId) -and
+    $reportSubscriptionId -ceq $subscriptionSummary.Id
 $interactive = -not $NonInteractive -and (Test-DemoReadyInteractiveConsole)
 $hasSelection = $Demo1 -or $Demo2 -or $Demo3 -or $Demo4 -or $All
 $selection = [ordered]@{
@@ -94,11 +104,10 @@ if ($null -ne $selectionsProperty) {
         }
     }
 }
-$subscriptionSummary = Get-DemoReadyAzureSubscriptionSummary -RepositoryRoot $repositoryRoot
 Write-DemoReadyBanner `
     -Title 'Public Sector Agent Demos - teardown' `
     -Lines @(
-        'Stops local applications and removes the selected owned Azure deployments.',
+        'Stops local applications and removes selected owned or startup-created Azure deployments.',
         ($interactive `
             ? 'Guided teardown. Nothing is removed until you confirm the complete plan.' `
             : 'Selection supplied by arguments or the readiness report. Review the plan below.')
@@ -148,6 +157,7 @@ $keepOptionalCheckouts = [bool]$KeepPatriotsAndTokensAndCredits
 Write-DemoReadyTeardownSection -Key 'Optional'
 if ($PSBoundParameters.ContainsKey('KeepPatriotsAndTokensAndCredits')) {
     Write-DemoReadyStatus -Status 'ok' -Message 'Keep Patriots and Tokens and Credits on disk.'
+    Write-DemoReadyStatus -Status 'info' -Message 'Disk retention does not retain a startup-created optional Azure environment.'
 }
 elseif ($interactive) {
     $keepOptionalCheckouts = Read-DemoReadyYesNo `
@@ -159,7 +169,7 @@ else {
         -Status 'warn' `
         -Message 'Remove only optional checkouts that startup cloned and that are fully pushed.'
 }
-$contexts = @(
+$ownedContexts = @(
     [pscustomobject]@{
         Key = 'Demo1'
         Name = 'Demo 1 - Foundation and Ground'
@@ -185,6 +195,19 @@ $contexts = @(
         Environment = $Demo4EnvironmentName ? $Demo4EnvironmentName : $environmentNames.Demo4
     }
 ) | Where-Object { $selection[$_.Key] }
+$optionalAzureContexts = Get-DemoReadyOptionalAzureTeardownContexts `
+    -Report $report `
+    -ReportMatchesEnvironment $reportMatchesEnvironment
+$definitions = Get-DemoReadyExternalRepositoryDefinition
+foreach ($context in $optionalAzureContexts) {
+    $definition = [string]$context.Key -ceq 'patriots' `
+        ? $definitions.patriots `
+        : $definitions.tokensAndCredits
+    Assert-DemoReadyExternalRepositoryCheckout `
+        -Path $context.Path `
+        -Definition $definition
+}
+$contexts = @($ownedContexts) + @($optionalAzureContexts)
 
 function Remove-DemoReadyOwnedEntraApplication {
     [CmdletBinding()]
@@ -271,20 +294,12 @@ function Remove-DemoReadyClonedOptionalRepository {
     if ($LASTEXITCODE -ne 0 -or $normalizedOrigin -ine $normalizedExpected) {
         throw "The optional checkout '$path' has an unexpected origin."
     }
-    & git -C $path fetch --quiet origin
-    if ($LASTEXITCODE -ne 0) {
-        throw "The optional checkout '$path' could not fetch its origin."
-    }
     $status = & git -C $path status --porcelain
     if ($LASTEXITCODE -ne 0) {
         throw "Git could not verify the optional checkout '$path', so it was retained."
     }
     if (-not [string]::IsNullOrWhiteSpace($status)) {
         throw "The optional checkout '$path' has uncommitted changes and was retained."
-    }
-    $counts = @((& git -C $path rev-list --left-right --count '@{upstream}...HEAD') -split '\s+')
-    if ($LASTEXITCODE -ne 0 -or $counts.Count -lt 2 -or $counts[0] -ne '0' -or $counts[1] -ne '0') {
-        throw "The optional checkout '$path' is not fully synchronized with its upstream and was retained."
     }
     $localRefs = @(& git -C $path for-each-ref --format='%(objectname)|%(refname)' refs/heads refs/tags)
     if ($LASTEXITCODE -ne 0) {

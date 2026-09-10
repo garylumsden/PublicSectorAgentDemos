@@ -1,7 +1,7 @@
 ---
 name: demo-setup
-description: "Prepare four owned demos, the optional Tokens and Credits local application, and the link-only Patriots integration. Write only the secret-free .demo-ready\\repositories.local.json file. Do not deploy or start applications."
-argument-hint: "Optional presentation base, locations, and Tokens and Credits path. Patriots is excluded unless explicitly requested."
+description: "Prepare four owned demos and two optional external applications. Write only the secret-free .demo-ready\\repositories.local.json file. Do not deploy or start applications."
+argument-hint: "Optional presentation base, locations, external paths, and optional azd environment names."
 tools: ["read", "search", "execute", "edit"]
 ---
 
@@ -11,7 +11,7 @@ You prepare the setup contract for four repository-owned demos.
 Foundation and Ground are two sessions of Demo 1.
 Patriots is an optional external application, not a fifth owned deployment.
 No setup file or original sibling checkout is required for the four owned demos.
-Tokens and Credits is an optional local extra, not a fifth deployment or seventh main session.
+Tokens and Credits is an optional external extra, not a seventh main session.
 
 ## Validate the bundled defaults
 
@@ -46,26 +46,32 @@ It listens at `http://localhost:5090` and provides `GET /health`.
 Read `scripts\DemoReady\TokensAndCredits.ps1` before resolving this integration.
 Use this path precedence: `-TokensAndCreditsRepoPath`, `PSAD_TOKENS_AND_CREDITS_REPO_PATH`, `repositories.tokensAndCredits.path`, then sibling `tokens-and-credits`.
 Validate the required files in `External.ps1`.
-An absent or invalid optional checkout must not block the four owned demos.
+An absent or invalid unselected checkout must not block the four owned demos.
 Report its status explicitly.
-Do not require or read an azd environment, credentials, or Azure configuration.
+Run `azd env list --output json` only for a selected, valid checkout.
+If environments exist, record a supplied environment name or the single default.
+If no environment exists, omit `azdEnvironment` to use `<EnvironmentName>-tokens`.
+Store a supplied optional name when the user wants a different new name.
 The .NET 10 application uses existing ASP.NET Core configuration and `DefaultAzureCredential` for optional cloud features.
-Do not change or import its keys, configuration, or environment values.
+Do not change or import its keys, configuration, or environment values in this agent.
 Startup manages only `src\TokensAndCredits.Web\TokensAndCredits.Web.csproj`, with HTTP on `localhost:5041`.
 Its source has no `/health` route.
 Startup and warm-up use `GET /api/embeddings/manifest`, which reads bundled local data without a model call.
 The app loads its bundled embedding asset during startup.
 Do not use model discovery, chat, image generation, or live embeddings for readiness.
 
-## Optional Patriots link
+## Optional Patriots application
 
 Only inspect Patriots when the user explicitly requests the external integration.
 Resolve `azure-ai-mgs-patriots` from an explicit path, `PSAD_PATRIOTS_REPO_PATH`, the setup file, or its named sibling folder.
 Use the required paths in `External.ps1` to validate the external checkout.
-An absent checkout does not block the four owned demos.
-Do not require Patriots Azure values or read its credentials.
-The root command only provides a link to an independently running application.
-It does not build, start, stop, provision, or reconfigure Patriots.
+An absent unselected checkout does not block the four owned demos.
+Run `azd env list --output json` only for a selected, valid checkout.
+If environments exist, record a supplied environment name or the single default.
+If no environment exists, omit `azdEnvironment` to use `<EnvironmentName>-patriots`.
+Store a supplied optional name when the user wants a different new name.
+Do not read credentials or Azure output values.
+The root command handles environment reuse, optional deployment, build, startup, and readiness.
 
 ## Write the setup file
 
@@ -82,7 +88,7 @@ For bundled-only setup, use this complete file:
 Write `.demo-ready\repositories.local.json` only when a setup file is requested or an optional external path needs storage.
 For explicitly requested Patriots integration, add a validated absolute Windows path under `repositories.patriots.path`.
 For Tokens and Credits, store the validated path under `repositories.tokensAndCredits.path`.
-Do not add `azdEnvironment` to Tokens and Credits.
+Add `azdEnvironment` only when the user supplied a name or an existing checkout needs explicit selection.
 The example's `C:\repos\tokens-and-credits` is a placeholder, not a workstation default.
 Preserve unrelated existing optional repository configuration unless the user requests a change.
 Remove legacy `defra` or `assuranceBoard` entries only with the user's approval.
@@ -124,5 +130,5 @@ Show this root invocation, substituting the approved base and regions:
 ```
 
 `-SubscriptionId` is optional; the root command otherwise uses the current Azure CLI subscription.
-Use `-IncludePatriots` only for the requested external link.
+Use `-IncludePatriots` only for the requested external application.
 Do not execute the invocation in this agent.

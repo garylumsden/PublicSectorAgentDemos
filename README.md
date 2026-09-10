@@ -19,9 +19,10 @@ Presenter is a supporting application, not another Azure deployment.
 The Foundation/Ground UI also uses the existing Demo 1 deployment; it adds no deployment context.
 The [Act runbook](docs/runbooks/act-flood-support.md) explains the fictional flood scenario and the exact reservation approval boundary.
 
-**Patriots remains optional and external.**
-The repository commands never copy, deploy, build, start, stop, or reconfigure Patriots.
-The four owned demos need neither its checkout nor its environment.
+**Patriots and Tokens and Credits remain optional and external.**
+Startup preserves their source and uses each checkout's existing azd project.
+If a selected checkout has any local azd environment, startup selects one and runs no deployment command.
+If it has no environment, startup creates and deploys a deterministic optional environment.
 
 ## Fresh setup
 
@@ -50,6 +51,8 @@ No workstation path, old endpoint, `.azure` state, or original sibling checkout 
 | `src\PublicSectorAgentDemos.Demo2.Act` | `psad-demo-demo2` |
 | `src\PublicSectorAgentDemos.Demo3.Coordinate` | `psad-demo-demo3` |
 | `deploy\demo4` | `psad-demo-demo4` |
+| Optional `azure-ai-mgs-patriots` when it has no environment | `psad-demo-patriots` |
+| Optional `tokens-and-credits` when it has no environment | `psad-demo-tokens` |
 
 The command creates missing environments, runs each demo's hooks, and generates current Presenter links.
 Both Foundation and Ground open the local comparison UI at `http://localhost:5090/`.
@@ -65,6 +68,7 @@ Remove the deployments and local state created by the latest startup run:
 
 With no options, the interactive command confirms the Azure target, asks which demos to remove, asks whether to keep the optional checkouts, and shows the complete teardown plan before confirmation.
 Teardown uses `azd down --purge`, then explicitly purges matching soft-deleted AI accounts and Key Vaults.
+It removes an optional Azure environment only when the readiness report proves that startup created it.
 Use `-NonInteractive` with explicit selection arguments for automation.
 
 Keep the optional Patriots and Tokens and Credits checkouts on disk:
@@ -76,8 +80,8 @@ Keep the optional Patriots and Tokens and Credits checkouts on disk:
 ## Optional external applications
 
 Bundled setup needs no `.demo-ready\repositories.local.json`.
-The example at `scripts\DemoReady\repositories.example.json` includes a placeholder path for the optional Tokens and Credits application.
-Replace the placeholder with a real checkout path, or remove that optional entry before using the example.
+The example at `scripts\DemoReady\repositories.example.json` includes placeholder paths and environment names for both optional applications.
+Replace or remove each optional entry before using the example.
 The setup agent at `.github\agents\demo-setup.agent.md` validates the bundled defaults.
 Existing Patriots-only setup files remain valid without migration.
 
@@ -87,7 +91,7 @@ Existing Patriots-only setup files remain valid without migration.
 |---|---|
 | [MGS Patriots](https://github.com/garylumsden/azure-ai-mgs-patriots) | Optional council demonstration used for the Patriots comparison. |
 | [Azure Agent Council Template](https://github.com/garylumsden/azure-agent-council-template) | Reusable council application template that underpins the Coordinate pattern. |
-| [Tokens and Credits](https://github.com/garylumsden/tokens-and-credits) | Optional local application that explains model tokens, embeddings, and credits. |
+| [Tokens and Credits](https://github.com/garylumsden/tokens-and-credits) | Optional Azure-backed local application that explains model tokens, embeddings, and credits. |
 
 ### [MGS Patriots](https://github.com/garylumsden/azure-ai-mgs-patriots)
 
@@ -95,34 +99,50 @@ To include an independently running Patriots application:
 
 ```powershell
 .\scripts\Invoke-DemoReady.ps1 -EnvironmentName psad-demo `
+  -Patriots `
   -PatriotsRepoPath <absolute-path-to-azure-ai-mgs-patriots>
 ```
 
 Alternatively, use `-IncludePatriots` with a stored path, `PSAD_PATRIOTS_REPO_PATH`, or the named sibling checkout.
 Startup reuses or clones the checkout, builds it, and starts its local application.
+Startup first inspects `azd env list --output json` in the checkout.
+If any environment exists, startup selects the configured environment or the single default.
+It then runs no Patriots deployment command.
+If none exists, startup creates `<EnvironmentName>-patriots` in `-PatriotsLocation`.
+It sets the confirmed subscription and principal, selects Foundry IQ, clears Web IQ settings, and runs `azd up`.
+Use `-PatriotsEnvironmentName` or `repositories.patriots.azdEnvironment` to select or name the optional environment.
 Without opt-in, Presenter shows **Not configured** and makes no Patriots warm-up request.
-A Patriots failure does not block the five owned sessions across four deployments.
+A selected Patriots failure stops startup and writes failed optional provenance.
 Legacy DEFRA or council external path overrides fail before deployment.
 
 ### [Tokens and Credits](https://github.com/garylumsden/tokens-and-credits)
 
-Tokens and Credits is an optional managed local application from the external `tokens-and-credits` repository.
+Tokens and Credits is an optional Azure-backed local application from the external `tokens-and-credits` repository.
 Presenter lists it under **Optional extras**, separate from the six main sessions.
 
 ```powershell
 .\scripts\Invoke-DemoReady.ps1 -EnvironmentName psad-demo `
+  -TokensAndCredits `
   -TokensAndCreditsRepoPath <absolute-path-to-tokens-and-credits>
 ```
 
 Discovery checks the parameter, `PSAD_TOKENS_AND_CREDITS_REPO_PATH`, `repositories.tokensAndCredits.path` in the selected setup file, then the named sibling checkout.
-A valid discovered checkout is included automatically; there is no `IncludeTokens` switch.
+A valid checkout is used when `-TokensAndCredits` or `-All` selects it.
+There is no `IncludeTokens` alias.
 Startup builds only `src\TokensAndCredits.Web\TokensAndCredits.Web.csproj` and binds `http://localhost:5041` without its launch profile.
 It preserves the checkout's existing configuration and credential choices instead of importing Demo 1 settings.
+Startup inspects the checkout's local azd environments before it builds the application.
+If any environment exists, startup selects the configured environment or the single default.
+It runs no provision, deploy, or up command for an existing environment.
+If none exists, startup creates `<EnvironmentName>-tokens` in `-TokensAndCreditsLocation` and runs `azd up`.
+The existing postprovision hook then configures the local application.
+Use `-TokensAndCreditsEnvironmentName` or `repositories.tokensAndCredits.azdEnvironment` to select or name the optional environment.
 Readiness requires HTTP 200 and valid local manifest metadata from `GET /api/embeddings/manifest`, not `/health`.
-This request makes no model call and requires no azd environment.
-Missing checkouts remain **Not configured** with a warning.
-Invalid checkouts or build, port, process, health, or Git-preservation failures produce **Failed** without blocking the main presentation.
-Startup makes no external source, configuration, provisioning, or deployment changes.
+This readiness request makes no model call.
+An unselected integration remains **Not configured**.
+A selected checkout, environment, deployment, build, port, process, health, or Git-preservation failure stops startup.
+Startup makes no tracked external source change.
+New optional deployment workflows can write their normal ignored azd and local application files.
 
 ## Stop and validate
 
@@ -131,8 +151,8 @@ Startup makes no external source, configuration, provisioning, or deployment cha
 .\scripts\Test-DemoReady.ps1
 ```
 
-Stop targets managed local processes with matching identities, including recorded Tokens and Credits processes.
-It preserves Patriots processes and registry records, even when Patriots is explicitly selected for stopping.
+Stop targets managed local processes with matching identities, including recorded Patriots and Tokens and Credits processes.
+It preserves only legacy unowned Patriots process records.
 Validation runs the existing automation harness, root solution checks, bundled application builds, and Bicep compilation.
 Use `-RunAzurePreview` for the four existing environments.
 Use `-RunCloudTests` for the existing Demo 1 and Demo 4 cloud checks.

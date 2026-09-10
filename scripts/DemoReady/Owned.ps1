@@ -25,7 +25,7 @@ function Get-DemoReadyDemo1WebEnvironment {
 }
 
 function Get-DemoReadyEnvironmentNames {
-    # Foundation and Ground share Demo 1. Patriots has no owned environment.
+    # Foundation and Ground share Demo 1. Optional names apply only to new environments.
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
@@ -38,6 +38,8 @@ function Get-DemoReadyEnvironmentNames {
         Demo2 = "$BaseName-demo2"
         Demo3 = "$BaseName-demo3"
         Demo4 = "$BaseName-demo4"
+        Patriots = "$BaseName-patriots"
+        TokensAndCredits = "$BaseName-tokens"
     }
 }
 

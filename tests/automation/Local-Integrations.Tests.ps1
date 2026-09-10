@@ -94,14 +94,16 @@ Test-Case 'Patriots cannot enter the external build or process startup helpers' 
         Assert-Throws -Action {
             Invoke-DemoReadyExternalBuild -Repository ([pscustomobject]@{ Identity = 'patriots' }) `
                 -ProjectPath 'unused' -LogRoot 'unused' -GitBaseline ''
-        } -ExpectedFragment 'Patriots is link-only' -Message 'Patriots entered the shared build helper.'
+        } -ExpectedFragment 'Patriots uses its dedicated build path' `
+            -Message 'Patriots entered the shared build helper.'
     }
     foreach ($name in @('patriots', 'patriots-coordinate')) {
         Assert-Throws -Action {
             Start-DemoReadyProcess -Name $name -FilePath 'unused' -Arguments @('unused') `
                 -WorkingDirectory $root -Environment @{} -LogDirectory $testRoot `
                 -CommandMarker 'unused' -Endpoints @('unused') -ScriptRoot $scriptRoot
-        } -ExpectedFragment 'Patriots is link-only' -Message 'Patriots entered the shared process helper.'
+        } -ExpectedFragment 'Legacy Patriots process names are not managed' `
+            -Message 'Patriots entered the shared process helper.'
     }
 }
 
@@ -162,17 +164,19 @@ Test-Case 'Tokens absent and invalid checkouts are explicit nonfatal outcomes' {
     }
 }
 
-Test-Case 'Tokens setup permits a path but forbids azd and cloud configuration' {
+Test-Case 'Tokens setup permits a path and optional azd environment name' {
     $workspace = New-TestDirectory -Name 'tokens-setup'
     $path = Join-Path $workspace 'repositories.json'
     $null = New-TestFile $path '{"version":1,"repositories":{"tokensAndCredits":{"path":"C:\\fixtures\\tokens"}}}'
     $setup = Read-DemoReadySetupFile $path $schemaPath
     Assert-Equal $setup.tokensAndCredits.AzdEnvironmentName '' 'The optional setup required azd.'
     $null = New-TestFile $path '{"version":1,"repositories":{"tokensAndCredits":{"path":"C:\\fixtures\\tokens","azdEnvironment":"demo"}}}'
-    Assert-Throws -Action { Read-DemoReadySetupFile $path $schemaPath } `
-        -ExpectedFragment 'does not match' -Message 'Tokens setup accepted an azd environment.'
+    $setup = Read-DemoReadySetupFile $path $schemaPath
+    Assert-Equal $setup.tokensAndCredits.AzdEnvironmentName 'demo' `
+        'Tokens setup did not retain its optional azd environment.'
     $example = Read-DemoReadySetupFile (Join-Path $scriptRoot 'DemoReady\repositories.example.json') $schemaPath
     Assert-True ($example.ContainsKey('tokensAndCredits')) 'The optional path example is missing.'
+    Assert-True ($example.ContainsKey('patriots')) 'The Patriots path example is missing.'
 }
 
 Test-Case 'Tokens local health accepts only its manifest and never makes a model request' {

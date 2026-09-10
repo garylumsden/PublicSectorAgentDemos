@@ -46,6 +46,6 @@ Every external repository stayed unchanged.
 - The Act source, its deployment context, and its Bicep templates left this repository.
 - The vendored council engine, its data, and its root Bicep composition left this repository.
 - The root `azure.yaml` was removed. Only `deploy/demo1` and `deploy/demo4` remain.
-- The startup script then resolved three external repositories and never deployed them.
-- Normal teardown then removed only the Demo 1 and Demo 4 azd environments.
+- At the recorded rehearsal date, startup resolved three external repositories and did not deploy them.
+- At the recorded rehearsal date, teardown removed only the Demo 1 and Demo 4 azd environments.
 - Each external demo then owned its own telemetry.
