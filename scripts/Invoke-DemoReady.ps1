@@ -72,6 +72,9 @@ param(
     [string]$CouncilLocation = 'swedencentral',
 
     [ValidatePattern('^[a-z0-9]+$')]
+    [string]$CouncilSearchLocation,
+
+    [ValidatePattern('^[a-z0-9]+$')]
     [string]$PatriotsLocation = 'swedencentral',
 
     [ValidatePattern('^[a-z0-9]+$')]
@@ -287,6 +290,9 @@ try {
             -Defaults $locations `
             -EnvironmentNames $guidedEnvironmentNames
     }
+    $effectiveCouncilSearchLocation = [string]::IsNullOrWhiteSpace($CouncilSearchLocation) `
+        ? [string]$locations.Demo3 `
+        : $CouncilSearchLocation
 
     Assert-DemoReadyAzdEnvironmentAccess `
         -Selection $selection `
@@ -505,6 +511,9 @@ try {
     if ($selection.Demo3) {
         $null = Initialize-DemoReadyAzdEnvironment `
             $contexts.Council $environmentNames.Demo3 $locations.Demo3 $SubscriptionId $principalId
+        Set-DemoReadyAzdValue `
+            $contexts.Council $environmentNames.Demo3 `
+            'AZURE_SEARCH_SERVICE_LOCATION' $effectiveCouncilSearchLocation $sensitiveValues
         Initialize-DemoReadyCouncilGrounding `
             -ContextPath $contexts.Council `
             -EnvironmentName $environmentNames.Demo3 `

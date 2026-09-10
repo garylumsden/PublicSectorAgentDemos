@@ -8,6 +8,9 @@
     "location": {
       "value": "${AZURE_LOCATION}"
     },
+    "searchServiceLocation": {
+      "value": "${AZURE_SEARCH_SERVICE_LOCATION}"
+    },
     "userPrincipalId": {
       "value": "${AZURE_PRINCIPAL_ID}"
     },

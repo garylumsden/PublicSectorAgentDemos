@@ -42,8 +42,8 @@ param fastCapacity int = 1000
 @description('Foundry IQ knowledge base MCP RemoteTool project-connection name (also the KB name).')
 param knowledgeBaseConnectionName string = 'kbgcknowledgebase'
 
-@description('Azure AI Search SKU. basic capacity is often exhausted per-region; standard is the safe default and supports the semantic ranker Foundry IQ agentic retrieval needs.')
-param searchSkuName string = 'standard'
+@description('Azure AI Search SKU. Basic supports the semantic ranker, managed identity, and the Foundry IQ agentic retrieval limits required by this demo.')
+param searchSkuName string = 'basic'
 
 @description('Azure AI Search location. Defaults to the main location; override if the chosen SKU lacks capacity in-region.')
 param searchServiceLocation string = location

@@ -34,6 +34,8 @@ Replace each location placeholder with a supported Azure location for your subsc
 
 Add `-SubscriptionId <subscription-guid>` to select the target subscription explicitly.
 Otherwise, the command uses the current Azure CLI subscription.
+Add `-CouncilSearchLocation <location>` when Azure AI Search lacks capacity in the council region.
+The default is the selected council location.
 The existing helper reads the signed-in principal instead of requiring a stored principal ID.
 
 | Deployment | Context | Environment suffix | Preparation |

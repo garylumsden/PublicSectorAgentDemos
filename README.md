@@ -42,6 +42,8 @@ Replace each location placeholder with a supported Azure location for your subsc
 
 Use `-SubscriptionId <subscription-guid>` to select a subscription explicitly.
 Otherwise, the command uses the current Azure CLI subscription.
+Use `-CouncilSearchLocation <location>` when Azure AI Search lacks capacity in the council region.
+The other council resources remain in `-CouncilLocation`.
 The existing identity helper obtains the signed-in principal.
 No workstation path, old endpoint, `.azure` state, or original sibling checkout is required.
 
