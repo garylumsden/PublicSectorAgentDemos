@@ -175,24 +175,28 @@ $ownedContexts = @(
         Name = 'Demo 1 - Foundation and Ground'
         Path = Join-Path $repositoryRoot 'deploy\demo1'
         Environment = $Demo1EnvironmentName ? $Demo1EnvironmentName : $environmentNames.Demo1
+        Optional = $false
     },
     [pscustomobject]@{
         Key = 'Demo2'
         Name = 'Demo 2 - Act'
         Path = Join-Path $repositoryRoot 'src\PublicSectorAgentDemos.Demo2.Act'
         Environment = $Demo2EnvironmentName ? $Demo2EnvironmentName : $environmentNames.Demo2
+        Optional = $false
     },
     [pscustomobject]@{
         Key = 'Demo3'
         Name = 'Demo 3 - Cross-Government Council'
         Path = Join-Path $repositoryRoot 'src\PublicSectorAgentDemos.Demo3.Coordinate'
         Environment = $Demo3EnvironmentName ? $Demo3EnvironmentName : $environmentNames.Demo3
+        Optional = $false
     },
     [pscustomobject]@{
         Key = 'Demo4'
         Name = 'Demo 4 - Hosted'
         Path = Join-Path $repositoryRoot 'deploy\demo4'
         Environment = $Demo4EnvironmentName ? $Demo4EnvironmentName : $environmentNames.Demo4
+        Optional = $false
     }
 ) | Where-Object { $selection[$_.Key] }
 $optionalAzureContexts = Get-DemoReadyOptionalAzureTeardownContexts `
@@ -530,6 +534,15 @@ foreach ($context in $contexts) {
         Write-DemoReadyStatus `
             -Status 'ok' `
             -Message 'Rotated the Demo 2 Foundry resource generation for the next deployment.'
+    }
+    if ([bool]$context.Optional) {
+        Invoke-DemoReadyAzd `
+            -Arguments @('env', 'remove', $context.Environment, '--force') `
+            -WorkingDirectory $context.Path `
+            -Quiet
+        Write-DemoReadyStatus `
+            -Status 'ok' `
+            -Message "Removed local azd environment '$($context.Environment)' from $($context.Name)."
     }
     Write-DemoReadyStatus -Status 'ok' -Message "Removed and purged $($context.Name)."
 }

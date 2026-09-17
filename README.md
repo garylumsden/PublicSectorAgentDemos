@@ -80,6 +80,7 @@ With no options, the interactive command confirms the Azure target, asks which d
 Teardown uses `azd down --purge`, then explicitly purges matching soft-deleted AI accounts and Key Vaults.
 It also rotates the Demo 2 Foundry resource generation because Azure can retain its hidden soft-deleted AML workspace.
 It removes an optional Azure environment only when the readiness report proves that startup created it.
+After successful optional teardown, it also removes that local `azd` environment from the Patriots or Tokens and Credits repository.
 Use `-NonInteractive` with explicit selection arguments for automation.
 
 Keep the optional Patriots and Tokens and Credits checkouts on disk:

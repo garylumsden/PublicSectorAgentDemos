@@ -942,7 +942,7 @@ function Show-DemoReadyTeardownPlan {
             [bool]$context.Optional
         $actions.Add(
             $optional `
-                ? "Remove startup-created optional environment '$($context.Environment)', then purge its soft-deleted resources." `
+                ? "Remove startup-created optional environment '$($context.Environment)', purge its soft-deleted resources, then remove its local azd environment." `
                 : "Remove $($context.Environment), then purge its soft-deleted AI accounts and Key Vaults.")
     }
     if ($Selection.Demo4) {

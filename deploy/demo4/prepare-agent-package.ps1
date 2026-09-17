@@ -12,14 +12,26 @@ foreach ($relativeRoot in $generatedRoots) {
 }
 
 $sourceDirectories = @(
-    'PublicSectorAgentDemos.Demo4.HostedAgents',
-    'PublicSectorAgentDemos.Contracts',
-    'PublicSectorAgentDemos.Identity',
-    'PublicSectorAgentDemos.Observability'
+    [pscustomobject]@{
+        Source = 'src\PublicSectorAgentDemos.Demo4.HostedAgents'
+        Destination = 'PublicSectorAgentDemos.Demo4.HostedAgents'
+    },
+    [pscustomobject]@{
+        Source = 'src\Shared\PublicSectorAgentDemos.Contracts'
+        Destination = 'PublicSectorAgentDemos.Contracts'
+    },
+    [pscustomobject]@{
+        Source = 'src\Shared\PublicSectorAgentDemos.Identity'
+        Destination = 'PublicSectorAgentDemos.Identity'
+    },
+    [pscustomobject]@{
+        Source = 'src\Shared\PublicSectorAgentDemos.Observability'
+        Destination = 'PublicSectorAgentDemos.Observability'
+    }
 )
 foreach ($sourceDirectory in $sourceDirectories) {
-    $source = Join-Path $repositoryRoot "src\$sourceDirectory"
-    $destination = Join-Path $packageRoot "src\$sourceDirectory"
+    $source = Join-Path $repositoryRoot $sourceDirectory.Source
+    $destination = Join-Path $packageRoot "src\$($sourceDirectory.Destination)"
     New-Item -ItemType Directory -Path $destination -Force | Out-Null
     Get-ChildItem -LiteralPath $source -File -Filter '*.cs' | ForEach-Object {
         Copy-Item -LiteralPath $_.FullName -Destination $destination
@@ -28,7 +40,7 @@ foreach ($sourceDirectory in $sourceDirectories) {
 
 $contractDestination = Join-Path $packageRoot 'src\contracts'
 New-Item -ItemType Directory -Path $contractDestination -Force | Out-Null
-Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'contracts') -File -Filter '*.cs' |
+Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src\Shared\Contracts') -File -Filter '*.cs' |
     ForEach-Object {
         Copy-Item -LiteralPath $_.FullName -Destination $contractDestination
     }

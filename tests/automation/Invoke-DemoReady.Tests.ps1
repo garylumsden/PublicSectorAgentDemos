@@ -2924,6 +2924,8 @@ Test-Case 'Teardown reverses selected startup work and can retain optional check
         'Demo4EnvironmentName',
         'KeepPatriotsAndTokensAndCredits',
         'Get-DemoReadyOptionalAzureTeardownContexts',
+        "@('env', 'remove', `$context.Environment, '--force')",
+        "Removed local azd environment",
         'No matching readiness selection exists',
         '$reportSubscriptionId -ceq $subscriptionSummary.Id',
         'clonedByThisRun',
@@ -3877,6 +3879,28 @@ Test-Case 'Exited process records do not block retry' {
 
     $state = Get-Content -LiteralPath $statePath -Raw | ConvertFrom-Json
     Assert-Equal @($state.processes).Count 0 'An exited process record blocked the next startup.'
+}
+
+Test-Case 'Demo 4 package preparation uses the shared source layout' {
+    foreach ($scriptName in @('prepare-agent-package.ps1', 'prepare-application-package.ps1')) {
+        $source = Get-Content -LiteralPath (Join-Path $root "deploy\demo4\$scriptName") -Raw
+        foreach ($requiredPath in @(
+            'src\Shared\PublicSectorAgentDemos.Contracts',
+            'src\Shared\PublicSectorAgentDemos.Identity',
+            'src\Shared\PublicSectorAgentDemos.Observability',
+            'src\Shared\Contracts'
+        )) {
+            Assert-True ($source.Contains($requiredPath, [StringComparison]::Ordinal)) `
+                "$scriptName does not package '$requiredPath'."
+        }
+        foreach ($removedPath in @(
+            "Join-Path `$repositoryRoot 'contracts'",
+            '"src\$sourceDirectory"'
+        )) {
+            Assert-True (-not $source.Contains($removedPath, [StringComparison]::Ordinal)) `
+                "$scriptName still uses the removed source layout '$removedPath'."
+        }
+    }
 }
 
 Test-Case 'Remote Docker builds exclude generated workspace state' {
