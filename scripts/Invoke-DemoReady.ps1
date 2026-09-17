@@ -166,15 +166,24 @@ if ($Resume) {
     $HostedLocation = [string]$resumeOptions.locations.Demo4
     $PatriotsLocation = [string]$resumeOptions.locations.Patriots
     $TokensAndCreditsLocation = [string]$resumeOptions.locations.TokensAndCredits
-    $CouncilSearchLocation = [string]$resumeOptions.councilSearchLocation
+    $capturedCouncilSearchLocation = [string]$resumeOptions.councilSearchLocation
+    if (-not [string]::IsNullOrWhiteSpace($capturedCouncilSearchLocation)) {
+        $CouncilSearchLocation = $capturedCouncilSearchLocation
+    }
     $DefraRepoPath = [string]$resumeOptions.DefraRepoPath
     $AssuranceBoardRepoPath = [string]$resumeOptions.AssuranceBoardRepoPath
     $PatriotsRepoPath = [string]$resumeOptions.PatriotsRepoPath
     $TokensAndCreditsRepoPath = [string]$resumeOptions.TokensAndCreditsRepoPath
-    $DefraEnvironmentName = [string]$resumeOptions.DefraEnvironmentName
-    $AssuranceBoardEnvironmentName = [string]$resumeOptions.AssuranceBoardEnvironmentName
-    $PatriotsEnvironmentName = [string]$resumeOptions.PatriotsEnvironmentName
-    $TokensAndCreditsEnvironmentName = [string]$resumeOptions.TokensAndCreditsEnvironmentName
+    foreach ($capturedEnvironment in @(
+        [pscustomobject]@{ Name = 'DefraEnvironmentName'; Value = [string]$resumeOptions.DefraEnvironmentName },
+        [pscustomobject]@{ Name = 'AssuranceBoardEnvironmentName'; Value = [string]$resumeOptions.AssuranceBoardEnvironmentName },
+        [pscustomobject]@{ Name = 'PatriotsEnvironmentName'; Value = [string]$resumeOptions.PatriotsEnvironmentName },
+        [pscustomobject]@{ Name = 'TokensAndCreditsEnvironmentName'; Value = [string]$resumeOptions.TokensAndCreditsEnvironmentName }
+    )) {
+        if (-not [string]::IsNullOrWhiteSpace($capturedEnvironment.Value)) {
+            Set-Variable -Name $capturedEnvironment.Name -Value $capturedEnvironment.Value
+        }
+    }
     $SetupPath = [string]$resumeOptions.SetupPath
 }
 $entraStatePath = Join-Path $runtimeRoot "entra-apps.$EnvironmentName.json"

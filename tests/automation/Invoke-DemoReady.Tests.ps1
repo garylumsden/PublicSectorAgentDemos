@@ -350,7 +350,7 @@ Test-Case 'Selection arguments support individual demos, aliases, and automation
         Assert-True ($command.Parameters.Demo4.Aliases -contains 'Hosted') 'Demo 4 does not expose the Hosted alias.'
         foreach ($name in @(
             'Demo1', 'Demo2', 'Demo3', 'Demo4', 'Patriots',
-            'TokensAndCredits', 'All', 'NonInteractive', 'RemainingArguments'
+            'TokensAndCredits', 'All', 'Resume', 'NonInteractive', 'RemainingArguments'
         )) {
             Assert-True $command.Parameters.ContainsKey($name) "The startup command does not expose -$name."
         }
@@ -379,6 +379,25 @@ Test-Case 'Selection arguments support individual demos, aliases, and automation
             -InteractiveConsole:$true
         Assert-True $emptyBoundArgument.Guided `
             'An empty ValueFromRemainingArguments binding prevented the guided flow.'
+}
+
+Test-Case 'Resume ignores empty captured values for optional validated parameters' {
+    foreach ($parameter in @(
+        'CouncilSearchLocation',
+        'DefraEnvironmentName',
+        'AssuranceBoardEnvironmentName',
+        'PatriotsEnvironmentName',
+        'TokensAndCreditsEnvironmentName'
+    )) {
+        Assert-True (-not $invokeSource.Contains(
+                "`$$parameter = [string]`$resumeOptions.",
+                [StringComparison]::Ordinal)) `
+            "Resume directly assigns an empty captured value to -$parameter."
+    }
+    Assert-True ($invokeSource.Contains(
+            "if (-not [string]::IsNullOrWhiteSpace(`$capturedEnvironment.Value))",
+            [StringComparison]::Ordinal)) `
+        'Resume does not guard optional environment-name assignments.'
 }
 
 Test-Case 'Literal all parsing selects every supported demo and rejects other remaining arguments' {
