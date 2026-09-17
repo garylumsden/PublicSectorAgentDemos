@@ -62,6 +62,14 @@ A new council environment uses Foundry IQ when no Web IQ credentials are supplie
 Explicit valid grounding choices and council round settings remain unchanged.
 The command does not perform teardown.
 
+If a startup run fails after plan confirmation, resume it with the captured options:
+
+```powershell
+.\scripts\Invoke-DemoReady.ps1 -Resume
+```
+
+The resume command reuses the readiness report, reruns the selected deployments idempotently, and does not repeat the guided questions.
+
 Remove the deployments and local state created by the latest startup run:
 
 ```powershell

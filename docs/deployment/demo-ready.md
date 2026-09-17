@@ -52,6 +52,13 @@ It creates an environment only after a successful list proves that the name is a
 Authentication, CLI, parsing, and selection failures stop setup.
 Normal reruns preserve environment names and contain no teardown operation.
 Use the same location and subscription for a rerun of an existing deployment.
+If a run fails after plan confirmation, use `-Resume` to reuse the captured deployment options:
+
+```powershell
+.\scripts\Invoke-DemoReady.ps1 -Resume
+```
+
+The resume command reads `.demo-ready\readiness.json`, prefills the prior selections, locations, repository paths, environment names, subscription, and council search location, then reruns the selected work idempotently.
 
 For each selected optional checkout, startup applies a stricter rule.
 It inspects `azd env list --output json` in that checkout.

@@ -5,6 +5,7 @@
 .DESCRIPTION
     With no selection arguments in an interactive console, this command starts a guided flow.
     With no selection arguments in automation, it preserves the original four-demo deployment.
+    Use -Resume after a failed run to reuse the captured plan and deployment options.
     Use scripts\Test-DemoReady.ps1 for tests, builds, and deep validation.
 #>
 [CmdletBinding()]
@@ -25,6 +26,8 @@ param(
     [switch]$TokensAndCredits,
 
     [switch]$All,
+
+    [switch]$Resume,
 
     [switch]$NonInteractive,
 
@@ -111,11 +114,7 @@ $runtimeRoot = Join-Path $repositoryRoot '.demo-ready'
 $logRoot = Join-Path $runtimeRoot 'logs'
 $catalogPath = Join-Path $runtimeRoot 'sessions.generated.json'
 $processPath = Join-Path $runtimeRoot 'processes.json'
-$entraStatePath = Join-Path $runtimeRoot "entra-apps.$EnvironmentName.json"
 $schemaPath = Join-Path $PSScriptRoot 'DemoReady\repositories.v1.schema.json'
-$setupFilePath = [string]::IsNullOrWhiteSpace($SetupPath) `
-    ? (Join-Path $runtimeRoot 'repositories.local.json') `
-    : [IO.Path]::GetFullPath($SetupPath)
 $presenterProject = 'src\PublicSectorAgentDemos.Presenter\PublicSectorAgentDemos.Presenter.csproj'
 $demo1WebProject = Join-Path $repositoryRoot 'src\PublicSectorAgentDemos.Demo1.Web\PublicSectorAgentDemos.Demo1.Web.csproj'
 $demo1WebUrl = 'http://localhost:5090/'
@@ -138,6 +137,50 @@ Assert-DemoReadyReportPath `
     -RepositoryRoot $repositoryRoot `
     -RuntimeRoot $runtimeRoot `
     -ReportPath $ReportPath
+
+$previousReadiness = (Test-Path -LiteralPath $ReportPath -PathType Leaf) `
+    ? (Get-Content -LiteralPath $ReportPath -Raw | ConvertFrom-Json) `
+    : $null
+if ($Resume) {
+    if ($null -eq $previousReadiness) {
+        throw "Cannot resume because the readiness report '$ReportPath' does not exist."
+    }
+    $resumeOptionsProperty = $previousReadiness.PSObject.Properties['options']
+    if ($null -eq $resumeOptionsProperty -or $null -eq $resumeOptionsProperty.Value) {
+        throw 'Cannot resume because the readiness report does not contain captured deployment options.'
+    }
+    $resumeOptions = $resumeOptionsProperty.Value
+    $EnvironmentName = [string]$resumeOptions.environmentName
+    $SubscriptionId = [string]$resumeOptions.subscriptionId
+    $Demo1 = [bool]$resumeOptions.selection.Demo1
+    $Demo2 = [bool]$resumeOptions.selection.Demo2
+    $Demo3 = [bool]$resumeOptions.selection.Demo3
+    $Demo4 = [bool]$resumeOptions.selection.Demo4
+    $Patriots = [bool]$resumeOptions.selection.Patriots
+    $TokensAndCredits = [bool]$resumeOptions.selection.TokensAndCredits
+    $All = $false
+    $NonInteractive = $true
+    $Demo1Location = [string]$resumeOptions.locations.Demo1
+    $Demo2Location = [string]$resumeOptions.locations.Demo2
+    $CouncilLocation = [string]$resumeOptions.locations.Demo3
+    $HostedLocation = [string]$resumeOptions.locations.Demo4
+    $PatriotsLocation = [string]$resumeOptions.locations.Patriots
+    $TokensAndCreditsLocation = [string]$resumeOptions.locations.TokensAndCredits
+    $CouncilSearchLocation = [string]$resumeOptions.councilSearchLocation
+    $DefraRepoPath = [string]$resumeOptions.DefraRepoPath
+    $AssuranceBoardRepoPath = [string]$resumeOptions.AssuranceBoardRepoPath
+    $PatriotsRepoPath = [string]$resumeOptions.PatriotsRepoPath
+    $TokensAndCreditsRepoPath = [string]$resumeOptions.TokensAndCreditsRepoPath
+    $DefraEnvironmentName = [string]$resumeOptions.DefraEnvironmentName
+    $AssuranceBoardEnvironmentName = [string]$resumeOptions.AssuranceBoardEnvironmentName
+    $PatriotsEnvironmentName = [string]$resumeOptions.PatriotsEnvironmentName
+    $TokensAndCreditsEnvironmentName = [string]$resumeOptions.TokensAndCreditsEnvironmentName
+    $SetupPath = [string]$resumeOptions.SetupPath
+}
+$entraStatePath = Join-Path $runtimeRoot "entra-apps.$EnvironmentName.json"
+$setupFilePath = [string]::IsNullOrWhiteSpace($SetupPath) `
+    ? (Join-Path $runtimeRoot 'repositories.local.json') `
+    : [IO.Path]::GetFullPath($SetupPath)
 $null = New-Item -ItemType Directory -Path $logRoot -Force
 
 $selectionResult = Get-DemoReadySelection `
@@ -182,9 +225,45 @@ $processes = [Collections.Generic.List[object]]::new()
 $preservedProcesses = @()
 $processStateManaged = $false
 $sensitiveValues = [Collections.Generic.List[string]]::new()
-$previousReadiness = (Test-Path -LiteralPath $ReportPath -PathType Leaf) `
-    ? (Get-Content -LiteralPath $ReportPath -Raw | ConvertFrom-Json) `
-    : $null
+$effectiveCouncilSearchLocation = $CouncilSearchLocation
+
+function New-DemoReadyResumeOptions {
+    param(
+        [Parameter(Mandatory)][Collections.IDictionary]$Selection,
+        [Parameter(Mandatory)][Collections.IDictionary]$Locations
+    )
+
+    return [ordered]@{
+        environmentName = $EnvironmentName
+        subscriptionId = $SubscriptionId
+        selection = [ordered]@{
+            Demo1 = [bool]$Selection.Demo1
+            Demo2 = [bool]$Selection.Demo2
+            Demo3 = [bool]$Selection.Demo3
+            Demo4 = [bool]$Selection.Demo4
+            Patriots = [bool]$Selection.Patriots
+            TokensAndCredits = [bool]$Selection.TokensAndCredits
+        }
+        locations = [ordered]@{
+            Demo1 = [string]$Locations.Demo1
+            Demo2 = [string]$Locations.Demo2
+            Demo3 = [string]$Locations.Demo3
+            Demo4 = [string]$Locations.Demo4
+            Patriots = [string]$Locations.Patriots
+            TokensAndCredits = [string]$Locations.TokensAndCredits
+        }
+        councilSearchLocation = [string]$effectiveCouncilSearchLocation
+        DefraRepoPath = [string]$DefraRepoPath
+        AssuranceBoardRepoPath = [string]$AssuranceBoardRepoPath
+        PatriotsRepoPath = [string]$PatriotsRepoPath
+        TokensAndCreditsRepoPath = [string]$TokensAndCreditsRepoPath
+        DefraEnvironmentName = [string]$DefraEnvironmentName
+        AssuranceBoardEnvironmentName = [string]$AssuranceBoardEnvironmentName
+        PatriotsEnvironmentName = [string]$PatriotsEnvironmentName
+        TokensAndCreditsEnvironmentName = [string]$TokensAndCreditsEnvironmentName
+        SetupPath = [string]$setupFilePath
+    }
+}
 
 if ($null -eq $previousReadiness) {
     Write-DemoReadyJsonAtomic `
@@ -374,6 +453,7 @@ try {
             environments = $environmentNames
             selections = $selection
             locations = $locations
+            options = New-DemoReadyResumeOptions -Selection $selection -Locations $locations
             external = [ordered]@{
                 patriots = [ordered]@{
                     repositoryPath = $optionalCheckoutPaths['patriots']
@@ -1016,6 +1096,7 @@ catch {
                 environments = $environmentNames
                 selections = $selection
                 locations = $locations
+                options = New-DemoReadyResumeOptions -Selection $selection -Locations $locations
                 external = [ordered]@{
                     patriots = [ordered]@{
                         repositoryPath = $optionalCheckoutPaths['patriots']
