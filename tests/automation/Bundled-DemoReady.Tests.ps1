@@ -69,6 +69,37 @@ Test-Case 'Fresh initialization creates only the requested owned environment' {
     }
 }
 
+Test-Case 'Demo 2 Foundry generation stays stable until teardown rotates it' {
+    $script:foundryValues = @{}
+    $script:foundryWrites = [Collections.Generic.List[string]]::new()
+    Invoke-WithMockedFunction -Functions @{
+        'Get-DemoReadyAzdValues' = {
+            param($ContextPath, $EnvironmentName, $SensitiveValues)
+            return $script:foundryValues
+        }
+        'Set-DemoReadyAzdValue' = {
+            param($ContextPath, $EnvironmentName, $Name, $Value, $SensitiveValues)
+            Assert-Equal $Name 'DEMO_READY_FOUNDRY_RESOURCE_GENERATION' `
+                'The Foundry generation used the wrong azd setting.'
+            $script:foundryWrites.Add([string]$Value)
+        }
+    } -Action {
+        $created = Initialize-DemoReadyFoundryResourceGeneration $root 'fresh-demo2'
+        Assert-True ($created -match '^[0-9a-f]{32}$') 'The generated Foundry value is invalid.'
+        Assert-Equal $script:foundryWrites.Count 1 'A missing Foundry generation was not persisted.'
+
+        $script:foundryValues = @{ DEMO_READY_FOUNDRY_RESOURCE_GENERATION = $created }
+        $existing = Initialize-DemoReadyFoundryResourceGeneration $root 'fresh-demo2'
+        Assert-Equal $existing $created 'A normal rerun changed the Foundry generation.'
+        Assert-Equal $script:foundryWrites.Count 1 'A normal rerun rewrote the Foundry generation.'
+
+        $rotated = Initialize-DemoReadyFoundryResourceGeneration $root 'fresh-demo2' -Rotate
+        Assert-True ($rotated -match '^[0-9a-f]{32}$' -and $rotated -cne $created) `
+            'Teardown did not rotate the Foundry generation.'
+        Assert-Equal $script:foundryWrites.Count 2 'The rotated Foundry generation was not persisted.'
+    }
+}
+
 Test-Case 'Bicep compilation avoids Windows stdout encoding and removes temporary output' {
     $workspace = New-TestDirectory -Name 'bicep-unicode'
     foreach ($relative in @('infra\main.bicep', 'src\PublicSectorAgentDemos.Demo2.Act\infra\main.bicepparam', 'src\PublicSectorAgentDemos.Demo3.Coordinate\infra\main.bicep')) {

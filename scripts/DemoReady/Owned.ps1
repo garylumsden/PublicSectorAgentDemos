@@ -91,6 +91,24 @@ function Initialize-DemoReadyAzdEnvironment {
     return $isNew
 }
 
+function Initialize-DemoReadyFoundryResourceGeneration {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$ContextPath,
+        [Parameter(Mandatory)][string]$EnvironmentName,
+        [switch]$Rotate
+    )
+
+    $values = Get-DemoReadyAzdValues $ContextPath $EnvironmentName
+    $generation = [string]$values['DEMO_READY_FOUNDRY_RESOURCE_GENERATION']
+    if ($Rotate -or [string]::IsNullOrWhiteSpace($generation)) {
+        $generation = [Guid]::NewGuid().ToString('N')
+        Set-DemoReadyAzdValue `
+            $ContextPath $EnvironmentName 'DEMO_READY_FOUNDRY_RESOURCE_GENERATION' $generation
+    }
+    return $generation
+}
+
 function Initialize-DemoReadyAzureContext {
     # Selects the subscription and checks the Azure CLI and azd sign-in state.
     [CmdletBinding()]

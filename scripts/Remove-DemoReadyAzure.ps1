@@ -522,6 +522,15 @@ foreach ($context in $contexts) {
         -EnvironmentName $context.Environment `
         -ResourceGroupName $resourceGroupName `
         -WorkingDirectory $context.Path
+    if ([string]$context.Key -ceq 'Demo2') {
+        $null = Initialize-DemoReadyFoundryResourceGeneration `
+            -ContextPath $context.Path `
+            -EnvironmentName $context.Environment `
+            -Rotate
+        Write-DemoReadyStatus `
+            -Status 'ok' `
+            -Message 'Rotated the Demo 2 Foundry resource generation for the next deployment.'
+    }
     Write-DemoReadyStatus -Status 'ok' -Message "Removed and purged $($context.Name)."
 }
 

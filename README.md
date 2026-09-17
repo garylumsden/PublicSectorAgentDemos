@@ -78,6 +78,7 @@ Remove the deployments and local state created by the latest startup run:
 
 With no options, the interactive command confirms the Azure target, asks which demos to remove, asks whether to keep the optional checkouts, and shows the complete teardown plan before confirmation.
 Teardown uses `azd down --purge`, then explicitly purges matching soft-deleted AI accounts and Key Vaults.
+It also rotates the Demo 2 Foundry resource generation because Azure can retain its hidden soft-deleted AML workspace.
 It removes an optional Azure environment only when the readiness report proves that startup created it.
 Use `-NonInteractive` with explicit selection arguments for automation.
 

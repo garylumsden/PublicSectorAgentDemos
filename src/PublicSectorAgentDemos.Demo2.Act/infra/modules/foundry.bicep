@@ -17,6 +17,9 @@ type stringMap = {
 param environmentName string
 
 @minLength(1)
+param resourceGeneration string
+
+@minLength(1)
 param location string
 
 @minLength(1)
@@ -25,7 +28,7 @@ param accountSkuName string
 param chatDeployment modelDeploymentConfig
 param tags stringMap
 
-var resourceToken = uniqueString(subscription().subscriptionId, resourceGroup().id, environmentName)
+var resourceToken = uniqueString(subscription().subscriptionId, resourceGroup().id, environmentName, resourceGeneration)
 var environmentNameSegment = take(toLower(environmentName), 30)
 var accountName = 'aif-${resourceToken}-${environmentNameSegment}'
 var projectName = 'project-${environmentNameSegment}-${resourceToken}'

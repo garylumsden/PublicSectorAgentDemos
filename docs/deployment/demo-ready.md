@@ -355,6 +355,9 @@ The command stops the local applications and runs `azd down --purge` for the sel
 It also removes an optional environment when the matching readiness report records `azdEnvironmentCreatedByThisRun=true`.
 It never removes an optional environment that existed before startup.
 It then explicitly purges matching soft-deleted Azure AI accounts and Key Vaults, including when the resource group is already absent.
+Azure can retain a hidden soft-deleted AML workspace after it purges a Foundry account.
+Teardown rotates the Demo 2 Foundry resource generation so the next deployment uses a new backing workspace name.
+Normal reruns keep the generation unchanged and remain idempotent.
 It also removes the owned Demo 4 app registration.
 It also removes generated readiness and Presenter state. It removes process state only when no protected records remain.
 

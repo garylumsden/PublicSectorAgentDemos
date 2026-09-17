@@ -417,6 +417,27 @@ Test-Case 'Literal all parsing selects every supported demo and rejects other re
             -Message 'An unknown remaining argument was accepted.'
 }
 
+Test-Case 'Demo 2 Foundry names include the persisted resource generation' {
+    $parameterSource = Get-Content -LiteralPath `
+        (Join-Path $root 'src\PublicSectorAgentDemos.Demo2.Act\infra\main.bicepparam') -Raw
+    $mainSource = Get-Content -LiteralPath `
+        (Join-Path $root 'src\PublicSectorAgentDemos.Demo2.Act\infra\main.bicep') -Raw
+    $foundrySource = Get-Content -LiteralPath `
+        (Join-Path $root 'src\PublicSectorAgentDemos.Demo2.Act\infra\modules\foundry.bicep') -Raw
+    Assert-True ($parameterSource.Contains(
+            "readEnvironmentVariable('DEMO_READY_FOUNDRY_RESOURCE_GENERATION', 'initial')",
+            [StringComparison]::Ordinal)) `
+        'Demo 2 does not read the persisted Foundry resource generation.'
+    Assert-True ($mainSource.Contains(
+            'resourceGeneration: foundryResourceGeneration',
+            [StringComparison]::Ordinal)) `
+        'Demo 2 does not pass the Foundry resource generation to its module.'
+    Assert-True ($foundrySource.Contains(
+            'environmentName, resourceGeneration)',
+            [StringComparison]::Ordinal)) `
+        'The Foundry resource name does not include its generation.'
+}
+
 Test-Case 'The centralized model plan reports exact deployment and capacity totals' {
         $catalog = Get-DemoReadyModelCapacityCatalog
         Assert-Equal @($catalog.Keys).Count 6 'The capacity catalog must contain all Azure deployments.'
@@ -2917,6 +2938,8 @@ Test-Case 'Teardown reverses selected startup work and can retain optional check
         "ls-remote --heads --tags origin",
         "Join-Path `$runtimeRoot 'sessions.generated.json'",
         "Join-Path `$runtimeRoot 'processes.json'",
+        'Initialize-DemoReadyFoundryResourceGeneration',
+        '-Rotate',
         'Retained unrelated or protected process state'
     )) {
         Assert-True ($removeAzureSource.Contains($required, [StringComparison]::Ordinal)) `

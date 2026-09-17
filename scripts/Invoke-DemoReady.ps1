@@ -596,6 +596,8 @@ try {
     if ($selection.Demo2) {
         $null = Initialize-DemoReadyAzdEnvironment `
             $contexts.Demo2 $environmentNames.Demo2 $locations.Demo2 $SubscriptionId $principalId
+        $null = Initialize-DemoReadyFoundryResourceGeneration `
+            $contexts.Demo2 $environmentNames.Demo2
     }
     if ($selection.Demo3) {
         $null = Initialize-DemoReadyAzdEnvironment `

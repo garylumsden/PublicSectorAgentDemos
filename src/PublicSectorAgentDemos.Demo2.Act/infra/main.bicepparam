@@ -6,6 +6,7 @@ var adminUserObjectIdsValue = readEnvironmentVariable('AZURE_ADMIN_USER_OBJECT_I
 var defaultLocation = readEnvironmentVariable('AZURE_LOCATION', 'switzerlandnorth')
 
 param environmentName = readEnvironmentVariable('AZURE_ENV_NAME')
+param foundryResourceGeneration = readEnvironmentVariable('DEMO_READY_FOUNDRY_RESOURCE_GENERATION', 'initial')
 param deployerPrincipalId = readEnvironmentVariable('AZURE_PRINCIPAL_ID')
 param aiLocation = readEnvironmentVariable('AZURE_AI_LOCATION', defaultLocation)
 param appLocation = readEnvironmentVariable('AZURE_APP_LOCATION', defaultLocation)

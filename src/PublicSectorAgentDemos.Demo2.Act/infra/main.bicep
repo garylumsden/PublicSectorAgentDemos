@@ -18,6 +18,10 @@ type objectId = string
 param environmentName string
 
 @minLength(1)
+@description('Generation value that keeps Foundry names stable until teardown rotates them.')
+param foundryResourceGeneration string
+
+@minLength(1)
 @description('Azure region for Foundry and model deployments.')
 param aiLocation string
 
@@ -83,6 +87,7 @@ module foundry './modules/foundry.bicep' = {
   scope: resourceGroup
   params: {
     environmentName: environmentName
+    resourceGeneration: foundryResourceGeneration
     location: aiLocation
     accountSkuName: accountSkuName
     chatDeployment: chatDeployment
