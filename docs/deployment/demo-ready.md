@@ -44,8 +44,8 @@ The existing helper reads the signed-in principal instead of requiring a stored 
 | Demo 2 | `src\PublicSectorAgentDemos.Demo2.Act` | `-demo2` | Run the isolated azd workflow and its authentication and flood support bootstrap hooks. |
 | Demo 3 | `src\PublicSectorAgentDemos.Demo3.Coordinate` | `-demo3` | Provision, generate `.env`, build and start the local Council application. |
 | Demo 4 | `deploy\demo4` | `-demo4` | Prepare Entra identity, run existing azd hooks, configure browser reply URI. |
-| Patriots, when no local environment exists | External `azure-ai-mgs-patriots` | `-patriots` | Create an environment with Foundry IQ defaults, run `azd up`, then build and start the local application. |
-| Tokens and Credits, when no local environment exists | External `tokens-and-credits` | `-tokens` | Run its existing `azd up` workflow and postprovision hook, then build and start the local application. |
+| Patriots | External `azure-ai-mgs-patriots` | `-patriots` | Select or create an environment, run `azd up`, then build and start the local application. |
+| Tokens and Credits | External `tokens-and-credits` | `-tokens` | Select or create an environment, then run its existing `azd up` workflow and postprovision hook. |
 
 The command reads `azd env list --output json` before selecting or creating an environment.
 It creates an environment only after a successful list proves that the name is absent.
@@ -59,13 +59,13 @@ If a run fails after plan confirmation, use `-Resume` to reuse the captured depl
 ```
 
 The resume command reads `.demo-ready\readiness.json`, prefills the prior selections, locations, repository paths, environment names, subscription, and council search location, then reruns the selected work idempotently.
+Demo 1 now verifies its Foundry project data plane before it uploads or ingests the pinned corpus.
 
-For each selected optional checkout, startup applies a stricter rule.
-It inspects `azd env list --output json` in that checkout.
-If one or more environments exist, startup assumes that checkout is already deployed.
-It selects `-PatriotsEnvironmentName`, `-TokensAndCreditsEnvironmentName`, or the configured setup-file name.
-Without a configured name, it requires and selects the single default environment.
-It runs no `azd up`, `azd provision`, or `azd deploy` command for an existing optional environment.
+For each selected optional checkout, startup inspects `azd env list --output json`.
+If one or more environments exist, it selects the configured environment or the single default environment.
+It then runs `azd up` to reconcile Azure resources with the selected environment.
+For Tokens and Credits, startup keeps a stable Foundry resource generation in the selected `azd` environment.
+A new local environment receives a new generation, which avoids hidden AML workspace name conflicts after teardown.
 
 If no local environment exists, startup creates a deterministic name.
 The defaults are `<EnvironmentName>-patriots` and `<EnvironmentName>-tokens`.
@@ -194,7 +194,7 @@ It installs no SDK or tools and does not build an external solution.
 Runtime uses `dotnet run --no-build --no-restore --no-launch-profile`.
 The only process override is `ASPNETCORE_URLS=http://localhost:5041`.
 It preserves existing choices without importing Demo 1 settings.
-An existing optional environment receives no azd value write and no deployment command.
+An existing optional environment keeps its settings, except startup initializes a missing Tokens and Credits Foundry generation.
 For a new environment, normal azd and postprovision files remain ignored in the external checkout.
 Build outputs remain in the checkout's normal ignored `bin` and `obj` directories.
 Startup compares external Git status with its baseline.
@@ -346,15 +346,15 @@ Use the teardown command to reverse the most recent startup selection:
 The interactive command uses the same four-step console experience as startup:
 
 1. Confirm the Azure subscription and environment base.
-2. Select each deployment to remove, using the readiness report as the default.
+2. Select Demo 1 through Demo 4, Patriots, and Tokens and Credits separately.
 3. Choose whether to keep Patriots and Tokens and Credits on disk.
 4. Review every Azure, identity, process, repository, and generated-state action before confirmation.
 
 No removal starts before the final confirmation.
-The command stops the local applications and runs `azd down --purge` for the selected `demo1` through `demo4` environments.
-It also removes an optional environment when the matching readiness report records `azdEnvironmentCreatedByThisRun=true`.
-It never removes an optional environment that existed before startup.
-After successful optional teardown, it removes the corresponding local `azd` environment from the Patriots or Tokens and Credits repository.
+The command stops the local applications and runs `azd down --purge` for each selected deployment.
+Patriots and Tokens and Credits are independent guided choices and command switches.
+A selected optional deployment requires a matching report with creation or deployment evidence.
+After successful optional teardown, it removes the corresponding local `azd` environment from the external repository.
 It then explicitly purges matching soft-deleted Azure AI accounts and Key Vaults, including when the resource group is already absent.
 Azure can retain a hidden soft-deleted AML workspace after it purges a Foundry account.
 Teardown rotates the Demo 2 Foundry resource generation so the next deployment uses a new backing workspace name.
@@ -371,7 +371,7 @@ Keep both optional checkouts on disk with:
 ```
 
 `-KeepPatriotsAndTokensAndCredits` controls disk retention only.
-It does not retain an optional Azure environment created by startup.
+Use `-Patriots` and `-TokensAndCredits` to select their Azure environments in non-interactive runs.
 
 Use `-Demo1`, `-Demo2`, `-Demo3`, `-Demo4`, or `-All` to override the selection recorded in the readiness report.
 Use `-NonInteractive` for automation. Without matching readiness state, non-interactive teardown requires an explicit demo selection.

@@ -337,6 +337,11 @@ if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($foundryToken)) {
 $projectUri = Get-ValidatedServiceUri $ProjectEndpoint 'ProjectEndpoint' '.services.ai.azure.com'
 $searchUri = Get-ValidatedServiceUri $SearchEndpoint 'SearchEndpoint' '.search.windows.net'
 $aiServicesUri = Get-ValidatedServiceUri $AiServicesEndpoint 'AiServicesEndpoint' '.services.ai.azure.com'
+$headers = @{
+    Authorization = "Bearer $foundryToken"
+    'Content-Type' = 'application/json'
+}
+Wait-Demo1ProjectReady -ProjectUri $projectUri -Headers $headers
 $iq = ($catalog.definitions | Where-Object stage -eq 'ground').foundryIq
 $source = $sourceManifest.sources[0]
 $corpusPath = Join-Path $root "data\ground\v1\knowledge\$($source.expectedLocalFilename)"
@@ -481,10 +486,6 @@ else {
     Write-Host 'AgentsOnly: preserving existing storage, ingestion, knowledge source, and knowledge base.'
 }
 
-$headers = @{
-    Authorization = "Bearer $foundryToken"
-    'Content-Type' = 'application/json'
-}
 foreach ($definition in $catalog.definitions) {
     $instructions = $base.TrimEnd()
     $bodyDefinition = [ordered]@{
@@ -541,11 +542,16 @@ $probePayload = @{
         }
     )
 } | ConvertTo-Json -Depth 10
+$probeBody = $probePayload | ConvertFrom-Json
+$probeBody | Add-Member NoteProperty agent_reference ([ordered]@{
+        type = 'agent_reference'
+        name = $groundAgentName
+    })
 $probeResponse = Invoke-Demo1KnowledgeProbe -Request @{
     Method = 'Post'
-    Uri = "$projectUri/agents/$([Uri]::EscapeDataString($groundAgentName))/endpoint/protocols/openai/responses?api-version=v1"
+    Uri = "$projectUri/openai/v1/responses"
     Headers = $headers
-    Body = $probePayload
+    Body = ($probeBody | ConvertTo-Json -Depth 10)
 }
 $usedKnowledgeBase = @((Get-OptionalProperty $probeResponse 'output') | Where-Object {
         ([string](Get-OptionalProperty $_ 'type')) -ceq 'mcp_call' -and

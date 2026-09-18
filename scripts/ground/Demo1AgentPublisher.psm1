@@ -95,6 +95,66 @@ function Test-Demo1NotFound {
     return $null -ne $statusCode -and [int]$statusCode -eq 404
 }
 
+function Test-Demo1ProjectNotReady {
+    param([Parameter(Mandatory)]$ErrorRecord)
+
+    if (-not (Test-Demo1NotFound $ErrorRecord)) {
+        return $false
+    }
+
+    $details = @(
+        [string](Get-Demo1AgentProperty $ErrorRecord.Exception 'Message')
+        [string](Get-Demo1AgentProperty $ErrorRecord.ErrorDetails 'Message')
+    ) -join [Environment]::NewLine
+    return $details -match '(?i)project (?:not found|does not exist)'
+}
+
+function Wait-Demo1ProjectReady {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string]$ProjectUri,
+        [Parameter(Mandatory)]
+        [hashtable]$Headers,
+        [ValidateRange(1, 3600)]
+        [int]$TimeoutSeconds = 900,
+        [ValidateRange(1, 60)]
+        [int]$PollIntervalSeconds = 10,
+        [scriptblock]$RestInvoker,
+        [scriptblock]$SleepAction
+    )
+
+    $timer = [Diagnostics.Stopwatch]::StartNew()
+    do {
+        try {
+            $request = @{
+                Method = 'Get'
+                Uri = "$($ProjectUri.TrimEnd('/'))/agents?api-version=v1"
+                Headers = $Headers
+            }
+            $null = Invoke-Demo1AgentRest -Request $request -RestInvoker $RestInvoker
+            return
+        }
+        catch {
+            if (-not (Test-Demo1ProjectNotReady $_)) {
+                throw
+            }
+            if ($timer.Elapsed.TotalSeconds -ge $TimeoutSeconds) {
+                break
+            }
+        }
+
+        if ($null -ne $SleepAction) {
+            & $SleepAction $PollIntervalSeconds
+        }
+        else {
+            Start-Sleep -Seconds $PollIntervalSeconds
+        }
+    } while ($timer.Elapsed.TotalSeconds -lt $TimeoutSeconds)
+
+    throw "The Foundry project data plane did not become ready within $TimeoutSeconds seconds: $ProjectUri"
+}
+
 function Get-Demo1NamedAgent {
     param(
         [Parameter(Mandatory)]
@@ -248,6 +308,28 @@ function Publish-Demo1NamedAgent {
         $operation = 'created'
     }
     else {
+        $existingLatest = Get-Demo1AgentProperty (Get-Demo1AgentProperty $existing 'versions') 'latest'
+        $matches = $true
+        try {
+            Assert-Demo1AgentValue -Expected $definition `
+                -Actual (Get-Demo1AgentProperty $existingLatest 'definition') -Path 'definition'
+            Assert-Demo1AgentValue -Expected (Get-Demo1AgentProperty $Payload 'description') `
+                -Actual (Get-Demo1AgentProperty $existingLatest 'description') -Path 'description'
+            Assert-Demo1AgentValue -Expected (Get-Demo1AgentProperty $Payload 'metadata') `
+                -Actual (Get-Demo1AgentProperty $existingLatest 'metadata') -Path 'metadata'
+        }
+        catch {
+            $matches = $false
+        }
+
+        if ($matches) {
+            return [pscustomobject]@{
+                Name = $name
+                Version = [string](Get-Demo1AgentProperty $existingLatest 'version')
+                Operation = 'unchanged'
+            }
+        }
+
         $requestBody = [ordered]@{
             description = Get-Demo1AgentProperty $Payload 'description'
             definition = $definition
@@ -255,7 +337,7 @@ function Publish-Demo1NamedAgent {
         }
         $publishRequest = @{
             Method = 'Post'
-            Uri = "$baseUri/agents/${escapedName}?api-version=v1"
+            Uri = "$baseUri/agents/${escapedName}/versions?api-version=v1"
             Headers = $Headers
             Body = ($requestBody | ConvertTo-Json -Depth 100)
         }
@@ -300,4 +382,4 @@ function Publish-Demo1NamedAgent {
     }
 }
 
-Export-ModuleMember -Function Publish-Demo1NamedAgent, Invoke-Demo1KnowledgeProbe
+Export-ModuleMember -Function Publish-Demo1NamedAgent, Invoke-Demo1KnowledgeProbe, Wait-Demo1ProjectReady

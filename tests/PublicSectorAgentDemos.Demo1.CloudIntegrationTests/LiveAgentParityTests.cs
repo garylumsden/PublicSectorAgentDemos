@@ -102,10 +102,10 @@ public sealed class LiveAgentParityTests
         bool requireTool,
         bool applyGroundingGate)
     {
-        string relativeUrl =
-            $"agents/{Uri.EscapeDataString(agentName)}/endpoint/protocols/openai/responses?api-version=v1";
+        const string relativeUrl = "openai/v1/responses";
         Dictionary<string, object> payload = new()
         {
+            ["agent_reference"] = new { type = "agent_reference", name = agentName },
             ["input"] = new[]
             {
                 new { role = "user", content = prompt }

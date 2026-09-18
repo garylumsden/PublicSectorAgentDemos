@@ -40,10 +40,10 @@ var aiProjectName = 'demo1-${suffix}'
 var applicationInsightsConnectionName = 'appinsights'
 var cognitiveServicesUserRoleId = 'a97b65f3-24c7-4388-baec-2e87135dc908'
 var azureAIUserRoleId = '53ca6127-db72-4b80-b1b0-d745d6d5456d'
-var azureAIProjectManagerRoleId = 'b8b15564-4fa6-4a59-ab12-03e1d9594795'
+var azureAIProjectManagerRoleId = 'eadc314b-1a2d-4efa-be10-5d325db5065e'
 var monitoringMetricsPublisherRoleId = '3913510d-42f4-4e42-8a64-420c390055eb'
 
-resource aiServices 'Microsoft.CognitiveServices/accounts@2025-09-01' = {
+resource aiServices 'Microsoft.CognitiveServices/accounts@2026-05-01' = {
   name: aiServicesName
   location: location
   tags: tags
@@ -87,7 +87,7 @@ module modelDeployment 'demo1-model-deployment.bicep' = {
   }
 }
 
-resource aiProject 'Microsoft.CognitiveServices/accounts/projects@2025-09-01' = {
+resource aiProject 'Microsoft.CognitiveServices/accounts/projects@2026-05-01' = {
   parent: aiServices
   name: aiProjectName
   dependsOn: [
@@ -133,7 +133,7 @@ resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
   }
 }
 
-resource applicationInsightsConnection 'Microsoft.CognitiveServices/accounts/projects/connections@2025-09-01' = {
+resource applicationInsightsConnection 'Microsoft.CognitiveServices/accounts/projects/connections@2026-05-01' = {
   parent: aiProject
   name: applicationInsightsConnectionName
   properties: any({
@@ -157,7 +157,8 @@ resource projectTelemetryPublisher 'Microsoft.Authorization/roleAssignments@2022
     principalType: 'ServicePrincipal'
     roleDefinitionId: subscriptionResourceId(
       'Microsoft.Authorization/roleDefinitions',
-      monitoringMetricsPublisherRoleId)
+      monitoringMetricsPublisherRoleId
+    )
   }
 }
 
@@ -169,7 +170,8 @@ resource presenterTelemetryPublisher 'Microsoft.Authorization/roleAssignments@20
     principalType: 'User'
     roleDefinitionId: subscriptionResourceId(
       'Microsoft.Authorization/roleDefinitions',
-      monitoringMetricsPublisherRoleId)
+      monitoringMetricsPublisherRoleId
+    )
   }
 }
 

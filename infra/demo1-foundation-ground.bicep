@@ -35,11 +35,11 @@ var searchIndexDataContributorRoleId = '8ebe5a00-799e-43f5-93ac-243d3dce84a7'
 var searchIndexDataReaderRoleId = '1407120a-92aa-4202-b7e9-c0e197c71c8f'
 var cognitiveServicesUserRoleId = 'a97b65f3-24c7-4388-baec-2e87135dc908'
 
-resource aiServices 'Microsoft.CognitiveServices/accounts@2025-09-01' existing = {
+resource aiServices 'Microsoft.CognitiveServices/accounts@2026-05-01' existing = {
   name: aiServicesName
 }
 
-resource aiProject 'Microsoft.CognitiveServices/accounts/projects@2025-09-01' existing = {
+resource aiProject 'Microsoft.CognitiveServices/accounts/projects@2026-05-01' existing = {
   parent: aiServices
   name: aiProjectName
 }
@@ -93,7 +93,7 @@ resource search 'Microsoft.Search/searchServices@2026-03-01-preview' = {
   }
 }
 
-resource searchConnection 'Microsoft.CognitiveServices/accounts/projects/connections@2025-09-01' = {
+resource searchConnection 'Microsoft.CognitiveServices/accounts/projects/connections@2026-05-01' = {
   parent: aiProject
   name: 'demo1-search'
   properties: {
@@ -109,7 +109,7 @@ resource searchConnection 'Microsoft.CognitiveServices/accounts/projects/connect
   }
 }
 
-resource knowledgeConnection 'Microsoft.CognitiveServices/accounts/projects/connections@2025-09-01' = {
+resource knowledgeConnection 'Microsoft.CognitiveServices/accounts/projects/connections@2026-05-01' = {
   parent: aiProject
   name: connectionName
   properties: any({

@@ -44,10 +44,13 @@ public sealed class FoundryAgentClient(
 
         AccessToken token = await credential.GetTokenAsync(
             new TokenRequestContext(["https://ai.azure.com/.default"]), cancellationToken);
-        using HttpRequestMessage request = new(HttpMethod.Post, new Uri(settings.Endpoint,
-            $"agents/{Uri.EscapeDataString(agentName)}/endpoint/protocols/openai/responses?api-version=v1"));
+        using HttpRequestMessage request = new(HttpMethod.Post, new Uri(settings.Endpoint, "openai/v1/responses"));
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
-        request.Content = JsonContent.Create(new { input = new[] { new { role = "user", content = prompt } } });
+        request.Content = JsonContent.Create(new
+        {
+            agent_reference = new { type = "agent_reference", name = agentName },
+            input = new[] { new { role = "user", content = prompt } }
+        });
         using HttpResponseMessage response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         response.EnsureSuccessStatusCode();
         if (response.Content.Headers.ContentLength > DemoLimits.ResponseBytes)

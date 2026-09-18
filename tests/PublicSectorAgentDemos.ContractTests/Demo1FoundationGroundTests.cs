@@ -631,6 +631,7 @@ public sealed class Demo1FoundationGroundTests
     [InlineData("rerun-update-version")]
     [InlineData("partial-recovery")]
     [InlineData("transient-probe-retry")]
+    [InlineData("project-readiness-retry")]
     public async Task AgentPublisherPassesMockedRestScenarios(string testCase)
     {
         string root = FindRepositoryRoot();

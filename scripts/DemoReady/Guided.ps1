@@ -605,7 +605,7 @@ function Get-DemoReadyPlannedAction {
     foreach ($entry in @($ExternalPlan)) {
         $actions.Add(
             $entry.EnvironmentExists `
-                ? "Select existing optional environment '$($entry.EnvironmentName)'. Run no deployment command." `
+                ? "Select existing optional environment '$($entry.EnvironmentName)', then deploy it idempotently with azd up." `
                 : "Create optional environment '$($entry.EnvironmentName)', then deploy it with azd up.")
     }
     if ($Selection['Demo4']) {
@@ -845,7 +845,7 @@ function Read-DemoReadyTeardownSelection {
         -Message 'Press Enter to accept the selection recorded by the latest successful or failed startup run.'
     Write-Host ''
     $selection = [ordered]@{}
-    foreach ($key in @('Demo1', 'Demo2', 'Demo3', 'Demo4')) {
+    foreach ($key in @('Demo1', 'Demo2', 'Demo3', 'Demo4', 'Patriots', 'TokensAndCredits')) {
         $selection[$key] = Read-DemoReadyYesNo `
             -Prompt "Remove $((Get-DemoReadyDemoLabel)[$key])?" `
             -Default ([bool]$Defaults[$key]) `
@@ -874,7 +874,7 @@ function Show-DemoReadyTeardownPlan {
     Write-Host '  Azure deployments removed' -ForegroundColor White
     $rows = @($Contexts | ForEach-Object {
         $scope = ($null -ne $_.PSObject.Properties['Optional'] -and $_.Optional) `
-            ? 'Optional, startup-created' `
+            ? 'Optional, selected deployment' `
             : 'Owned'
         , @($_.Name, $_.Environment, "rg-$($_.Environment)", $scope)
     })
@@ -942,7 +942,7 @@ function Show-DemoReadyTeardownPlan {
             [bool]$context.Optional
         $actions.Add(
             $optional `
-                ? "Remove startup-created optional environment '$($context.Environment)', purge its soft-deleted resources, then remove its local azd environment." `
+                ? "Remove selected optional environment '$($context.Environment)', purge its soft-deleted resources, then remove its local azd environment." `
                 : "Remove $($context.Environment), then purge its soft-deleted AI accounts and Key Vaults.")
     }
     if ($Selection.Demo4) {
@@ -961,7 +961,7 @@ function Show-DemoReadyTeardownPlan {
 
     Write-Host '  Not removed' -ForegroundColor White
     Write-DemoReadyStatus -Status 'no' -Message 'No unrelated Azure environment, resource, identity, repository, or process.'
-    Write-DemoReadyStatus -Status 'no' -Message 'No optional Azure environment that existed before the recorded startup run.'
+    Write-DemoReadyStatus -Status 'no' -Message 'No optional Azure environment that was not selected or deployed by the recorded startup run.'
     Write-DemoReadyStatus -Status 'no' -Message 'No optional checkout without exact startup ownership and Git synchronization proof.'
     Write-DemoReadyRule
 }

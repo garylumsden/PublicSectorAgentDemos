@@ -7,6 +7,8 @@ param(
     [switch]$Demo2,
     [switch]$Demo3,
     [switch]$Demo4,
+    [switch]$Patriots,
+    [switch]$TokensAndCredits,
     [switch]$All,
 
     [ValidatePattern('^[a-z][a-z0-9-]{0,62}[a-z0-9]$')]
@@ -80,12 +82,15 @@ $reportMatchesEnvironment = -not [string]::IsNullOrWhiteSpace($reportEnvironment
     -not [string]::IsNullOrWhiteSpace($reportSubscriptionId) -and
     $reportSubscriptionId -ceq $subscriptionSummary.Id
 $interactive = -not $NonInteractive -and (Test-DemoReadyInteractiveConsole)
-$hasSelection = $Demo1 -or $Demo2 -or $Demo3 -or $Demo4 -or $All
+$hasSelection = $Demo1 -or $Demo2 -or $Demo3 -or $Demo4 -or
+    $Patriots -or $TokensAndCredits -or $All
 $selection = [ordered]@{
     Demo1 = [bool]($All -or $Demo1)
     Demo2 = [bool]($All -or $Demo2)
     Demo3 = [bool]($All -or $Demo3)
     Demo4 = [bool]($All -or $Demo4)
+    Patriots = [bool]($All -or $Patriots)
+    TokensAndCredits = [bool]($All -or $TokensAndCredits)
 }
 $selectionsProperty = $null -eq $report -or -not $reportMatchesEnvironment `
     ? $null `
@@ -95,6 +100,8 @@ $recordedSelection = [ordered]@{
     Demo2 = $false
     Demo3 = $false
     Demo4 = $false
+    Patriots = $false
+    TokensAndCredits = $false
 }
 if ($null -ne $selectionsProperty) {
     foreach ($key in @($recordedSelection.Keys)) {
@@ -135,7 +142,7 @@ if (-not $hasSelection) {
         $selection = Read-DemoReadyTeardownSelection -Defaults $recordedSelection
     }
     elseif ($null -eq $selectionsProperty) {
-        throw 'No matching readiness selection exists. Specify -Demo1, -Demo2, -Demo3, -Demo4, or -All.'
+        throw 'No matching readiness selection exists. Specify a demonstration switch or -All.'
     }
     else {
         $selection = $recordedSelection
@@ -199,9 +206,21 @@ $ownedContexts = @(
         Optional = $false
     }
 ) | Where-Object { $selection[$_.Key] }
-$optionalAzureContexts = Get-DemoReadyOptionalAzureTeardownContexts `
+$optionalAzureContexts = @(Get-DemoReadyOptionalAzureTeardownContexts `
     -Report $report `
-    -ReportMatchesEnvironment $reportMatchesEnvironment
+    -ReportMatchesEnvironment $reportMatchesEnvironment | Where-Object {
+        ([string]$_.Key -ceq 'patriots' -and $selection.Patriots) -or
+        ([string]$_.Key -ceq 'tokensAndCredits' -and $selection.TokensAndCredits)
+    })
+foreach ($optionalSelection in @(
+    [pscustomobject]@{ Key = 'patriots'; Selection = 'Patriots'; Name = 'Patriots' },
+    [pscustomobject]@{ Key = 'tokensAndCredits'; Selection = 'TokensAndCredits'; Name = 'Tokens and Credits' }
+)) {
+    if ($selection[$optionalSelection.Selection] -and
+        @($optionalAzureContexts | Where-Object Key -ceq $optionalSelection.Key).Count -eq 0) {
+        throw "The selected $($optionalSelection.Name) teardown lacks matching deployment evidence in the readiness report."
+    }
+}
 $definitions = Get-DemoReadyExternalRepositoryDefinition
 foreach ($context in $optionalAzureContexts) {
     $definition = [string]$context.Key -ceq 'patriots' `
@@ -419,16 +438,8 @@ $processNames = [Collections.Generic.List[string]]::new()
 $processNames.Add('presenter')
 if ($selection.Demo1) { $processNames.Add('demo1-comparison') }
 if ($selection.Demo3) { $processNames.Add('cross-government-coordinate') }
-if ($reportMatchesEnvironment -and $null -ne $selectionsProperty) {
-    $patriotsSelection = $selectionsProperty.Value.PSObject.Properties['Patriots']
-    $tokensSelection = $selectionsProperty.Value.PSObject.Properties['TokensAndCredits']
-    if ($null -ne $patriotsSelection -and [bool]$patriotsSelection.Value) {
-        $processNames.Add('external-patriots')
-    }
-    if ($null -ne $tokensSelection -and [bool]$tokensSelection.Value) {
-        $processNames.Add('tokens-and-credits')
-    }
-}
+if ($selection.Patriots) { $processNames.Add('external-patriots') }
+if ($selection.TokensAndCredits) { $processNames.Add('tokens-and-credits') }
 
 $selectedNames = @($contexts | ForEach-Object { $_.Name }) -join ', '
 if ([string]::IsNullOrWhiteSpace($selectedNames)) {

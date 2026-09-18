@@ -27,11 +27,11 @@ param skuCapacity int
 @description('Custom RAI (content-safety) policy to bind to this deployment. Empty uses the account default.')
 param raiPolicyName string = ''
 
-resource aiServices 'Microsoft.CognitiveServices/accounts@2025-09-01' existing = {
+resource aiServices 'Microsoft.CognitiveServices/accounts@2026-05-01' existing = {
   name: aiServicesName
 }
 
-resource deployment 'Microsoft.CognitiveServices/accounts/deployments@2025-09-01' = {
+resource deployment 'Microsoft.CognitiveServices/accounts/deployments@2026-05-01' = {
   parent: aiServices
   name: deploymentName
   sku: {

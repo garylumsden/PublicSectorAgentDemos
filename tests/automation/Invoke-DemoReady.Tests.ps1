@@ -948,6 +948,8 @@ Test-Case 'Teardown matches the four-step guided startup experience' {
 
     foreach ($required in @(
         '[switch]$NonInteractive',
+        '[switch]$Patriots',
+        '[switch]$TokensAndCredits',
         'Test-DemoReadyInteractiveConsole',
         "Write-DemoReadyTeardownSection -Key 'Subscription'",
         'Read-DemoReadyTeardownSelection',
@@ -982,14 +984,24 @@ Test-Case 'Teardown matches the four-step guided startup experience' {
     }
 
     $answers = [Collections.Generic.Queue[string]]::new()
-    foreach ($answer in @('', 'n', '', 'n')) { $answers.Enqueue($answer) }
+    foreach ($answer in @('', 'n', '', 'n', '', 'n')) { $answers.Enqueue($answer) }
     $selection = Read-DemoReadyTeardownSelection `
-        -Defaults ([ordered]@{ Demo1 = $true; Demo2 = $true; Demo3 = $true; Demo4 = $true }) `
+        -Defaults ([ordered]@{
+            Demo1 = $true
+            Demo2 = $true
+            Demo3 = $true
+            Demo4 = $true
+            Patriots = $true
+            TokensAndCredits = $true
+        }) `
         -InputProvider { param($Prompt) return $answers.Dequeue() }
     Assert-True $selection.Demo1 'Teardown did not apply the recorded Demo 1 default.'
     Assert-True (-not $selection.Demo2) 'Teardown did not accept the Demo 2 exclusion.'
     Assert-True $selection.Demo3 'Teardown did not apply the recorded Demo 3 default.'
     Assert-True (-not $selection.Demo4) 'Teardown did not accept the Demo 4 exclusion.'
+    Assert-True $selection.Patriots 'Teardown did not apply the recorded Patriots default.'
+    Assert-True (-not $selection.TokensAndCredits) `
+        'Teardown did not accept the Tokens and Credits exclusion.'
 
     $rendered = @(Show-DemoReadyTeardownPlan `
         -Selection $selection `
@@ -1731,7 +1743,7 @@ Test-Case 'External azd environment resolution handles missing, default, and amb
         }
 }
 
-Test-Case 'Existing optional environments are selected without deployment or environment writes' {
+Test-Case 'Existing optional environments are selected and deployed without environment writes' {
     foreach ($fixture in @(
         [pscustomobject]@{
             Identity = 'patriots'
@@ -1795,7 +1807,8 @@ Test-Case 'Existing optional environments are selected without deployment or env
                     -Location 'swedencentral' `
                     -SubscriptionId '11111111-1111-1111-1111-111111111111' `
                     -PrincipalId '22222222-2222-2222-2222-222222222222' `
-                    -State $state
+                    -State $state `
+                    -UseFoundryResourceGeneration:($fixture.Identity -ceq 'tokensAndCredits')
             }
         Assert-Equal $state.azdEnvironmentName $fixture.ExpectedName `
             'The existing optional environment name is incorrect.'
@@ -1803,15 +1816,23 @@ Test-Case 'Existing optional environments are selected without deployment or env
             'The existing optional environment lost its provenance.'
         Assert-True (-not $state.azdEnvironmentCreatedByThisRun) `
             'The existing optional environment was marked as created.'
-        Assert-True (-not $state.azdEnvironmentDeployedByThisRun) `
-            'The existing optional environment was marked as deployed.'
-        Assert-Equal $script:optionalAzdCalls.Count 1 `
-            'Existing optional environment handling ran more than one azd command.'
+        Assert-True $state.azdEnvironmentDeployedByThisRun `
+            'The existing optional environment deployment was not recorded.'
+        Assert-Equal $script:optionalAzdCalls.Count 2 `
+            'Existing optional environment handling did not select and deploy exactly once.'
         Assert-Equal ($script:optionalAzdCalls[0].Arguments -join '|') `
             "env|select|$($fixture.ExpectedName)|--no-prompt" `
-            'Existing optional environment handling did not only select the environment.'
-        Assert-Equal $script:optionalAzdWrites.Count 0 `
-            'Existing optional environment handling changed azd values.'
+            'Existing optional environment handling did not select the environment first.'
+        Assert-Equal ($script:optionalAzdCalls[1].Arguments -join '|') `
+            "up|--environment|$($fixture.ExpectedName)|--no-prompt" `
+            'Existing optional environment handling did not deploy idempotently.'
+        $expectedWriteCount = $fixture.Identity -ceq 'tokensAndCredits' ? 1 : 0
+        Assert-Equal $script:optionalAzdWrites.Count $expectedWriteCount `
+            'Existing optional environment handling wrote unexpected azd values.'
+        if ($fixture.Identity -ceq 'tokensAndCredits') {
+            Assert-Equal $script:optionalAzdWrites[0].Name 'DEMO_READY_FOUNDRY_RESOURCE_GENERATION' `
+                'Tokens and Credits did not initialize its Foundry resource generation.'
+        }
     }
 }
 
@@ -2229,24 +2250,25 @@ Test-Case 'Act uses the endpoint published by the bundled Demo 2 deployment' {
     }
 }
 
-Test-Case 'Startup deploys optional repositories only through the guarded environment helper' {
+Test-Case 'Startup deploys new and existing optional environments through one helper' {
     Assert-Equal ([regex]::Matches(
             $externalSource,
             '@\(''up'', ''--environment'', \$environmentName, ''--no-prompt''\)')).Count 1 `
         'Optional deployment does not use one guarded azd up path.'
     Assert-True ($externalSource.Contains('if ($environmentPlan.EnvironmentExists)', [StringComparison]::Ordinal)) `
-        'Optional environment reuse has no explicit deployment guard.'
+        'Optional environment reuse has no explicit selection branch.'
     Assert-True ($externalSource.IndexOf(
             'if ($environmentPlan.EnvironmentExists)',
             [StringComparison]::Ordinal) -lt
         $externalSource.IndexOf(
             "@('up', '--environment', `$environmentName, '--no-prompt')",
             [StringComparison]::Ordinal)) `
-        'The optional deployment command occurs before the existing-environment guard.'
+        'The optional deployment command occurs before environment selection or creation.'
     foreach ($required in @(
         '-Integration $patriotsIntegration',
         '-Integration $tokensIntegration',
         '-UsePatriotsFoundryIqDefaults',
+        '-UseFoundryResourceGeneration',
         "Get-DemoReadyModelCapacityPlan ``"
     )) {
         Assert-True ($invokeSource.Contains($required, [StringComparison]::Ordinal)) `
@@ -2976,7 +2998,7 @@ Test-Case 'Teardown reverses selected startup work and can retain optional check
     }
 }
 
-Test-Case 'Optional teardown includes only environments created by the recorded startup run' {
+Test-Case 'Optional teardown includes environments created or deployed by the recorded startup run' {
     $report = [pscustomobject]@{
         external = [pscustomobject]@{
             patriots = [pscustomobject]@{
@@ -2984,7 +3006,7 @@ Test-Case 'Optional teardown includes only environments created by the recorded 
                 azdEnvironmentName = 'existing-patriots'
                 azdEnvironmentExisted = $true
                 azdEnvironmentCreatedByThisRun = $false
-                azdEnvironmentDeployedByThisRun = $false
+                azdEnvironmentDeployedByThisRun = $true
             }
             tokensAndCredits = [pscustomobject]@{
                 repositoryPath = 'C:\repos\tokens-and-credits'
@@ -3000,12 +3022,12 @@ Test-Case 'Optional teardown includes only environments created by the recorded 
     $contexts = Get-DemoReadyOptionalAzureTeardownContexts `
         -Report $report `
         -ReportMatchesEnvironment $true
-    Assert-Equal $contexts.Count 1 `
-        'Teardown did not restrict optional Azure scope to startup-created environments.'
-    Assert-Equal $contexts[0].Key 'tokensAndCredits' `
-        'Teardown selected an existing optional environment.'
-    Assert-Equal $contexts[0].Environment 'psad-demos-tokens' `
-        'Teardown selected the wrong optional environment.'
+    Assert-Equal $contexts.Count 2 `
+        'Teardown omitted an optional environment that startup created or deployed.'
+    Assert-Equal $contexts[0].Key 'patriots' `
+        'Teardown omitted the deployed existing optional environment.'
+    Assert-Equal $contexts[1].Environment 'psad-demos-tokens' `
+        'Teardown selected the wrong created optional environment.'
     Assert-True $contexts[0].Optional `
         'The optional teardown context lost its scope marker.'
 
@@ -3014,10 +3036,9 @@ Test-Case 'Optional teardown includes only environments created by the recorded 
             patriots = [pscustomobject]@{
                 repositoryPath = 'C:\repos\azure-ai-mgs-patriots'
                 azdEnvironmentName = 'existing-patriots'
-                azdEnvironmentManagedByThisRepository = $true
+                azdEnvironmentManagedByThisRepository = $false
                 azdEnvironmentCreatedByThisRun = $false
-                azdEnvironmentExisted = $true
-                azdEnvironmentDeployedByThisRun = $false
+                azdEnvironmentDeployedByThisRun = $true
             }
         }
     }
@@ -3027,8 +3048,8 @@ Test-Case 'Optional teardown includes only environments created by the recorded 
                 -Report $inconsistent `
                 -ReportMatchesEnvironment $true
         } `
-        -ExpectedFragment 'lacks creation proof' `
-        -Message 'Managed-only optional Azure state authorized teardown.'
+        -ExpectedFragment 'ownership state is inconsistent' `
+        -Message 'Incomplete deployed optional Azure state authorized teardown.'
 
     Assert-Equal @(Get-DemoReadyOptionalAzureTeardownContexts `
             -Report $report `

@@ -44,10 +44,14 @@ public sealed class FoundryClientTests
     private static void AssertRequest(RecordedRequest request, string name, string prompt)
     {
         Assert.Equal(HttpMethod.Post, request.Method);
-        Assert.Equal($"https://test.services.ai.azure.com/api/projects/example/agents/{name}/endpoint/protocols/openai/responses?api-version=v1", request.Uri.AbsoluteUri);
+        Assert.Equal("https://test.services.ai.azure.com/api/projects/example/openai/v1/responses", request.Uri.AbsoluteUri);
         Assert.Equal("Bearer local-test-token", request.Authorization);
         using JsonDocument body = JsonDocument.Parse(request.Body);
-        Assert.Single(body.RootElement.EnumerateObject());
+        Assert.Equal(2, body.RootElement.EnumerateObject().Count());
+        JsonElement agentReference = body.RootElement.GetProperty("agent_reference");
+        Assert.Equal("agent_reference", agentReference.GetProperty("type").GetString());
+        Assert.Equal(name, agentReference.GetProperty("name").GetString());
+        Assert.Equal(2, agentReference.EnumerateObject().Count());
         JsonElement input = Assert.Single(body.RootElement.GetProperty("input").EnumerateArray());
         Assert.Equal("user", input.GetProperty("role").GetString());
         Assert.Equal(prompt, input.GetProperty("content").GetString());

@@ -550,7 +550,7 @@ function Get-DemoReadyExternalAzdEnvironmentPlan {
             EnvironmentName = $environmentName
             EnvironmentExists = $true
             Location = [string]::IsNullOrWhiteSpace($existingLocation) ? 'unchanged' : $existingLocation
-            Action = 'Reuse the existing azd environment. Run no Azure deployment command.'
+            Action = 'Reuse the existing azd environment and deploy it idempotently with azd up.'
         }
     }
 
@@ -666,6 +666,7 @@ function Initialize-DemoReadyExternalAzdEnvironment {
         [Parameter(Mandatory)][Collections.IDictionary]$State,
         [string[]]$SensitiveValues = @(),
         [switch]$UsePatriotsFoundryIqDefaults,
+        [switch]$UseFoundryResourceGeneration,
         [string]$LogPath
     )
 
@@ -689,40 +690,25 @@ function Initialize-DemoReadyExternalAzdEnvironment {
             -WorkingDirectory $repository.Path `
             -SensitiveValues $SensitiveValues `
             -Quiet
-        return
     }
+    else {
+        Invoke-DemoReadyAzd `
+            -Arguments @(
+                'env', 'new', $environmentName,
+                '--subscription', $SubscriptionId,
+                '--location', $Location,
+                '--no-prompt'
+            ) `
+            -WorkingDirectory $repository.Path `
+            -SensitiveValues $SensitiveValues `
+            -Quiet
+        $State['azdEnvironmentManagedByThisRepository'] = $true
+        $State['azdEnvironmentCreatedByThisRun'] = $true
 
-    Invoke-DemoReadyAzd `
-        -Arguments @(
-            'env', 'new', $environmentName,
-            '--subscription', $SubscriptionId,
-            '--location', $Location,
-            '--no-prompt'
-        ) `
-        -WorkingDirectory $repository.Path `
-        -SensitiveValues $SensitiveValues `
-        -Quiet
-    $State['azdEnvironmentManagedByThisRepository'] = $true
-    $State['azdEnvironmentCreatedByThisRun'] = $true
-
-    foreach ($setting in ([ordered]@{
-        AZURE_SUBSCRIPTION_ID = $SubscriptionId
-        AZURE_LOCATION = $Location
-        AZURE_PRINCIPAL_ID = $PrincipalId
-    }).GetEnumerator()) {
-        Set-DemoReadyAzdValue `
-            -ContextPath $repository.Path `
-            -EnvironmentName $environmentName `
-            -Name ([string]$setting.Key) `
-            -Value ([string]$setting.Value) `
-            -SensitiveValues $SensitiveValues
-    }
-
-    if ($UsePatriotsFoundryIqDefaults) {
         foreach ($setting in ([ordered]@{
-            COUNCIL_GROUNDING_PROVIDER = 'foundryiq'
-            WEBIQ_CONNECTION_NAME = ''
-            WEBIQ_API_KEY = ''
+            AZURE_SUBSCRIPTION_ID = $SubscriptionId
+            AZURE_LOCATION = $Location
+            AZURE_PRINCIPAL_ID = $PrincipalId
         }).GetEnumerator()) {
             Set-DemoReadyAzdValue `
                 -ContextPath $repository.Path `
@@ -731,6 +717,27 @@ function Initialize-DemoReadyExternalAzdEnvironment {
                 -Value ([string]$setting.Value) `
                 -SensitiveValues $SensitiveValues
         }
+
+        if ($UsePatriotsFoundryIqDefaults) {
+            foreach ($setting in ([ordered]@{
+                COUNCIL_GROUNDING_PROVIDER = 'foundryiq'
+                WEBIQ_CONNECTION_NAME = ''
+                WEBIQ_API_KEY = ''
+            }).GetEnumerator()) {
+                Set-DemoReadyAzdValue `
+                    -ContextPath $repository.Path `
+                    -EnvironmentName $environmentName `
+                    -Name ([string]$setting.Key) `
+                    -Value ([string]$setting.Value) `
+                    -SensitiveValues $SensitiveValues
+            }
+        }
+    }
+
+    if ($UseFoundryResourceGeneration) {
+        $null = Initialize-DemoReadyFoundryResourceGeneration `
+            -ContextPath $repository.Path `
+            -EnvironmentName $environmentName
     }
 
     Invoke-DemoReadyAzd `
@@ -762,19 +769,15 @@ function Get-DemoReadyOptionalAzureTeardownContexts {
             continue
         }
         $entry = $property.Value
-        $managedProperty = $entry.PSObject.Properties['azdEnvironmentManagedByThisRepository']
         $createdProperty = $entry.PSObject.Properties['azdEnvironmentCreatedByThisRun']
-        $managed = $null -ne $managedProperty -and [bool]$managedProperty.Value
+        $deployedProperty = $entry.PSObject.Properties['azdEnvironmentDeployedByThisRun']
         $created = $null -ne $createdProperty -and [bool]$createdProperty.Value
-        if ($managed -and -not $created) {
-            throw "The recorded $($definition.Name) Azure ownership lacks creation proof."
-        }
-        if (-not $created) {
+        $deployed = $null -ne $deployedProperty -and [bool]$deployedProperty.Value
+        if (-not $created -and -not $deployed) {
             continue
         }
         $existedProperty = $entry.PSObject.Properties['azdEnvironmentExisted']
-        $deployedProperty = $entry.PSObject.Properties['azdEnvironmentDeployedByThisRun']
-        if ($null -eq $existedProperty -or $null -eq $deployedProperty) {
+        if ($null -eq $existedProperty) {
             throw "The recorded $($definition.Name) Azure ownership state is inconsistent."
         }
         $environmentName = [string]$entry.azdEnvironmentName

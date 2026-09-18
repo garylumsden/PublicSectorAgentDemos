@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)]
-    [ValidateSet('first-create', 'rerun-update-version', 'partial-recovery', 'transient-probe-retry')]
+    [ValidateSet('first-create', 'rerun-update-version', 'partial-recovery', 'transient-probe-retry', 'project-readiness-retry')]
     [string]$Case,
     [Parameter(Mandatory)]
     [string]$RepositoryRoot
@@ -128,6 +128,7 @@ function New-MockAgentService {
             version = [string]$versionNumber
             description = [string]$body.description
             definition = $body.definition
+            metadata = $body.metadata
         }
         if (-not $state.Agents.ContainsKey($name)) {
             $state.Agents[$name] = @{
@@ -192,15 +193,14 @@ switch ($Case) {
             -Payload (New-AgentPayload -Name 'foundation' -Instructions 'Changed instructions.') `
             -RestInvoker $service.Invoker
 
-        Assert-Equal 'updated' $same.Operation 'The unchanged rerun operation differs.'
+        Assert-Equal 'unchanged' $same.Operation 'The unchanged rerun operation differs.'
         Assert-Equal '1' $same.Version 'The unchanged rerun created another version.'
         Assert-Equal 'updated' $changed.Operation 'The changed rerun operation differs.'
         Assert-Equal '2' $changed.Version 'The changed rerun did not create version 2.'
         Assert-Equal 2 $service.State.Agents.foundation.Versions.Count 'The version count differs.'
-        Assert-Equal '/agents/foundation' $service.State.Calls[4].Route 'The named update route differs.'
-        Assert-Equal '/agents/foundation/versions/1' $service.State.Calls[5].Route 'The rerun verification route differs.'
-        Assert-Equal '/agents/foundation' $service.State.Calls[7].Route 'The changed update route differs.'
-        Assert-Equal '/agents/foundation/versions/2' $service.State.Calls[8].Route 'The changed verification route differs.'
+        Assert-Equal '/agents/foundation' $service.State.Calls[3].Route 'The unchanged lookup route differs.'
+        Assert-Equal '/agents/foundation/versions' $service.State.Calls[5].Route 'The changed update route differs.'
+        Assert-Equal '/agents/foundation/versions/2' $service.State.Calls[6].Route 'The changed verification route differs.'
     }
     'partial-recovery' {
         $service = New-MockAgentService -FailFirstCreateFor 'ground'
@@ -236,6 +236,44 @@ switch ($Case) {
         Assert-Equal $true $service.State.Agents.ContainsKey('ground') 'Ground was not created during recovery.'
         Assert-Equal 1 $service.State.Agents.foundation.Versions.Count 'Foundation gained a duplicate version.'
         Assert-Equal 1 $service.State.Agents.ground.Versions.Count 'Ground has an unexpected version count.'
+    }
+    'project-readiness-retry' {
+        $attempts = 0
+        $delays = [Collections.Generic.List[int]]::new()
+        $invoker = {
+            param([hashtable]$Request)
+            $script:attempts++
+            if ($script:attempts -lt 3) {
+                $exception = [Exception]::new('Project not found')
+                $exception | Add-Member NoteProperty Response ([pscustomobject]@{ StatusCode = 404 })
+                $record = [Management.Automation.ErrorRecord]::new(
+                    $exception,
+                    'ProjectNotFound',
+                    [Management.Automation.ErrorCategory]::ObjectNotFound,
+                    $null)
+                $record.ErrorDetails = [Management.Automation.ErrorDetails]::new(
+                    '{"error":{"code":"NotFound","message":"Project not found"}}')
+                throw $record
+            }
+            return [pscustomobject]@{ data = @() }
+        }
+        $sleep = {
+            param([int]$DelaySeconds)
+            $delays.Add($DelaySeconds)
+        }.GetNewClosure()
+
+        Wait-Demo1ProjectReady `
+            -ProjectUri $projectUri `
+            -Headers $headers `
+            -TimeoutSeconds 30 `
+            -PollIntervalSeconds 5 `
+            -RestInvoker $invoker `
+            -SleepAction $sleep
+
+        Assert-Equal 3 $attempts 'The project readiness retry count differs.'
+        Assert-Equal 2 $delays.Count 'The project readiness delay count differs.'
+        Assert-Equal 5 $delays[0] 'The first project readiness delay differs.'
+        Assert-Equal 5 $delays[1] 'The second project readiness delay differs.'
     }
     'transient-probe-retry' {
         $attempts = 0

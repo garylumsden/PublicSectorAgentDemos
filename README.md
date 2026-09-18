@@ -21,7 +21,7 @@ The [Act runbook](docs/runbooks/act-flood-support.md) explains the fictional flo
 
 **Patriots and Tokens and Credits remain optional and external.**
 Startup preserves their source and uses each checkout's existing azd project.
-If a selected checkout has any local azd environment, startup selects one and runs no deployment command.
+If a selected checkout has a local azd environment, startup selects it and runs `azd up` idempotently.
 If it has no environment, startup creates and deploys a deterministic optional environment.
 
 ## Fresh setup
@@ -79,8 +79,9 @@ Remove the deployments and local state created by the latest startup run:
 With no options, the interactive command confirms the Azure target, asks which demos to remove, asks whether to keep the optional checkouts, and shows the complete teardown plan before confirmation.
 Teardown uses `azd down --purge`, then explicitly purges matching soft-deleted AI accounts and Key Vaults.
 It also rotates the Demo 2 Foundry resource generation because Azure can retain its hidden soft-deleted AML workspace.
-It removes an optional Azure environment only when the readiness report proves that startup created it.
-After successful optional teardown, it also removes that local `azd` environment from the Patriots or Tokens and Credits repository.
+Guided teardown asks separately whether to remove Patriots and Tokens and Credits.
+A selected optional teardown requires a matching report that proves startup created or deployed the environment.
+After successful optional teardown, it removes that local `azd` environment from the external repository.
 Use `-NonInteractive` with explicit selection arguments for automation.
 
 Keep the optional Patriots and Tokens and Credits checkouts on disk:
@@ -119,7 +120,7 @@ Alternatively, use `-IncludePatriots` with a stored path, `PSAD_PATRIOTS_REPO_PA
 Startup reuses or clones the checkout, builds it, and starts its local application.
 Startup first inspects `azd env list --output json` in the checkout.
 If any environment exists, startup selects the configured environment or the single default.
-It then runs no Patriots deployment command.
+It then runs `azd up` to reconcile the Patriots deployment with the selected environment.
 If none exists, startup creates `<EnvironmentName>-patriots` in `-PatriotsLocation`.
 It sets the confirmed subscription and principal, selects Foundry IQ, clears Web IQ settings, and runs `azd up`.
 Use `-PatriotsEnvironmentName` or `repositories.patriots.azdEnvironment` to select or name the optional environment.
@@ -145,7 +146,7 @@ Startup builds only `src\TokensAndCredits.Web\TokensAndCredits.Web.csproj` and b
 It preserves the checkout's existing configuration and credential choices instead of importing Demo 1 settings.
 Startup inspects the checkout's local azd environments before it builds the application.
 If any environment exists, startup selects the configured environment or the single default.
-It runs no provision, deploy, or up command for an existing environment.
+It initializes a stable Foundry resource generation, then runs `azd up` to reconcile Tokens and Credits.
 If none exists, startup creates `<EnvironmentName>-tokens` in `-TokensAndCreditsLocation` and runs `azd up`.
 The existing postprovision hook then configures the local application.
 Use `-TokensAndCreditsEnvironmentName` or `repositories.tokensAndCredits.azdEnvironment` to select or name the optional environment.

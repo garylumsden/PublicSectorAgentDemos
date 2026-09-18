@@ -637,6 +637,7 @@ try {
             -PrincipalId $principalId `
             -State $optionalAzdState['tokensAndCredits'] `
             -SensitiveValues $sensitiveValues `
+            -UseFoundryResourceGeneration `
             -LogPath (Join-Path $logRoot 'tokens-up.log')
     }
     foreach ($entry in $externalPlan) {
