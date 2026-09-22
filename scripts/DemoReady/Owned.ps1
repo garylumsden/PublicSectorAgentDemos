@@ -428,6 +428,53 @@ function Get-DemoReadyHostedAgent {
     }
 }
 
+function Test-DemoReadyHostedAgentCreateConflict {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$Message)
+
+    return $Message.Contains('create_agent: POST', [StringComparison]::Ordinal) -and
+        $Message.Contains('RESPONSE 409: 409 Conflict', [StringComparison]::Ordinal) -and
+        $Message.Contains(
+            'The resource already exists or was modified concurrently.',
+            [StringComparison]::Ordinal)
+}
+
+function Invoke-DemoReadyDemo4Up {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$EnvironmentName,
+        [Parameter(Mandatory)][string]$WorkingDirectory,
+        [string]$LogPath,
+        [string[]]$SensitiveValues = @(),
+        [ValidateRange(1, 5)][int]$MaximumAttempts = 3,
+        [ValidateRange(1, 60)][int]$RetryDelaySeconds = 10
+    )
+
+    for ($attempt = 1; $attempt -le $MaximumAttempts; $attempt++) {
+        try {
+            Invoke-DemoReadyAzdWithPackageRestoreRetry `
+                -Arguments @('up', '--environment', $EnvironmentName, '--no-prompt') `
+                -WorkingDirectory $WorkingDirectory `
+                -LogPath $LogPath `
+                -SensitiveValues $SensitiveValues
+            return
+        }
+        catch {
+            if (-not (Test-DemoReadyHostedAgentCreateConflict -Message $_.Exception.Message) -or
+                $attempt -eq $MaximumAttempts) {
+                throw
+            }
+
+            Write-Warning (
+                'The Demo 4 hosted agent was modified concurrently. ' +
+                "Retrying azd up in $RetryDelaySeconds seconds " +
+                "(attempt $($attempt + 1) of $MaximumAttempts)."
+            )
+            Start-Sleep -Seconds $RetryDelaySeconds
+        }
+    }
+}
+
 function Get-DemoReadyApplicationInsightsConnectionString {
     # Reads the connection string that the local Presenter needs to export its own telemetry.
     # It is application configuration, not validation. It runs one Azure CLI command.

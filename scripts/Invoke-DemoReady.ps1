@@ -738,8 +738,8 @@ try {
 
     if ($selection.Demo4) {
         $demoReadyPhase = 'demo4-deployment'
-        Invoke-DemoReadyAzdWithPackageRestoreRetry `
-            -Arguments @('up', '--environment', $environmentNames.Demo4, '--no-prompt') `
+        Invoke-DemoReadyDemo4Up `
+            -EnvironmentName $environmentNames.Demo4 `
             -WorkingDirectory $contexts.Demo4 `
             -LogPath (Join-Path $logRoot 'demo4-up.log') `
             -SensitiveValues $sensitiveValues

@@ -1081,7 +1081,7 @@ Test-Case 'The normal startup deploys, prepares data, and starts every applicati
         "Join-Path `$repositoryRoot 'deploy\demo1'",
         "Join-Path `$repositoryRoot 'deploy\demo4'",
         "@('provision', '--environment', `$environmentNames.Demo1, '--no-prompt')",
-        "@('up', '--environment', `$environmentNames.Demo4, '--no-prompt')",
+        'Invoke-DemoReadyDemo4Up `',
         'Publish-DemoReadyDemo1Agents',
         'Initialize-DemoReadyDemo4Application',
         'Add-DemoReadyEntraRedirectUri',
@@ -3928,6 +3928,7 @@ Test-Case 'Demo 4 package preparation uses the shared source layout' {
             Assert-True ($source.Contains($requiredPath, [StringComparison]::Ordinal)) `
                 "$scriptName does not package '$requiredPath'."
         }
+
         foreach ($removedPath in @(
             "Join-Path `$repositoryRoot 'contracts'",
             '"src\$sourceDirectory"'
@@ -3936,6 +3937,31 @@ Test-Case 'Demo 4 package preparation uses the shared source layout' {
                 "$scriptName still uses the removed source layout '$removedPath'."
         }
     }
+}
+
+Test-Case 'Demo 4 retries the exact hosted-agent create conflict without deleting the agent' {
+    foreach ($required in @(
+        'function Test-DemoReadyHostedAgentCreateConflict',
+        "'create_agent: POST'",
+        "'RESPONSE 409: 409 Conflict'",
+        'function Invoke-DemoReadyDemo4Up',
+        '[ValidateRange(1, 5)][int]$MaximumAttempts = 3',
+        'The Demo 4 hosted agent was modified concurrently.',
+        "Invoke-DemoReadyDemo4Up ``"
+    )) {
+        Assert-True (
+            $ownedModuleSource.Contains($required, [StringComparison]::Ordinal) -or
+            $invokeSource.Contains($required, [StringComparison]::Ordinal)) `
+            "The Demo 4 hosted-agent recovery path is missing '$required'."
+    }
+    Assert-True ($invokeSource.Contains(
+            "-LogPath (Join-Path `$logRoot 'demo4-up.log')",
+            [StringComparison]::Ordinal)) `
+        'Demo 4 no longer writes its deployment log.'
+    Assert-True (-not $ownedModuleSource.Contains(
+            "Remove-DemoReadyHostedAgentForReplacement ``",
+            [StringComparison]::Ordinal)) `
+        'The Demo 4 conflict recovery path must not delete the hosted agent.'
 }
 
 Test-Case 'Remote Docker builds exclude generated workspace state' {
