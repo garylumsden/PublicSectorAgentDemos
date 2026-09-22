@@ -2276,6 +2276,14 @@ Test-Case 'Startup deploys new and existing optional environments through one he
     }
 }
 
+Test-Case 'Patriots and Tokens initialize stable Foundry generations' {
+    Assert-Equal ([regex]::Matches(
+            $invokeSource,
+            '-UseFoundryResourceGeneration',
+            [Text.RegularExpressions.RegexOptions]::CultureInvariant).Count) 2 `
+        'Both optional Foundry deployments must initialize stable resource generations.'
+}
+
 # ------------------------------------------------------- local council processes
 
 Test-Case 'Council startup preserves restored debate rounds and the engine default' {

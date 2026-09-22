@@ -625,6 +625,7 @@ try {
             -State $optionalAzdState['patriots'] `
             -SensitiveValues $sensitiveValues `
             -UsePatriotsFoundryIqDefaults `
+            -UseFoundryResourceGeneration `
             -LogPath (Join-Path $logRoot 'patriots-up.log')
     }
     if ($selection.TokensAndCredits) {
