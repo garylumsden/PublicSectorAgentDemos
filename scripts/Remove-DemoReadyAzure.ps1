@@ -359,8 +359,16 @@ function Remove-DemoReadySoftDeletedResources {
     param(
         [Parameter(Mandatory)][string]$EnvironmentName,
         [Parameter(Mandatory)][string]$ResourceGroupName,
-        [Parameter(Mandatory)][string]$WorkingDirectory
+        [Parameter(Mandatory)][string]$WorkingDirectory,
+        [switch]$WaitForPropagation
     )
+
+    if ($WaitForPropagation) {
+        Write-DemoReadyStatus `
+            -Status 'pending' `
+            -Message 'Waiting for soft-deleted resources to enter their deleted collections.'
+        Start-Sleep -Seconds 10
+    }
 
     $deletedAccounts = Invoke-DemoReadyNative `
         -FilePath 'az' `
@@ -376,7 +384,8 @@ function Remove-DemoReadySoftDeletedResources {
         $tags = $account.PSObject.Properties['tags']
         $azdEnvironment = $null -eq $tags ? '' : [string]$tags.Value.'azd-env-name'
         if ($deletedResourceGroup -ine $ResourceGroupName -or
-            $azdEnvironment -cne $EnvironmentName) {
+            (-not [string]::IsNullOrWhiteSpace($azdEnvironment) -and
+                $azdEnvironment -cne $EnvironmentName)) {
             continue
         }
         Write-DemoReadyStatus -Status 'step' -Message "Purging deleted AI account '$($account.name)'."
@@ -393,6 +402,20 @@ function Remove-DemoReadySoftDeletedResources {
         Write-DemoReadyStatus -Status 'ok' -Message "Purged deleted AI account '$($account.name)'."
     }
 
+    $remainingAccounts = Invoke-DemoReadyNative `
+        -FilePath 'az' `
+        -Arguments @('cognitiveservices', 'account', 'list-deleted', '--output', 'json') `
+        -WorkingDirectory $WorkingDirectory `
+        -CaptureOutput `
+        -Quiet | ConvertFrom-Json
+    $remainingAccountNames = @($remainingAccounts | Where-Object {
+        [string]$_.id -match '/resourceGroups/([^/]+)/' -and
+        $matches[1] -ieq $ResourceGroupName
+    } | ForEach-Object { [string]$_.name })
+    if ($remainingAccountNames.Count -gt 0) {
+        throw "Deleted AI accounts remain for '$ResourceGroupName': $($remainingAccountNames -join ', ')."
+    }
+
     $deletedVaults = Invoke-DemoReadyNative `
         -FilePath 'az' `
         -Arguments @('keyvault', 'list-deleted', '--output', 'json') `
@@ -406,7 +429,8 @@ function Remove-DemoReadySoftDeletedResources {
         $vaultId = $null -eq $properties ? '' : [string]$properties.Value.vaultId
         $deletedResourceGroup = $vaultId -match '/resourceGroups/([^/]+)/' ? $matches[1] : ''
         if ($deletedResourceGroup -ine $ResourceGroupName -or
-            $azdEnvironment -cne $EnvironmentName) {
+            (-not [string]::IsNullOrWhiteSpace($azdEnvironment) -and
+                $azdEnvironment -cne $EnvironmentName)) {
             continue
         }
         $location = $null -eq $properties `
@@ -419,6 +443,70 @@ function Remove-DemoReadySoftDeletedResources {
             -WorkingDirectory $WorkingDirectory `
             -Quiet
         Write-DemoReadyStatus -Status 'ok' -Message "Purged deleted Key Vault '$($vault.name)'."
+    }
+
+    $remainingVaults = Invoke-DemoReadyNative `
+        -FilePath 'az' `
+        -Arguments @('keyvault', 'list-deleted', '--output', 'json') `
+        -WorkingDirectory $WorkingDirectory `
+        -CaptureOutput `
+        -Quiet | ConvertFrom-Json
+    $remainingVaultNames = @($remainingVaults | Where-Object {
+        $properties = $_.PSObject.Properties['properties']
+        $vaultId = $null -eq $properties ? '' : [string]$properties.Value.vaultId
+        $vaultId -match '/resourceGroups/([^/]+)/' -and
+        $matches[1] -ieq $ResourceGroupName
+    } | ForEach-Object { [string]$_.name })
+    if ($remainingVaultNames.Count -gt 0) {
+        throw "Deleted Key Vaults remain for '$ResourceGroupName': $($remainingVaultNames -join ', ')."
+    }
+
+    $deletedLogWorkspaces = Invoke-DemoReadyNative `
+        -FilePath 'az' `
+        -Arguments @(
+            'monitor', 'log-analytics', 'workspace', 'list-deleted-workspaces',
+            '--resource-group', $ResourceGroupName,
+            '--output', 'json'
+        ) `
+        -WorkingDirectory $WorkingDirectory `
+        -CaptureOutput `
+        -Quiet | ConvertFrom-Json
+    foreach ($workspace in @($deletedLogWorkspaces)) {
+        Write-DemoReadyStatus `
+            -Status 'step' `
+            -Message "Purging deleted Log Analytics workspace '$($workspace.name)'."
+        Invoke-DemoReadyNative `
+            -FilePath 'az' `
+            -Arguments @(
+                'monitor', 'log-analytics', 'workspace', 'delete',
+                '--resource-group', $ResourceGroupName,
+                '--workspace-name', [string]$workspace.name,
+                '--force', 'true',
+                '--yes'
+            ) `
+            -WorkingDirectory $WorkingDirectory `
+            -Quiet
+        Write-DemoReadyStatus `
+            -Status 'ok' `
+            -Message "Purged deleted Log Analytics workspace '$($workspace.name)'."
+    }
+
+    $remainingLogWorkspaces = Invoke-DemoReadyNative `
+        -FilePath 'az' `
+        -Arguments @(
+            'monitor', 'log-analytics', 'workspace', 'list-deleted-workspaces',
+            '--resource-group', $ResourceGroupName,
+            '--output', 'json'
+        ) `
+        -WorkingDirectory $WorkingDirectory `
+        -CaptureOutput `
+        -Quiet | ConvertFrom-Json
+    $remainingLogWorkspaceNames = @($remainingLogWorkspaces | ForEach-Object {
+        [string]$_.name
+    })
+    if ($remainingLogWorkspaceNames.Count -gt 0) {
+        throw "Deleted Log Analytics workspaces remain for '$ResourceGroupName': " +
+            "$($remainingLogWorkspaceNames -join ', ')."
     }
 }
 
@@ -536,7 +624,8 @@ foreach ($context in $contexts) {
     Remove-DemoReadySoftDeletedResources `
         -EnvironmentName $context.Environment `
         -ResourceGroupName $resourceGroupName `
-        -WorkingDirectory $context.Path
+        -WorkingDirectory $context.Path `
+        -WaitForPropagation:([string]$resourceGroupExists.Trim() -ceq 'true')
     if ([string]$context.Key -ceq 'Demo2') {
         $null = Initialize-DemoReadyFoundryResourceGeneration `
             -ContextPath $context.Path `
