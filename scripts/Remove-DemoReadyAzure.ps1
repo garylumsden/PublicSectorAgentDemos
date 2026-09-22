@@ -601,20 +601,16 @@ foreach ($context in $contexts) {
         -CaptureOutput `
         -Quiet
     if ([string]$resourceGroupExists.Trim() -ceq 'true') {
-        Push-Location $context.Path
-        try {
-            & azd down `
-                --environment $context.Environment `
-                --purge `
-                --force `
-                --no-prompt
-            if ($LASTEXITCODE -ne 0) {
-                throw "azd down failed for '$($context.Environment)' with exit code $LASTEXITCODE."
-            }
-        }
-        finally {
-            Pop-Location
-        }
+        Invoke-DemoReadyAzdWithAzureManagementRetry `
+            -Arguments @(
+                'down',
+                '--environment', $context.Environment,
+                '--purge',
+                '--force',
+                '--no-prompt'
+            ) `
+            -WorkingDirectory $context.Path `
+            -LogPath (Join-Path $runtimeRoot "logs\$($context.Environment)-down.log")
     }
     else {
         Write-DemoReadyStatus `

@@ -2934,9 +2934,9 @@ Test-Case 'Committed configuration and scripts contain no workstation path' {
 # ---------------------------------------------------------------------- teardown
 
 Test-Case 'Teardown reverses selected startup work and can retain optional checkouts' {
-    Assert-Equal ([regex]::Matches($removeAzureSource, '& azd down')).Count 1 `
-        'The teardown must use one shared azd down path.'
     foreach ($required in @(
+        'Invoke-DemoReadyAzdWithAzureManagementRetry',
+        "'down'",
         '--purge',
         '--force',
         "'cognitiveservices', 'account', 'purge'",
@@ -3010,6 +3010,36 @@ Test-Case 'Teardown reverses selected startup work and can retain optional check
         Assert-True (-not $removeAzureSource.Contains($forbidden, [StringComparison]::OrdinalIgnoreCase)) `
             "The teardown script contains the forbidden direct deletion '$forbidden'."
     }
+}
+
+Test-Case 'Azure management transport failures retry azd operations' {
+    $script:azureManagementAttempts = 0
+    Invoke-WithMockedFunction -Functions @{
+        'Invoke-DemoReadyAzd' = {
+            param(
+                [string[]]$Arguments,
+                [string]$WorkingDirectory,
+                [string]$LogPath,
+                [string[]]$SensitiveValues
+            )
+            $script:azureManagementAttempts++
+            if ($script:azureManagementAttempts -eq 1) {
+                throw (
+                    'azd failed. Get "https://management.azure.com/subscriptions/example": ' +
+                    'stream error: stream ID 11; CANCEL; received from peer'
+                )
+            }
+        }
+        'Start-Sleep' = { param([int]$Seconds) }
+    } -Action {
+        Invoke-DemoReadyAzdWithAzureManagementRetry `
+            -Arguments @('down', '--force') `
+            -WorkingDirectory $root `
+            -MaximumAttempts 3 `
+            -RetryDelaySeconds 0
+    }
+    Assert-Equal $script:azureManagementAttempts 2 `
+        'The transient Azure management failure was not retried exactly once.'
 }
 
 Test-Case 'Optional teardown includes environments created or deployed by the recorded startup run' {

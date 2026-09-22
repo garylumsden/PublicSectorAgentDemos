@@ -235,6 +235,73 @@ function Invoke-DemoReadyAzdWithPackageRestoreRetry {
     }
 }
 
+function Test-DemoReadyTransientAzureManagementFailure {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string]$Message
+    )
+
+    if (-not $Message.Contains('management.azure.com', [StringComparison]::OrdinalIgnoreCase)) {
+        return $false
+    }
+
+    foreach ($marker in @(
+        'stream error: stream ID',
+        'CANCEL; received from peer',
+        'connection reset by peer',
+        'unexpected EOF',
+        'server sent GOAWAY',
+        'use of closed network connection'
+    )) {
+        if ($Message.Contains($marker, [StringComparison]::OrdinalIgnoreCase)) {
+            return $true
+        }
+    }
+
+    return $false
+}
+
+function Invoke-DemoReadyAzdWithAzureManagementRetry {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string[]]$Arguments,
+        [Parameter(Mandatory)]
+        [string]$WorkingDirectory,
+        [string]$LogPath,
+        [string[]]$SensitiveValues = @(),
+        [ValidateRange(1, 5)]
+        [int]$MaximumAttempts = 3,
+        [ValidateRange(0, 300)]
+        [int]$RetryDelaySeconds = 15
+    )
+
+    for ($attempt = 1; $attempt -le $MaximumAttempts; $attempt++) {
+        try {
+            Invoke-DemoReadyAzd `
+                -Arguments $Arguments `
+                -WorkingDirectory $WorkingDirectory `
+                -LogPath $LogPath `
+                -SensitiveValues $SensitiveValues
+            return
+        }
+        catch {
+            if ($attempt -eq $MaximumAttempts -or
+                -not (Test-DemoReadyTransientAzureManagementFailure -Message $_.Exception.Message)) {
+                throw
+            }
+
+            Write-Warning (
+                'Azure Resource Manager closed the connection during the azd operation. ' +
+                "Retrying in $RetryDelaySeconds seconds " +
+                "(attempt $($attempt + 1) of $MaximumAttempts)."
+            )
+            Start-Sleep -Seconds $RetryDelaySeconds
+        }
+    }
+}
+
 function Get-DemoReadyAzdValues {
     [CmdletBinding()]
     param(
